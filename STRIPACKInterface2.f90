@@ -136,13 +136,13 @@ subroutine NewPrivate(self,aMesh)
 	call GatherPanels(aPanels,self%activePanels,self%activeMap,passivePanels,passiveMap)
 
 	!  Get STRIPACK Delauanay source data from SphereMesh
+	!	Renormalize to unit sphere for STRIPACK
 	do j=1,nActive
 		norm = sqrt(sum(self%activePanels%x(:,j)*self%activePanels%x(:,j)))
 		self%x(j) = self%activePanels%x(1,j)/norm
 		self%y(j) = self%activePanels%x(2,j)/norm
 		self%z(j) = self%activePanels%x(3,j)/norm
 	enddo
-
 	do j=1,self%particles%N
 		norm = sqrt(sum(self%particles%x(:,j)*self%particles%x(:,j)))
 		self%x(nActive+j) = self%particles%x(1,j)/norm
