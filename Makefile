@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-## MAKEFILE FOR Lagrangian Particle/Panel Method
+## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
 # MODIFY THIS SECTION FOR EACH PLATFORM #
 
@@ -55,6 +55,8 @@ cleanx:
 #############################################################
 BASE_OBJS = NumberKinds3.o OutputWriter2.o Logger2.o SphereGeom3.o IntegerList2.o 
 base_objs: NumberKinds3.o OutputWriter2.o Logger2.o SphereGeom3.o IntegerList2.o
+MESH_OBJS = $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
+mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
 
 
 #############################################################
@@ -82,6 +84,10 @@ IntegerList2.o: NumberKinds3.o IntegerList2.f90
 OutputWriter2.o: NumberKinds3.o OutputWriter2.f90
 SphereGeom3.o: NumberKinds3.o SphereGeom3.f90
 Logger2.o: NumberKinds3.o OutputWriter2.o Logger2.f90
+Particles.o: Particles.f90 $(BASE_OBJS)
+Edges.o: Edges.f90 $(BASE_OBJS)
+Panels.o: Panels.f90 $(BASE_OBJS)
+SphereMesh2.o: SphereMesh2.f90 Particles.o Edges.o Panels.o $(BASE_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES
