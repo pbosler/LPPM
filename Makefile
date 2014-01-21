@@ -41,8 +41,8 @@ MKL_COMPILE=-openmp -I/opt/intel/mkl/include/intel64/lp64 -I/opt/intel/mkl/inclu
 	$(FF) -c $(FF_FLAGS) $< `mpif90 -showme:compile` $(MKL_COMPILE)
 %.o : %.f
 	$(FF) -c $(FF_FLAGS) $<
-%.exe : %.o
-	$(FF) $(FF_FLAGS) -o $@ $< `mpif90 -showme:link` $(MKL_COMPILE)	
+%.exe : 
+	$(FF) $(FF_FLAGS) -o $@ $< `mpif90 -showme:link` $(MKL_COMPILE)	$^
 			
 clean:
 	rm *.o *.mod *genmod.f90
@@ -53,10 +53,14 @@ cleanx:
 #############################################################
 ## LOCAL MAKE VARIABLES
 #############################################################
+
 BASE_OBJS = NumberKinds3.o OutputWriter2.o Logger2.o SphereGeom3.o IntegerList2.o 
 base_objs: NumberKinds3.o OutputWriter2.o Logger2.o SphereGeom3.o IntegerList2.o
 MESH_OBJS = $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
-mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
+mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o 
+INTERP_OBJS = $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
+interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
+OUTPUT_OBJS = VTKOutput.o $(BASE_OBJS) $(MESH_OBJS)
 
 
 #############################################################
@@ -71,10 +75,13 @@ mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
 #############################################################
 ## UNIT TEST EXECUTABLES
 #############################################################
+cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
+	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)	
 
 #############################################################
 ## UNIT TEST OBJECT FILES
 #############################################################
+CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
 
 #############################################################
 ## MODULES
@@ -88,6 +95,11 @@ Particles.o: Particles.f90 $(BASE_OBJS)
 Edges.o: Edges.f90 $(BASE_OBJS)
 Panels.o: Panels.f90 $(BASE_OBJS)
 SphereMesh2.o: SphereMesh2.f90 Particles.o Edges.o Panels.o $(BASE_OBJS)
+ssrfpack.o: ssrfpack.f
+stripack.o: stripack.f
+STRIPACKInterface2.o: STRIPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) stripack.o 
+SSRFPACKInterface2.o: SSRFPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) STRIPACKInterface2.o ssrfpack.o
+VTKOutput.o: VTKOutput.f90 $(BASE_OBJS) $(MESH_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES

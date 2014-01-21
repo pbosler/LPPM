@@ -147,7 +147,7 @@ subroutine WriteReal(self,key,val)
 	real(kreal), intent(in) :: val
 	character(len=32) :: form
 	if ( val >= 1.0d9 ) then
-		form = FormatWithIndent(self,'(A,2X,E24.8E2)')
+		form = FormatWithIndent(self,'(A,2X,E24.8)')
 	else
 		form = FormatWithIndent(self,'(A,2X,F24.15)')
 	endif

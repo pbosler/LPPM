@@ -87,7 +87,7 @@ subroutine NewPrivate(self,aMesh)
 	type(SphereMesh), intent(in) :: aMesh
 	type(Panels), pointer :: aPanels
 	type(Panels), pointer :: passivePanels
-	integer(kint), allocatable :: activeMap(:), passiveMap(:)
+	integer(kint), allocatable :: passiveMap(:)
 	integer(kint) :: nActive, nPassive, panelKind, nTracer, problemKind, j, n
 	real(kreal) :: norm
 
@@ -136,7 +136,7 @@ subroutine NewPrivate(self,aMesh)
 	call GatherPanels(aPanels,self%activePanels,self%activeMap,passivePanels,passiveMap)
 
 	!  Get STRIPACK Delauanay source data from SphereMesh
-	!	Renormalize to unit sphere for STRIPACK
+	!	Renormalize input to unit sphere for STRIPACK
 	do j=1,nActive
 		norm = sqrt(sum(self%activePanels%x(:,j)*self%activePanels%x(:,j)))
 		self%x(j) = self%activePanels%x(1,j)/norm

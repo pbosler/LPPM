@@ -209,24 +209,42 @@ subroutine LogEdgesStats(self,aLog,message)
 	type(Logger), intent(inout) :: aLog
 	character(len=*), intent(in), optional :: message
 	character(len=24) :: key
+	real(kreal) :: lmax, lmin
+	integer(kint) :: j
 
 	if ( present(message)) then
 		call StartSection(aLog,'Edges Stats : ',message)
 	else
 		call StartSection(aLog,'Edges Stats : ')
 	endif
+	
+	
+	
 	key = 'N = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N)
 	key = 'N_Max = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N_Max)
+	
+	lmax = maxval(self%length(1:self%N))
+	lmin = lmax
+	do j=1,self%N
+		if ( self%length(j) > 0.0_kreal .AND. self%length(j) < lmin ) lmin = self%length(j)
+	enddo
 	key = 'Max Edge length = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%length(1:self%N)))
+	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmax)
 	key = 'Min Edge Length = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%length(1:self%N)))
+	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmin)
+	
+	lmax = maxval(self%length0(1:self%N))
+	lmin = lmax
+	do j=1,self%N
+		if ( self%length0(j) > 0.0_kreal .AND. self%length(j) < lmin) lmin = self%length0(j)
+	enddo
+	
 	key = 'Max init length = '
-	call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxval(self%length0(1:self%N)))
+	call LogMessage(alog,TRACE_LOGGING_LEVEL,key, lmax)
 	key = 'Min init length = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%length0(1:self%N)))
+	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmin)
 	call EndSection(aLog)
 end subroutine
 

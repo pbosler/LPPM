@@ -42,7 +42,7 @@ public SphereMesh
 public New, Delete, Copy
 public LogStats
 public CCWEdgesAndParticlesAroundPanel, FindAdjacentPanels
-public Renormalize, ResetSphereArea
+public Renormalize, ResetSphereArea, SetEdgeLengths
 public TotalMass, TotalAbsVort, TotalRelVort, TotalEnstrophy
 public CountSubTriangles
 public LocatePoint
@@ -671,6 +671,8 @@ subroutine DivideQuadPanel(self,panelIndex)
 	else ! divide edge
 		anEdges%hasChildren(edgeIndices(1)) = .TRUE.
 		anEdges%children(:,edgeIndices(1)) = [nEdges+1,nEdges+2]
+		anEdges%length(edgeIndices(1)) = 0.0_kreal
+		anEdges%length0(edgeIndices(1)) = 0.0_kreal
 		! create new particle
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(1)),&
 													  aParticles%x(:,vertexIndices(2)))
@@ -737,9 +739,11 @@ subroutine DivideQuadPanel(self,panelIndex)
 			aPanels%edges(2,nPanels+3) = childEdges(1)
 			anEdges%rightPanel(childEdges(1)) = nPanels+3
 		endif
-	else ! divide edge
+	else ! divide edge 2
 		anEdges%hasChildren(edgeIndices(2)) = .TRUE.
 		anEdges%children(:,edgeIndices(2)) = [nEdges+1,nEdges+2]
+		anEdges%length(edgeIndices(2)) = 0.0_kreal
+		anEdges%length0(edgeIndices(2)) = 0.0_kreal
 
 		! create new particle
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(2)),&
@@ -789,6 +793,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 		childEdges = anEdges%children(:,edgeIndices(3))
 		aPanels%vertices(4,nPanels+3) = anEdges%verts(2,childEdges(1))
 		aPanels%vertices(3,nPanels+4) = anEdges%verts(2,childEdges(1))
+		
 		if ( edgeOrientation(3) ) then
 			aPanels%edges(3,nPanels+3) = childEdges(1)
 			anEdges%leftPanel(childEdges(1)) = nPanels+3
@@ -802,9 +807,11 @@ subroutine DivideQuadPanel(self,panelIndex)
 			aPanels%edges(3,nPanels+4) = childEdges(1)
 			anEdges%rightPanel(childEdges(1)) = nPanels+4
 		endif
-	else ! divide edge
+	else ! divide edge 3
 		anEdges%hasChildren(edgeIndices(3)) = .TRUE.
 		anEdges%children(:,edgeIndices(3)) = [nEdges+1,nEdges+2]
+		anEdges%length(edgeIndices(3)) = 0.0_kreal
+		anEdges%length0(edgeIndices(3)) = 0.0_kreal
 
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(3)),&
 													  aParticles%x(:,vertexIndices(4)))
@@ -867,9 +874,11 @@ subroutine DivideQuadPanel(self,panelIndex)
 			aPanels%edges(4,nPanels+1) = childEdges(1)
 			anEdges%rightPanel(childEdges(1)) = nPanels+1
 		endif
-	else
+	else ! divide edge 4
 		anEdges%hasChildren(edgeIndices(4)) = .TRUE.
 		anEdges%children(:,edgeIndices(4)) = [nEdges+1,nEdges+2]
+		anEdges%length(edgeIndices(4)) = 0.0_kreal
+		anEdges%length0(edgeIndices(4)) = 0.0_kreal
 
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(4)),&
 													  aParticles%x(:,vertexIndices(1)))
@@ -1035,6 +1044,26 @@ function QuadPanelArea(self,panelIndex)
 !		call EndSection(log)
 !	endif
 end function
+
+subroutine SetEdgeLengths(self)
+	type(SphereMesh), intent(inout) :: self
+	integer(kint) :: j
+	type(Edges), pointer :: anEdges
+	type(Particles), pointer :: aParticles
+	
+	anEdges => self%edges
+	aParticles => self%particles
+	
+	do j=1,self%edges%N
+		if ( anEdges%hasChildren(j) ) then
+			anEdges%length(j) = 0.0_kreal
+			anEdges%length0(j) = 0.0_kreal
+		else
+			anEdges%length(j) = SphereDistance(aparticles%x(:,anEdges%verts(1,j)),aParticles%x(:,anEdges%verts(2,j)))
+			anEdges%length0(j) = SphereDistance(aparticles%x0(:,anEdges%verts(1,j)),aParticles%x0(:,anEdges%verts(2,j)))
+		endif
+	enddo
+end subroutine
 
 
 function FindClosestRootPanel(self,xyz)
