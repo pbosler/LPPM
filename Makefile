@@ -100,6 +100,9 @@ stripack.o: stripack.f
 STRIPACKInterface2.o: STRIPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) stripack.o 
 SSRFPACKInterface2.o: SSRFPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) STRIPACKInterface2.o ssrfpack.o
 VTKOutput.o: VTKOutput.f90 $(BASE_OBJS) $(MESH_OBJS)
+RefineRemesh2.o: RefineRemesh2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) Tracers.o BVEVorticity.o
+Tracers.o: Tracers.f90 $(BASE_OBJS) $(MESH_OBJS)
+BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES
