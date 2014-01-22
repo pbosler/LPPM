@@ -61,16 +61,20 @@ mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
 INTERP_OBJS = $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 OUTPUT_OBJS = VTKOutput.o $(BASE_OBJS) $(MESH_OBJS)
+TEST_CASE_OBJS = Tracers.o BVEVorticity.o
+ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o
 
 
 #############################################################
 ## LPPM MODEL RUNS
 #############################################################
-
+testCase1MPI.exe: TestCase1.o $(ADVECTION_OBJS)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
 
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################
+TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 
 #############################################################
 ## UNIT TEST EXECUTABLES
@@ -103,6 +107,7 @@ VTKOutput.o: VTKOutput.f90 $(BASE_OBJS) $(MESH_OBJS)
 RefineRemesh2.o: RefineRemesh2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) Tracers.o BVEVorticity.o
 Tracers.o: Tracers.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
+Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES

@@ -1,0 +1,20 @@
+& sphereDefine
+	panelKind = 4
+	AMR = 0
+	initNest = 4
+	tracerMaxTol = 0.0
+	tracerVarTol = 0.0
+	refinementLimit = 0
+/
+
+& timeStepping
+	tfinal = 12 				! days
+	dt = 2592 					! seconds
+	remeshInterval = 20
+/
+
+& fileIO
+	outputDir = '~/Desktop/testCase1'
+	jobPrefix = 'tc1_adv_rm20'
+	frameOut = 4
+/

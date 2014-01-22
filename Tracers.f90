@@ -7,7 +7,7 @@ module TracerSetupModule
 !
 !******************************************************************************
 !
-!	Defines the RK4 data structure used by SphereMesh.
+!	Defines tracer distributions used by SphereMesh.
 !
 !	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !

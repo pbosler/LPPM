@@ -7,7 +7,7 @@ module BVESetupModule
 !
 !******************************************************************************
 !
-!	Defines the RK4 data structure used by SphereMesh.
+!	Defines vorticity distributions used by SphereMesh objects.
 !
 !	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
@@ -60,6 +60,14 @@ character(len=24) :: formatString
 ! Interfaces
 !----------------
 !
+interface New
+	module procedure NewPrivate
+	module procedure NewPrivateNull
+end interface
+
+interface Delete
+	module procedure DeletePrivate
+end interface
 contains
 !
 !----------------
@@ -84,6 +92,13 @@ subroutine NewPrivate(self, nInt, nReal)
 	else
 		nullify(self%reals)
 	endif		
+end subroutine
+
+subroutine NewPrivateNull(self)
+	type(BVESetup), intent(out) :: self
+	if ( .NOT. logInit) call InitLogger(log,procRank)
+	nullify(self%integers)
+	nullify(self%reals)
 end subroutine
 
 subroutine DeletePrivate(self)
@@ -134,6 +149,11 @@ subroutine SetSolidBodyRotationOnMesh(aMesh, solidBody)
 		endif
 	enddo
 	
+end subroutine
+
+subroutine NullVorticity(aMesh,nullVort)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(BVESetup), intent(in) :: nullVort
 end subroutine
 
 !
