@@ -41,6 +41,11 @@ public NULL_REFINE, TRACER_REFINE, RELVORT_REFINE, FLOWMAP_REFINE
 ! Types and module constants
 !----------------
 !
+integer(kint), parameter :: NULL_REFINE = 70, &
+							TRACER_REFINE = 71, &
+							RELVORT_REFINE = 72, &
+							FLOWMAP_REFINE = 73
+							
 type RefinementSetup
 	real(kreal) :: maxTol			! tolerance for extrema
 	real(kreal) :: varTol			! tolerance for variation
@@ -49,10 +54,7 @@ type RefinementSetup
 	integer(kint) :: limit
 end type
 
-integer(kint), parameter :: NULL_REFINE = 70, &
-							TRACER_REFINE = 71, &
-							RELVORT_REFINE = 72, &
-							FLOWMAP_REFINE = 73
+
 !
 !----------------
 ! Interfaces
@@ -323,7 +325,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 end subroutine
 
 subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
-								   setTracer, tracerDef, tracerRefine, 
+								   setTracer, tracerDef, tracerRefine, &
 								   flowMapRefine, interpSmoothTol)
 ! Performs a Lagrangian remeshing of a SphereMesh object.
 !	The Lagrangian paramater is interpolated from the old mesh to a new mesh.
@@ -356,7 +358,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 	integer(kint) :: j, amrLoopCounter, counter1, counter2
 	logical(klog), allocatable :: refineFlag(:)
 	logical(klog) :: keepGoing, refineTracer, refineVort, refineFlowMap
-	integer(kint) :: startIndex, nOldPanels, refineCount, spaceLeft, limit
+	integer(kint) :: startIndex, nOldPanels, nOldParticles, refineCount, spaceLeft, limit
 
 
 	nullify(newParticles)
@@ -384,7 +386,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 	call DelaunayTriangulation(delTri)
 	call New(lagSource,delTri,vectorInterp)
 	if ( present(interpSmoothTol) ) call SetSigmaTol(lagSource,interpSmoothTol)
-	call SetSource(LagrangianParameter(lagSource,delTri))
+	call SetSourceLagrangianParameter(lagSource,delTri)
 	
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' remesh source data ready.')
 	
@@ -439,7 +441,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			limit = max(limit,tracerRefine%limit)
 			call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
 			counter1 = count(refineFlag)
-			call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,refineTracer,startIndex)
+			call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,tracerRefine,startIndex)
 			counter2 = count(refineFlag) - counter1
 			write(formatString,'(A)') '(A,I8,A)'
 			write(logString,formatString) 'tracerMax criterion triggered ', counter1, ' times.'
@@ -547,7 +549,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 				limit = max(limit,tracerRefine%limit)
 				call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
 				counter1 = count(refineFlag)
-				call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,refineTracer,startIndex)
+				call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,tracerRefine,startIndex)
 				counter2 = count(refineFlag) - counter1
 				write(formatString,'(A)') '(A,I8,A)'
 				write(logString,formatString) 'tracerMax criterion triggered ', counter1, ' times.'
@@ -718,7 +720,7 @@ subroutine FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineRelVor
 	enddo
 end subroutine
 
-subroutine FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineFlowMap,startIndex)
+subroutine FlagPanelsForFlowMapRefinement(refineFlag,aMesh,refineFlowMap,startIndex)
 	logical(klog), intent(inout) :: refineFlag(:)
 	type(SphereMesh), intent(in) :: aMesh
 	type(RefinementSetup), intent(in) :: refineFlowMap
@@ -730,7 +732,7 @@ subroutine FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineFlowMa
 	integer(kint) :: j, k
 	real(kreal) :: maxX0(3), minX0(3), lagVar
 
-	if ( refineRelVOrt%type /= FLOWMAP_REFINE ) then
+	if ( refineFlowMap%type /= FLOWMAP_REFINE ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsFlowMap ERROR :',' invalid refinement type.')
 		return
 	endif	
