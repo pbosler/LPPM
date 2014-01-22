@@ -23,9 +23,10 @@ module NumberKindsModule
 	real(KREAL), parameter :: PI = 3.1415926535897932384626433832795027975_KREAL, & ! Pi
 							  RAD_2_DEG = 180.0_kreal/PI, & ! convert radians to degrees
 							  G = 9.80616, & ! {m s^(-2)} acceleration due to gravity
-							  ONE_DAY = 86140.0_kreal ! {s} Earth's sidereal day
-    real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY , & ! {s^(-1)} rotation rate of sphere
-    						  EARTH_RADIUS = 6371220_kreal ! { m }
+							  ONE_DAY = 86140.0_kreal, & ! {s} Earth's sidereal day
+							  EARTH_RADIUS = 6371220_kreal ! { m }
+    real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  ! {s^(-1)} rotation rate of sphere
+    						  
 
 	! I/O Constants
 	integer(KINT), parameter :: STD_ERR = 0, &
