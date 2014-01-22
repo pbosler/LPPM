@@ -718,6 +718,51 @@ subroutine FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineRelVor
 	enddo
 end subroutine
 
+subroutine FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineFlowMap,startIndex)
+	logical(klog), intent(inout) :: refineFlag(:)
+	type(SphereMesh), intent(in) :: aMesh
+	type(RefinementSetup), intent(in) :: refineFlowMap
+	integer(kint), intent(in) :: startIndex
+	! local variables
+	type(Panels), pointer :: aPanels
+	type(Particles), pointer :: aParticles
+	integer(kint) :: edgeList(8), vertList(8), nVerts
+	integer(kint) :: j, k
+	real(kreal) :: maxX0(3), minX0(3), lagVar
+
+	if ( refineRelVOrt%type /= FLOWMAP_REFINE ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsFlowMap ERROR :',' invalid refinement type.')
+		return
+	endif	
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	
+	do j=startIndex,aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			maxX0 = aPanels%x0(:,j)
+			minX0 = maxX0
+			call CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,aMesh,j)
+			do k=1,nVerts
+				if ( aParticles%x0(1,vertList(k)) > maxx0(1)) &
+					maxx0(1) = aParticles%x0(1,vertList(k))
+				if ( aParticles%x0(1,vertList(k)) < minx0(1)) &
+					minx0(1) = aParticles%x0(1,vertList(k))		
+				if ( aParticles%x0(2,vertList(k)) > maxx0(2)) &
+					maxx0(2) = aParticles%x0(1,vertList(k))
+				if ( aParticles%x0(2,vertList(k)) < minx0(2)) &
+					minx0(2) = aParticles%x0(1,vertList(k))		
+				if ( aParticles%x0(3,vertList(k)) > maxx0(3)) &
+					maxx0(3) = aParticles%x0(1,vertList(k))
+				if ( aParticles%x0(3,vertList(k)) < minx0(3)) &
+					minx0(3) = aParticles%x0(1,vertList(k))				
+			enddo
+			lagVar = sum(maxx0 - minx0)
+			if ( lagVar > refineFlowMap%varTol ) refineFlag(j) = .TRUE.
+		endif
+	enddo
+end subroutine
+
+
 subroutine InitLogger(aLog,rank)
 	type(Logger), intent(inout) :: aLog
 	integer(kint), intent(in) :: rank
