@@ -171,11 +171,11 @@ subroutine vtkOutput(self,aMesh)
 	!
 	write(WRITE_UNIT_1,'(A,I8,A)') 'POINTS ',self%nPoints,' double'
 	do j=1,aparticles%N
-		write(WRITE_UNIT_1,'(3F24.15)') aParticles%x(1,j),aParticles%x(2,j),aParticles%x(3,j)
+		write(WRITE_UNIT_1,'(3F24.8)') aParticles%x(1,j),aParticles%x(2,j),aParticles%x(3,j)
 	enddo
 	do j=1,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			write(WRITE_UNIT_1,'(3F24.15)') aPanels%x(1,j), aPanels%x(2,j), aPanels%x(3,j)
+			write(WRITE_UNIT_1,'(3F24.8)') aPanels%x(1,j), aPanels%x(2,j), aPanels%x(3,j)
 		endif
 	enddo
 
@@ -202,11 +202,11 @@ subroutine vtkOutput(self,aMesh)
 		write(WRITE_UNIT_1,'(A)') trim(dataString)
 		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
 		do j=1,aParticles%N
-			write(WRITE_UNIT_1,'(3F24.15)') aParticles%x0(:,j)
+			write(WRITE_UNIT_1,'(3F24.8)') aParticles%x0(:,j)
 		enddo
 		do j=1,aPanels%N
 			if (.NOT. aPanels%hasChildren(j) ) then
-				write(WRITE_UNIT_1,'(3F24.15)') aPanels%x0(:,j)
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%x0(:,j)
 			endif
 		enddo
 
@@ -263,7 +263,7 @@ subroutine vtkOutput(self,aMesh)
 		enddo
 		do j=1,aPanels%N
 			if ( .NOT. aPanels%hasChildren(j) ) then
-				write(WRITE_UNIT_1,'(3F24.15)') aPanels%u(:,j)
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%u(:,j)
 			endif
 		enddo
 	endif

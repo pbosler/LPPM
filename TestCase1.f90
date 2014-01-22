@@ -24,6 +24,8 @@ use BVESetupModule
 
 implicit none
 
+include 'mpif.h'
+
 !
 !	mesh variables
 !
@@ -34,7 +36,7 @@ integer(kint) :: panelKind, initNest, AMR, nTracer, problemKind
 !
 type(RK4Data) :: advRK4
 real(kreal) :: t, dt, tfinal
-integer(kint) :: timesteps, timeJ
+integer(kint) :: timesteps, timeJ, timestepsPerPeriod
 !
 !	tracer variables
 !
@@ -54,13 +56,13 @@ integer(kint) :: remeshInterval, remeshCounter
 !
 !	User input
 !
-character(len = 128) :: namelistFile = 'testcase1.namelist'
+character(len = 128) :: namelistInputFile = 'testcase1.namelist'
 integer(kint) :: readStat
 !
 !	Output variables
 !
 type(VTKSource) :: vtkOut
-character(len = 128) :: vtkRoot, vtkFile
+character(len = 128) :: vtkRoot, vtkFile, outputDir, jobPrefix
 character(len = 56 ) :: amrString
 integer(kint) :: frameCounter, frameOut
 !
@@ -74,13 +76,13 @@ character(len=128) :: logString
 !
 integer(kint) :: i, j, k
 integer(kint) :: mpiErrCode
-integer(kint), parameter  :: BROADCAST_INT_SIZE = 5, BROADCAST_REAL_SIZE = 4
+integer(kint), parameter  :: BROADCAST_INT_SIZE = 6, BROADCAST_REAL_SIZE = 3
 integer(kint) :: broadcastIntegers(BROADCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BROADCAST_REAL_SIZE)
 type(BVESetup) :: nullVort
 
 namelist /sphereDefine/ panelKind, initNest, AMR, tracerMaxTol, tracerVarTol, refineMentLimit
-namelist /timeStepping/ tfinal, dt, remeshInterval
+namelist /timeStepping/ tfinal, timestepsPerPeriod,  remeshInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 
 
@@ -102,11 +104,12 @@ AMR = broadcastIntegers(2)
 initNest = broadcastIntegers(3)
 refinementLimit = broadcastIntegers(4)
 remeshInterval = broadcastIntegers(5)
+timestepsPerPeriod = broadCastIntegers(6)
 call MPI_BCAST(broadcastReals,BROADCAST_REAL_SIZE,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,mpiErrCode)
 tracermaxTol = broadcastReals(1)
 tracerVarTol = broadcastReals(2)
 tfinal = broadcastReals(3)*ONE_DAY ! convert tfinal to seconds
-dt = broadcastreals(4)
+
 !
 !	define test case in accordance with Williamson et al., JCP 1992
 !
@@ -125,8 +128,8 @@ call InitCosineBellTracer(cosBell,lat0,lon0,RR,h0,tracerID)
 call New(sphere,panelKind,initNest,AMR,nTracer,problemKind)
 call SetCosineBellTracerOnMesh(sphere,cosBell)
 if ( AMR > 0 ) then
-	call New(tracerRefine,refinementLimit,tracermaxTol,tracerVarTol,REFINE_TRACER,tracerID)
-	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBel, &
+	call New(tracerRefine,refinementLimit,tracermaxTol,tracerVarTol,TRACER_REFINE,tracerID)
+	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
 						   tracerRefine, NullVorticity,nullVort)
 	if ( panelKind == QUAD_PANEL) then						   
 		write(amrString,'(A,I1,A,I0.2)') 'quadAMR_',initNest,'to',initNest+refinementLimit
@@ -154,7 +157,8 @@ endif
 !	intialize timestepping
 !
 call New(advRK4,sphere,numProcs)
-timesteps = floor(tfinal,dt)
+dt = 12.0_kreal*ONE_DAY/real(timestepsPerPeriod,kreal)
+timesteps = floor(tfinal/dt)
 t = 0.0_kreal
 remeshCounter = 0
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -175,7 +179,7 @@ do timeJ = 0, timesteps - 1
 		! build new mesh
 		!
 		call LagrangianRemesh(sphere, NullVorticity, nullVort, tracerRefine, &
-									  SetCosineBellOnMesh, cosBell, tracerRefine, &
+									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
 									  tracerRefine)
 		!
 		!	create new associated objects
@@ -189,14 +193,14 @@ do timeJ = 0, timesteps - 1
 	!
 	!	advance timestep
 	!
-	call AdvectionRK4(advRK4,sphere, dt, t, procRank, numProcs, LauritzenEtAlNonDivergentWind)
+	call AdvectionRK4(advRK4,sphere, dt, t, procRank, numProcs, TestCase1Velocity)
 	
 	t = real(timeJ+1,kreal)*dt
 	
 	!
 	!	output timestep data
 	!
-	if ( procRank == 0 .AND. mod(timeJ+1,frameOUt) == 0 ) then
+	if ( procRank == 0 .AND. mod(timeJ+1,frameOUt) == 0  ) then
 		call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONE_DAY)
 		write(vtkFile,'(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
 		call UpdateFileName(vtkOut,vtkFile)
@@ -219,7 +223,7 @@ call Delete(tracerRefine)
 call Delete(sphere)
 call Delete(cosBell)
 call Delete(exeLog)
-
+call MPI_FINALIZE(mpiErrCode)
 contains
 
 subroutine ReadNamelistfile(rank)
@@ -240,11 +244,11 @@ subroutine ReadNamelistfile(rank)
 			broadcastIntegers(3) = initNest
 			broadcastIntegers(4) = refinementLimit
 			broadcastIntegers(5) = remeshInterval
-		
+		        broadcastIntegers(6) = timestepsPerPeriod
+
 			broadcastReals(1) = tracerMaxTol
 			broadcastReals(2) = tracerVarTol
-			broadcastReals(3) = tfinal
-			broadcastReals(4) = dt		
+			broadcastReals(3) = tfinal	
 	endif
 end subroutine
 
@@ -256,7 +260,7 @@ subroutine InitLogger(alog,rank)
 	else
 		call New(aLog,WARNING_LOGGING_LEVEL)
 	endif
-
+        write(logKey,'(A,I0.2,A)') 'EXE_LOG',procRank,' : '
 end subroutine
 
 end program

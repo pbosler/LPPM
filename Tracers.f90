@@ -77,9 +77,9 @@ contains
 ! Standard methods : Constructor / Destructor
 !----------------
 !
-subroutine NewPrivate(self, nInt, nReal, tracerID)
+subroutine NewPrivate(self, nInt, nReal)
 	type(TracerSetup), intent(out) :: self
-	integer(kint), intent(in) :: nINt, nReal, tracerID
+	integer(kint), intent(in) :: nINt, nReal
 	
 	if (.NOT. logInit) call InitLogger(log,procRank)
 	
@@ -94,8 +94,7 @@ subroutine NewPrivate(self, nInt, nReal, tracerID)
 		self%reals = 0.0_kreal
 	else
 		nullify(self%reals)
-	endif		
-	self%tracerID = tracerID	
+	endif			
 end subroutine
 
 subroutine DeletePrivate(self)

@@ -383,14 +383,14 @@ subroutine AdvectionRK4(self,aMesh, dt, t, procRank, nProcs, velocityFunction)
 
 ! 	! STAGE 1 ONLY : Store velocity and kinetic energy
 	do j=1,aParticles%N
-		aParticles%ke(j) = sum(self%particlesStage1(:,j)*self%particlesStage1(:,j))
+		!aParticles%ke(j) = sum(self%particlesStage1(:,j)*self%particlesStage1(:,j))
 		aParticles%u(:,j) = self%particlesStage1(:,j)
 	enddo
 	do j=1,self%activePanels%N
-		self%activePanels%ke(j) = sum(self%activePanelsStage1(:,j)*self%activePanelsStage1(:,j))
+		!self%activePanels%ke(j) = sum(self%activePanelsStage1(:,j)*self%activePanelsStage1(:,j))
 		self%activePanels%u(:,j) = self%activePanelsStage1(:,j)
 	enddo
-	aMesh%totalKE = 0.5*sum(self%activePanels%ke*self%area)
+	!aMesh%totalKE = 0.5*sum(self%activePanels%ke*self%area)
 
 	self%particlesStage1 = dt*self%particlesStage1
 	self%passivePanelsStage1 = dt*self%passivePanelsStage1
@@ -664,8 +664,7 @@ function TestCase1Velocity(xyz,t)
 ! solid-body rotation wind field from Williamson, Drake, Hack, Jakob, and Swarztrauber, JCP, 1992
 	real(kreal), intent(in) :: xyz(3), t
 	real(kreal) :: TestCase1Velocity(3)
-	real(kreal), parameter :: u0 = 2.0_kreal*PI*EARTH_RADIUS/(12.0_kreal*ONE_DAY)
-	real(kreal) :: lat, lon, raxis, u, v
+	real(kreal), parameter :: u0 = 2.0_kreal*PI/(12.0_kreal*ONE_DAY)
 	
 	TestCase1Velocity(1) = -u0*xyz(2)*cos(alpha)
 	TestCase1Velocity(2) =  u0*(xyz(1)*cos(alpha) - xyz(3)*sin(alpha))

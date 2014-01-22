@@ -20,6 +20,7 @@ use ParticlesModule
 use EdgesModule
 use PanelsModule
 use VTKOutputModule
+use AdvectionModule
 
 implicit none
 
@@ -34,6 +35,8 @@ character(len=56) :: testVTKfile
 
 type(Logger) :: exeLog
 character(len=56) :: logString
+
+integer(kint) :: j
 
 !
 !	set mesh parameters
@@ -56,6 +59,18 @@ character(len=56) :: logString
 	call LogStats(sphere,exeLog,trim(logString))
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'Surf. area should be = ',4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS)
 	write(6,'(A,F24.15)') "surf area error = ",abs(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS - sum(spherePanels%area))
+!
+        do j=1,sphereParticles%N
+           sphereParticles%u(:,j) = TestCase1Velocity(sphereParticles%x(:,j),0.0_kreal)
+        enddo
+        do j=1,spherePanels%N
+           if ( .NOT. spherePanels%hasChildren(j) ) then
+              spherePanels%u(:,j) = TestCase1Velocity(spherePanels%x(:,j),0.0_kreal)
+           endif
+        enddo
+!
+        
+
 
 !
 !	Define VTKOutput

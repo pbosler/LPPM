@@ -31,6 +31,7 @@ public BVESetup
 public New, Delete
 public InitSolidBodyRotation, SetSolidBodyRotationOnMesh
 public SOLID_BODY_NINT, SOLID_BODY_NREAL
+public NullVorticity
 
 !
 !----------------

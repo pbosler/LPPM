@@ -107,8 +107,8 @@ contains
 !
 subroutine NewPrivate(self, limit, maxTol, varTol, type, tracerID)
 	type(RefinementSetup), intent(out) :: self
-	real(kreal), intent(in) :: maxTol, varTol, limit
-	integer(kint), intent(in) :: type
+	real(kreal), intent(in) :: maxTol, varTol
+	integer(kint), intent(in) :: type, limit
 	integer(kint), intent(in), optional :: tracerID
 	
 	if ( .NOT. logInit ) call InitLogger(log, procRank)
@@ -762,6 +762,11 @@ subroutine FlagPanelsForFlowMapRefinement(refineFlag,aMesh,refineFlowMap,startIn
 			if ( lagVar > refineFlowMap%varTol ) refineFlag(j) = .TRUE.
 		endif
 	enddo
+end subroutine
+
+subroutine FlagPanelsAtRefinementBoundaries(refineFlag,aMesh)
+  logical(klog), intent(inout) :: refineFlag(:)
+  type(SphereMesh), intent(in) :: aMesh
 end subroutine
 
 

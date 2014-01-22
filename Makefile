@@ -16,21 +16,30 @@ SHELL = /bin/bash
 #MKL_COMPILE=-openmp -I$(MKLROOT)/include/intel64/lp64 -I$(MKLROOT)/include
 #----------------#
 
+#----------------#
+# vortex.math.lsa.umich.edu
+FF = ifort
+FF_FLAGS = -g -O0 -check bounds -check pointer -check uninit -traceback -warn all -debug extended -openmp
+MKL_ROOT=/usr/local/intel/Compiler/11.1/056/mkl
+MKL_LINK=-L$(MKL_ROOT)/lib $(MKL_ROOT)/lib/libmkl_lapack95_lp64.a -lmkl_intel_lp64 -lmk_intel_thread -lmkl_core -lpthread -lm
+MKL_COMPILE=-openmp -I$(MKL_ROOT)/include/intel64/lp64 -I$(MKL_ROOT)/include
+
+
 #--------------#
 # TANK DESKTOP #
 
-FF=ifort
-FF_FLAGS=-g -traceback -warn all -debug extended
+#FF=ifort
+#FF_FLAGS=-g -traceback -warn all -debug extended
 #FF_FLAGS=-O2 -warn all -opt-report 1
-VTK_INCLUDE=/usr/local/include/vtk-5.10
-VTK_LIB_DIR=/usr/local/lib/vtk-5.10
-VTK_LIBS=-lvtkCommon -lvtkGraphics -lvtkRendering -lvtkViews -lvtkWidgets -lvtkImaging -lvtkHybrid -lvtkIO -lvtkFiltering
-MKLROOT=/opt/intel/mkl
-MKL_THREADING_LAYER=intel
-MKL_INTERFACE_LAYER=lp64
-MKL_LINK=-L$(MKLROOT)/lib $(MKLROOT)/lib/libmkl_lapack95_lp64.a \
--lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -openmp -lpthread -lm
-MKL_COMPILE=-openmp -I/opt/intel/mkl/include/intel64/lp64 -I/opt/intel/mkl/include 
+#VTK_INCLUDE=/usr/local/include/vtk-5.10
+#VTK_LIB_DIR=/usr/local/lib/vtk-5.10
+#VTK_LIBS=-lvtkCommon -lvtkGraphics -lvtkRendering -lvtkViews -lvtkWidgets -lvtkImaging -lvtkHybrid -lvtkIO -lvtkFiltering
+#MKLROOT=/opt/intel/mkl
+#MKL_THREADING_LAYER=intel
+#MKL_INTERFACE_LAYER=lp64
+#MKL_LINK=-L$(MKLROOT)/lib $(MKLROOT)/lib/libmkl_lapack95_lp64.a \
+#-lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -openmp -lpthread -lm
+#MKL_COMPILE=-openmp -I/opt/intel/mkl/include/intel64/lp64 -I/opt/intel/mkl/include 
 
 #--------------#
 
@@ -43,10 +52,8 @@ MKL_COMPILE=-openmp -I/opt/intel/mkl/include/intel64/lp64 -I/opt/intel/mkl/inclu
 	$(FF) -c $(FF_FLAGS) $<
 %.exe : 
 	$(FF) $(FF_FLAGS) -o $@ $< `mpif90 -showme:link` $(MKL_COMPILE)	$^
-			
 clean:
 	rm *.o *.mod *genmod.f90
-	
 cleanx:
 	rm *.exe		
 
@@ -62,7 +69,7 @@ INTERP_OBJS = $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2
 interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 OUTPUT_OBJS = VTKOutput.o $(BASE_OBJS) $(MESH_OBJS)
 TEST_CASE_OBJS = Tracers.o BVEVorticity.o
-ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o
+ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 
 
 #############################################################
@@ -79,7 +86,7 @@ TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 #############################################################
 ## UNIT TEST EXECUTABLES
 #############################################################
-cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
+cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) Advection2.o
 	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)	
 
 #############################################################

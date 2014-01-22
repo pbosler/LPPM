@@ -9,12 +9,12 @@
 
 & timeStepping
 	tfinal = 12 				! days
-	dt = 2592 					! seconds
-	remeshInterval = 20
+	timestepsPerPeriod = 400			
+	remeshInterval = 30
 /
 
 & fileIO
-	outputDir = '~/Desktop/testCase1'
-	jobPrefix = 'tc1_adv_rm20'
+	outputDir = '~/BigSphere/tc1'
+	jobPrefix = 'tc1_adv_rm30'
 	frameOut = 4
 /
