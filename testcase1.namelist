@@ -14,7 +14,7 @@
 /
 
 & fileIO
-	outputDir = '~/BigSphere/tc1'
+	outputDir = '~/Desktop/BigSphere'
 	jobPrefix = 'tc1_adv_rm30'
 	frameOut = 4
 /
