@@ -20,8 +20,7 @@ use ParticlesModule
 use EdgesModule
 use PanelsModule
 use SphereMeshModule
-use STRIPACKInterfaceModule
-use SSRFPACKInterfaceModule
+
 
 implicit none
 private
