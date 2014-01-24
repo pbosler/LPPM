@@ -31,6 +31,7 @@ public TracerSetup
 public New, Delete
 public InitCosineBellTracer, SetCosineBellTracerOnMesh
 public COS_BELL_NINT, COS_BELL_NREAL
+public SetInitialLatitudeTracerOnMesh
 
 
 !
@@ -155,7 +156,24 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 	
 end subroutine
 
-
+subroutine SetInitialLatitudeTracerOnMesh(aMesh,tracerID)
+	type(SphereMesh), intent(inout) :: aMesh
+	integer(kint), intent(in) :: tracerID
+	! local variables
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	
+	do j=1,aParticles%N
+		aParticles%tracer(j,tracerID) = Latitude(aParticles%x0(:,j))
+	enddo
+	do j=1,aPanels%N
+		aPanels%traceR(j,tracerID) = Latitude(aPanels%x0(:,j))
+	enddo
+end subroutine
 
 
 
