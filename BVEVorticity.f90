@@ -155,9 +155,9 @@ subroutine SetSolidBodyRotationOnMesh(aMesh, solidBody)
 
 end subroutine
 
-subroutine InitSingleGaussianVortex(gaussVort, lat0, lon0, beta, maxVal)
+subroutine InitSingleGaussianVortex(gaussVort, lat0, lon0, bb, maxVal)
 	type(BVESetup), intent(inout) :: gaussVort
-	real(kreal), intent(in) :: lat0, lon0, beta, maxVal
+	real(kreal), intent(in) :: lat0, lon0, bb, maxVal
 	gaussVort%reals(1) = lat0
 	gaussVort%reals(2) = lon0
 	gaussVort%reals(3) = bb
@@ -166,13 +166,13 @@ end subroutine
 
 subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 	type(SphereMesh), intent(inout) :: aMesh
-	type(BVESetup), intent(inout) :: gaussVort
+	type(BVESetup), intent(in) :: gaussVort
 	! local variables
 	integer(kint) :: j
 	real(kreal) :: xyzCent(3)
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
-	real(kreal) :: allocatable :: gVort(:)
+	real(kreal),  allocatable :: gVort(:)
 	
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
