@@ -26,7 +26,7 @@ module NumberKindsModule
 							  ONE_DAY = 86140.0_kreal, & ! {s} Earth's sidereal day
 							  EARTH_RADIUS = 6371220_kreal ! { m }
     real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  ! {s^(-1)} rotation rate of sphere
-    						  
+
 
 	! I/O Constants
 	integer(KINT), parameter :: STD_ERR = 0, &

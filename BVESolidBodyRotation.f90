@@ -1,4 +1,4 @@
-program TestCase1
+program BVESolidBody
 !******************************************************************************
 !	Peter A. Bosler
 !	Department of Mathematics
@@ -7,20 +7,19 @@ program TestCase1
 !
 !******************************************************************************
 !
-!	This program is runs Williamson et al., JCP 1992, test case 1.
+!	This program solves the barotropic vorticity equation for the case of rigid rotation about the z-axis.
 !
 !	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-
 !----------------
 use NumberKindsModule
 use LoggerModule
 use SphereMeshModule
-use AdvectionModule
 use RefineRemeshModule
 use TracerSetupModule
 use VTKOutputModule
 use BVESetupModule
+use BVEDirectSumModule
 
 implicit none
 
@@ -34,7 +33,7 @@ integer(kint) :: panelKind, initNest, AMR, nTracer, problemKind
 !
 !	time stepping variables
 !
-type(AdvRK4Data) :: advRK4
+type(BVERK4Data) :: bveRK4
 real(kreal) :: t, dt, tfinal
 integer(kint) :: timesteps, timeJ, timestepsPerPeriod
 !
@@ -44,11 +43,18 @@ type(tracerSetup) :: cosBell
 real(kreal) :: h0, RR, lat0, lon0
 integer(kint) :: tracerID
 !
+!	vorticity variables
+!
+type(BVESetup) :: solidBody
+!
 !	refinement variables
 !
 type(RefinementSetup) :: tracerRefine
 real(kreal) :: tracerMaxTol, tracerVarTol
 integer(kint) :: refinementLimit
+
+type(RefinementSetup) :: vortRefine
+real(kreal) :: circMaxTol, vortVarTol
 !
 !	remeshing variables
 !
@@ -56,7 +62,7 @@ integer(kint) :: remeshInterval, remeshCounter
 !
 !	User input
 !
-character(len = 128) :: namelistInputFile = 'testcase1.namelist'
+character(len = 128) :: namelistInputFile = 'bveSolidBody.namelist'
 integer(kint) :: readStat
 !
 !	Output variables
@@ -76,15 +82,13 @@ character(len=128) :: logString
 !
 integer(kint) :: i, j, k
 integer(kint) :: mpiErrCode
-integer(kint), parameter  :: BROADCAST_INT_SIZE = 6, BROADCAST_REAL_SIZE = 3
+integer(kint), parameter  :: BROADCAST_INT_SIZE = 6, BROADCAST_REAL_SIZE = 5
 integer(kint) :: broadcastIntegers(BROADCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BROADCAST_REAL_SIZE)
-type(BVESetup) :: nullVort
 
-namelist /sphereDefine/ panelKind, initNest, AMR, tracerMaxTol, tracerVarTol, refineMentLimit
+namelist /sphereDefine/ panelKind, initNest, AMR, tracerMaxTol, tracerVarTol, refineMentLimit, circMaxTol, vortVarTol
 namelist /timeStepping/ tfinal, timestepsPerPeriod,  remeshInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
-
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	PROGRAM START
@@ -109,11 +113,13 @@ call MPI_BCAST(broadcastReals,BROADCAST_REAL_SIZE,MPI_DOUBLE_PRECISION,0,MPI_COM
 tracermaxTol = broadcastReals(1)
 tracerVarTol = broadcastReals(2)
 tfinal = broadcastReals(3)*ONE_DAY ! convert tfinal to seconds
+circMaxTol = broadcastReals(4)
+vortVarTol = broadcastReals(5)
 
 !
-!	define test case in accordance with Williamson et al., JCP 1992
+!	define test case in accordance with Williamson et al., JCP 1992, test case 1
 !
-problemKind = ADVECTION_SOLVER
+problemKind = BVE_SOLVER
 nTracer = 1
 h0 = 1000.0_kreal	! height of cosine bell center
 lat0 = 0.0_kreal	! latitude of cosine bell center
@@ -122,20 +128,27 @@ RR = EARTH_RADIUS/3.0_kreal ! radius of cosine bell
 tracerID = 1
 call New(cosBell, COS_BELL_NINT, COS_BELL_NREAL)
 call InitCosineBellTracer(cosBell,lat0,lon0,RR,h0,tracerID)
+
+call New(solidBody,SOLID_BODY_NINT,SOLID_BODY_NREAL)
+call InitSolidBodyRotation(solidBody,OMEGA)
+
 !
 !	initialize sphere
 !
 call New(sphere,panelKind,initNest,AMR,nTracer,problemKind)
 call SetCosineBellTracerOnMesh(sphere,cosBell)
+call SetSolidBodyRotationOnMesh(sphere,solidBody)
 if ( AMR > 0 ) then
 	call New(tracerRefine,refinementLimit,tracermaxTol,tracerVarTol,TRACER_REFINE,tracerID)
+	call New(vortRefine,refinementLimit,circMaxTol,vortVarTol,RELVORT_REFINE)
 	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
-						   tracerRefine, NullVorticity,nullVort)
+						   vortRefine, SetSolidBodyRotationOnMesh,solidBody)
 	if ( panelKind == QUAD_PANEL) then
 		write(amrString,'(A,I1,A,I0.2)') 'quadAMR_',initNest,'to',initNest+refinementLimit
 	endif
 else
 	call New(tracerRefine)
+	call New(vortRefine)
 	if ( panelKind == QUAD_PANEL ) then
 		write(amrString,'(A,I1,A)') 'quadUnif',initNest,'_'
 	endif
@@ -149,14 +162,14 @@ if ( procRank == 0 ) then
 	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),frameCounter,'.vtk'
 
-	call New(vtkOut,sphere,vtkFile,'tc1')
+	call New(vtkOut,sphere,vtkFile,'sbRot')
 	call VTKOutput(vtkOut,sphere)
 	frameCounter = frameCounter + 1
 endif
 !
 !	intialize timestepping
 !
-call New(advRK4,sphere,numProcs)
+call New(bveRK4,sphere,numProcs)
 dt = 12.0_kreal*ONE_DAY/real(timestepsPerPeriod,kreal)
 timesteps = floor(tfinal/dt)
 t = 0.0_kreal
@@ -173,19 +186,19 @@ do timeJ = 0, timesteps - 1
 		!
 		!	delete objects associated with old mesh
 		!
-		call Delete(advRK4)
+		call Delete(bveRK4)
 		call Delete(vtkOut)
 		!
 		! build new mesh
 		!
-		call LagrangianRemesh(sphere, NullVorticity, nullVort, tracerRefine, &
+		call LagrangianRemesh(sphere, SetSolidBodyRotationOnMesh, solidBody, vortRefine, &
 									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
 									  tracerRefine)
 		!
 		!	create new associated objects
 		!
-		call New(advRK4,sphere,numProcs)
-		call New(vtkOut,sphere,vtkFile,'tc1')
+		call New(bveRK4,sphere,numProcs)
+		call New(vtkOut,sphere,vtkFile,'sbRot')
 
 		write(logString,'(A,I4)') 'remesh ', remeshCounter
 		if ( procRank == 0 ) call LogStats(sphere,exelog,trim(logString))
@@ -193,10 +206,13 @@ do timeJ = 0, timesteps - 1
 	!
 	!	advance timestep
 	!
-	call AdvectionRK4(advRK4,sphere, dt, t, procRank, numProcs, TestCase1Velocity)
+	call BVERK4Timestep(bveRK4, sphere, dt, procRank, numProcs)
 
 	t = real(timeJ+1,kreal)*dt
-
+	!
+	!	status report
+	!
+	if ( mod(timeJ+1,10) == 0 .AND. procRank == 0) call LogStats(sphere,exeLog)
 	!
 	!	output timestep data
 	!
@@ -214,16 +230,20 @@ enddo
 
 ! TO DO : output final data requested by Test case 1
 
-!
-!	Clean up / free memory
-!
-call Delete(advRK4)
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!	Clear memory and Finalize
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+call Delete(bveRK4)
 if ( procRank == 0 ) call Delete(vtkOut)
+call Delete(vortRefine)
 call Delete(tracerRefine)
-call Delete(sphere)
 call Delete(cosBell)
+call Delete(solidBody)
 call Delete(exeLog)
 call MPI_FINALIZE(mpiErrCode)
+
 contains
 
 subroutine ReadNamelistfile(rank)
@@ -244,11 +264,13 @@ subroutine ReadNamelistfile(rank)
 			broadcastIntegers(3) = initNest
 			broadcastIntegers(4) = refinementLimit
 			broadcastIntegers(5) = remeshInterval
-		        broadcastIntegers(6) = timestepsPerPeriod
+		    broadcastIntegers(6) = timestepsPerPeriod
 
 			broadcastReals(1) = tracerMaxTol
 			broadcastReals(2) = tracerVarTol
 			broadcastReals(3) = tfinal
+			broadcastReals(4) = circMaxTol
+			broadcastReals(5) = vortVarTol
 	endif
 end subroutine
 

@@ -1,0 +1,22 @@
+& sphereDefine
+	panelKind = 4
+	AMR = 0
+	initNest = 4
+	tracerMaxTol = 0.0
+	tracerVarTol = 0.0
+	refinementLimit = 0
+	circMaxTol = 0.0
+	vortVarTol = 0.0
+/
+
+& timeStepping
+	tfinal = 12 				! days
+	timestepsPerPeriod = 2400			
+	remeshInterval = 6000
+/
+
+& fileIO
+	outputDir = '~/Desktop/solidBody'
+	jobPrefix = 'bveSolidBody_noRM'
+	frameOut = 4
+/

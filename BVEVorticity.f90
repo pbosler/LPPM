@@ -78,9 +78,9 @@ contains
 subroutine NewPrivate(self, nInt, nReal)
 	type(BVESetup), intent(out) :: self
 	integer(kint), intent(in) :: nINt, nReal
-	
+
 	if (.NOT. logInit) call InitLogger(log,procRank)
-	
+
 	if ( nInt > 0 ) then
 		allocate(self%integers(nInt))
 		self%integers = 0
@@ -92,7 +92,7 @@ subroutine NewPrivate(self, nInt, nReal)
 		self%reals = 0.0_kreal
 	else
 		nullify(self%reals)
-	endif		
+	endif
 end subroutine
 
 subroutine NewPrivateNull(self)
@@ -118,13 +118,13 @@ end subroutine
 subroutine InitSolidBodyRotation(solidBody, rotRate)
 	type(BVESetup), intent(inout) :: solidBody
 	real(kreal), intent(in) :: rotRate
-	
+
 	if ( size(solidBody%reals) /= 1) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL,'BVESetup ERROR : ',' real array size incorrect')
 		return
 	endif
-	
-	solidBody%reals(1) = rotRate	
+
+	solidBody%reals(1) = rotRate
 end subroutine
 
 subroutine SetSolidBodyRotationOnMesh(aMesh, solidBody)
@@ -135,21 +135,21 @@ subroutine SetSolidBodyRotationOnMesh(aMesh, solidBody)
 	integer(kint) :: j
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	do j=1,aParticles%N
 		aParticles%relVort(j) = SolidBodyX(aParticles%x0(:,j), solidBody%reals(1))
 	enddo
 	do j=1,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			aPanels%relVort(j) = SOlidBOdyX(aPanels%x0(:,j), solidBody%reals(1))
+			aPanels%relVort(j) = SolidBodyX(aPanels%x0(:,j), solidBody%reals(1))
 		else
 			aPanels%relVort(j) = 0.0_kreal
 		endif
 	enddo
-	
+
 end subroutine
 
 subroutine NullVorticity(aMesh,nullVort)
@@ -168,7 +168,7 @@ function SolidBodyX(xyz,rotationRate)
 ! at position xyz.
 	real(kreal) :: SolidBodyX
 	real(kreal), intent(in) :: xyz(3), rotationRate
-	SolidBodyX = 2.0_kreal*rotationRate*xyz(3)
+	SolidBodyX = 2.0_kreal*rotationRate*xyz(3)/EARTH_RADIUS
 end function
 
 
