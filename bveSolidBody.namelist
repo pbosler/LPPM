@@ -12,11 +12,11 @@
 & timeStepping
 	tfinal = 1		! days
 	dt = 0.005		! days		
-	remeshInterval = 6000
+	remeshInterval = 30	! timesteps
 /
 
 & fileIO
 	outputDir = '~/Desktop/solidBody'
-	jobPrefix = 'bveSolidBody_noRM'
+	jobPrefix = 'bveSolidBody_rm30'
 	frameOut = 4
 /

@@ -210,10 +210,6 @@ do timeJ = 0, timesteps - 1
 
 	t = real(timeJ+1,kreal)*dt
 	!
-	!	status report
-	!
-	if ( mod(timeJ+1,10) == 0 .AND. procRank == 0) call LogStats(sphere,exeLog)
-	!
 	!	output timestep data
 	!
 	if ( procRank == 0 .AND. mod(timeJ+1,frameOUt) == 0  ) then
