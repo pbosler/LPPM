@@ -10,8 +10,8 @@
 /
 
 & timeStepping
-	tfinal = 12 				! days
-	timestepsPerPeriod = 2400			
+	tfinal = 1		! days
+	dt = 0.005		! days		
 	remeshInterval = 6000
 /
 

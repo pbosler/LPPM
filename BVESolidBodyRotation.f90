@@ -35,7 +35,7 @@ integer(kint) :: panelKind, initNest, AMR, nTracer, problemKind
 !
 type(BVERK4Data) :: bveRK4
 real(kreal) :: t, dt, tfinal
-integer(kint) :: timesteps, timeJ, timestepsPerPeriod
+integer(kint) :: timesteps, timeJ
 !
 !	tracer variables
 !
@@ -82,12 +82,12 @@ character(len=128) :: logString
 !
 integer(kint) :: i, j, k
 integer(kint) :: mpiErrCode
-integer(kint), parameter  :: BROADCAST_INT_SIZE = 6, BROADCAST_REAL_SIZE = 5
+integer(kint), parameter  :: BROADCAST_INT_SIZE = 5, BROADCAST_REAL_SIZE = 6
 integer(kint) :: broadcastIntegers(BROADCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BROADCAST_REAL_SIZE)
 
 namelist /sphereDefine/ panelKind, initNest, AMR, tracerMaxTol, tracerVarTol, refineMentLimit, circMaxTol, vortVarTol
-namelist /timeStepping/ tfinal, timestepsPerPeriod,  remeshInterval
+namelist /timeStepping/ tfinal, dt,  remeshInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,13 +108,14 @@ AMR = broadcastIntegers(2)
 initNest = broadcastIntegers(3)
 refinementLimit = broadcastIntegers(4)
 remeshInterval = broadcastIntegers(5)
-timestepsPerPeriod = broadCastIntegers(6)
+
 call MPI_BCAST(broadcastReals,BROADCAST_REAL_SIZE,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,mpiErrCode)
 tracermaxTol = broadcastReals(1)
 tracerVarTol = broadcastReals(2)
 tfinal = broadcastReals(3)*ONE_DAY ! convert tfinal to seconds
 circMaxTol = broadcastReals(4)
 vortVarTol = broadcastReals(5)
+dt = broadcastReals(6) * ONE_DAY
 
 !
 !	define test case in accordance with Williamson et al., JCP 1992, test case 1
@@ -170,7 +171,6 @@ endif
 !	intialize timestepping
 !
 call New(bveRK4,sphere,numProcs)
-dt = 12.0_kreal*ONE_DAY/real(timestepsPerPeriod,kreal)
 timesteps = floor(tfinal/dt)
 t = 0.0_kreal
 remeshCounter = 0
@@ -264,13 +264,13 @@ subroutine ReadNamelistfile(rank)
 			broadcastIntegers(3) = initNest
 			broadcastIntegers(4) = refinementLimit
 			broadcastIntegers(5) = remeshInterval
-		    broadcastIntegers(6) = timestepsPerPeriod
 
 			broadcastReals(1) = tracerMaxTol
 			broadcastReals(2) = tracerVarTol
 			broadcastReals(3) = tfinal
 			broadcastReals(4) = circMaxTol
 			broadcastReals(5) = vortVarTol
+			broadcastReals(6) = dt
 	endif
 end subroutine
 
