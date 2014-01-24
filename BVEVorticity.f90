@@ -180,6 +180,7 @@ subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 	xyzCent = EARTH_RADIUS*[ cos(gaussVort%reals(1))*cos(gaussVort%reals(2)), &
 							 cos(gaussVort%reals(1))*sin(gaussVort%reals(2)), &
 							 sin(gaussVort%reals(1)) ]
+        print *, xyzCent
 	!
 	!	set Gaussian constant if not set already
 	!
@@ -193,6 +194,11 @@ subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 			endif
 		enddo
 		GAUSS_CONST = sum(gVort*aPanels%area(1:aPanels%N))/(4.0_kreal*PI*EARTH_RADIUS)
+
+                call LogMessage(log,DEBUG_LOGGING_LEVEL,'GAUSS_CONST = ',GAUSS_CONST)
+                call LogMessage(log,DEBUG_LOGGING_LEVEL,'n low level panels = ',aPanels%N - count(aPanels%hasChildren)) 
+                call LogMessage(log,DEBUG_LOGGING_LEVEL,'gauss int = ',sum(gVort*aPanels%area(1:aPanels%N)))
+
 		deallocate(gVort)
 	endif
 	

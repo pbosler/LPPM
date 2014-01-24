@@ -1,7 +1,7 @@
 & sphereDefine
 	panelKind = 4
 	AMR = 0
-	initNest = 4
+	initNest = 5
 	tracerMaxTol = 0.0
 	tracerVarTol = 0.0
 	refinementLimit = 0
@@ -19,12 +19,12 @@
 
 & timeStepping
 	tfinal = 1		! days
-	dt = 0.005		! days		
+	dt = 0.01		! days		
 	remeshInterval = 30	! timesteps
 /
 
 & fileIO
-	outputDir = '~/Desktop/gaussVort'
+	outputDir = '.'
 	jobPrefix = 'bveGaussVort_rm30'
 	frameOut = 4
 /

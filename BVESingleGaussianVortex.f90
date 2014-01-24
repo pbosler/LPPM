@@ -129,6 +129,7 @@ vortLon = broadcastReals(9)
 bb = broadcastReals(10)
 maxVort = broadcastReals(11)
 
+
 !
 !	define test case in accordance with Williamson et al., JCP 1992, test case 1
 !
@@ -268,6 +269,8 @@ subroutine ReadNamelistfile(rank)
 			endif
 			read(READ_UNIT,nml=sphereDefine)
 			rewind(READ_UNIT)
+                        read(READ_UNIT,nml=vorticityDefine)
+                        rewind(READ_UNIT)
 			read(READ_UNIT,nml=timestepping)
 			rewind(READ_UNIT)
 			read(READ_UNIT,nml=fileIO)
