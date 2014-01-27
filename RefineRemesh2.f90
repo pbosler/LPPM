@@ -187,6 +187,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 	allocate(refineFlag(aPanels%N_Max))
 	refineFlag = .FALSE.
 	keepGoing = .FALSE.
+
 	!
 	! 	Apply refinement criteria
 	!
@@ -244,7 +245,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 
 	do while (keepGoing)
 		amrLoopCounter = amrLoopCounter + 1
-		write(logString,formatString) 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
+		write(logString,'(A,I2,A,I8,A)') 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
 		call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 		!
 		!	Divide flagged panels
@@ -493,7 +494,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 		do while (keepGoing)
 			amrLoopCounter = amrLoopCounter + 1
 
-			write(logString,formatString) 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
+			write(logString,'(A,I3,A,I8,A)') 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
 			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 			!
 			!	divide flagged panels
@@ -652,11 +653,13 @@ subroutine SetRelativeTracerTols(aMesh, tracerRefine)
 
 	tracerRefine%varTol = tracerRefine%varTol * baseVar
 
-	write(logString,'(A,I4)') ' for tracer ', tracerRefine%tracerID
-	call StartSection(log,'tracer refinement tolerances set :',logString)
-		call LogMessage(log,TRACE_LOGGING_LEVEL,'mass per panel < ', tracerRefine%maxTol)
-		call LogMessage(log,TRACE_LOGGING_LEVEL,'mass variation < ',tracerRefine%varTol)
-	call EndSection(log)
+	if (procRank == 0 ) then
+		write(logString,'(A,I4)') ' for tracer ', tracerRefine%tracerID
+		call StartSection(log,'tracer refinement tolerances set :',trim(logString))
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'mass per panel < ', tracerRefine%maxTol)
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'mass variation < ',tracerRefine%varTol)
+		call EndSection(log)
+	endif
 end subroutine
 
 subroutine SetRelativeVorticityTols(aMesh,vortRefine)
@@ -695,10 +698,12 @@ subroutine SetRelativeVorticityTols(aMesh,vortRefine)
 
 	vortRefine%varTol = vortRefine%varTol*baseVar
 
-	call StartSection(log,'vorticity refinement tolerances set :')
-		call LogMessage(log,TRACE_LOGGING_LEVEL,'|circulation| < ', vortRefine%maxTol)
-		call LogMessage(log,TRACE_LOGGING_LEVEL,'relVortVar < ',vortRefine%varTol)
-	call EndSection(log)
+	if ( procRank == 0 ) then
+		call StartSection(log,'vorticity refinement tolerances set :')
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'|circulation| < ', vortRefine%maxTol)
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'relVortVar < ',vortRefine%varTol)
+		call EndSection(log)
+	endif
 end subroutine
 
 subroutine SetRelativeFlowMapTol(amesh, flowmapRefine)
@@ -739,9 +744,11 @@ subroutine SetRelativeFlowMapTol(amesh, flowmapRefine)
 	enddo
 
 	flowMapRefine%varTol = flowMapRefine%varTol * baseVar
-	call StartSection(log,'flowmap refinement tolerance set :')
-		call LogMessage(log,TRACE_LOGGING_LEVEL,'flowMapVar < ',flowMapRefine%varTol)
-	call EndSection(log)
+	if ( procRank == 0 ) then
+		 call StartSection(log,'flowmap refinement tolerance set :')
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'flowMapVar < ',flowMapRefine%varTol)
+		call EndSection(log)
+	endif
 end subroutine
 
 !

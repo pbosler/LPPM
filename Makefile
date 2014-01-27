@@ -30,8 +30,8 @@ else ifeq ($(MACHINE),'TANK')
 #--------------#
 # TANK DESKTOP #
   FF=ifort
-  FF_FLAGS=-g -traceback -warn all -debug extended
-  #FF_FLAGS=-O2 -warn all -opt-report 1
+  #FF_FLAGS=-g -traceback -warn all -debug extended
+  FF_FLAGS=-O2 -warn all -opt-report 1
   VTK_INCLUDE=/usr/local/include/vtk-5.10
   VTK_LIB_DIR=/usr/local/lib/vtk-5.10
   VTK_LIBS=-lvtkCommon -lvtkGraphics -lvtkRendering -lvtkViews -lvtkWidgets -lvtkImaging -lvtkHybrid -lvtkIO -lvtkFiltering

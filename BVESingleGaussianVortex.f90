@@ -155,17 +155,23 @@ call SetCosineBellTracerOnMesh(sphere,cosBell)
 call SetInitialLatitudeTracerOnMesh(sphere,2)
 call SetSingleGaussianVortexOnMesh(sphere,gaussVort)
 if ( AMR > 0 ) then
+
 	call New(tracerRefine,refinementLimit,tracermaxTol,tracerVarTol,TRACER_REFINE,tracerID)
 	call SetRelativeTracerTols(sphere,tracerRefine)
+
 	call New(vortRefine,refinementLimit,circMaxTol,vortVarTol,RELVORT_REFINE)
 	call SetRelativeVorticityTols(sphere,vortRefine)
+
 	call New(flowMapREfine,refinementLimit,100000.0_kreal,lagVarTol,FLOWMAP_REFINE)
 	call SetRelativeFlowMapTol(sphere,flowMapRefine)
 	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
 						   vortRefine, SetSingleGaussianVortexOnMesh,gaussVort)
+
+	call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' initial refinement done.')
+
 	call SetInitialLatitudeTracerOnMesh(sphere,2)
 	if ( panelKind == QUAD_PANEL) then
-		write(amrString,'(A,I1,A,I0.2)') 'quadAMR_',initNest,'to',initNest+refinementLimit
+		write(amrString,'(A,I1,A,I0.2,A)') 'quadAMR_',initNest,'to',initNest+refinementLimit,'_'
 	endif
 else
 	call New(tracerRefine)
