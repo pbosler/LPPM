@@ -30,12 +30,15 @@ private
 public BVERK4Data
 public New, Delete
 public BVERK4Timestep
+public VELOCITY_SMOOTH
 
 !
 !----------------
 ! Types and module constants
 !----------------
 !
+real(kreal), protected, save :: VELOCITY_SMOOTH = 0.01_kreal
+
 type BVERK4Data
 	! MPI load balancing
 	integer(kint), pointer :: particlesIndexStart(:) => null(), &
@@ -294,6 +297,11 @@ end subroutine
 ! Public member functions
 !----------------
 !
+subroutine SetVelocitySmoothingParameter(newSmooth)
+	real(kreal), intent(in) :: newSmooth
+	VELOCITY_SMOOTH = newSmooth
+end subroutine
+
 subroutine BVERK4Timestep(self,aMesh,dt,procRank, nProcs)
 !	Advances aMesh one time step forward using 4th order Runge-Kutta
 !

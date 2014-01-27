@@ -49,9 +49,6 @@ module NumberKindsModule
 	integer(KINT), save :: numProcs = 1, &
 						   procRank = 0
 
-	! Test case variables
-	real(kreal), save :: GAUSS_CONST = 0.0_kreal,&
-						 VELOCITY_SMOOTH = 0.01_kreal
 
 end module NumberKindsModule
 

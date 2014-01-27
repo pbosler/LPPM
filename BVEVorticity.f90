@@ -34,6 +34,7 @@ public SOLID_BODY_NINT, SOLID_BODY_NREAL
 public NullVorticity
 public InitSingleGaussianVortex, SetSingleGaussianVortexOnMesh
 public SINGLE_VORTEX_NINT, SINGLE_VORTEX_NREAL
+public GAUSS_CONST
 
 !
 !----------------
@@ -45,6 +46,7 @@ type BVESetup
 	real(kreal), pointer :: reals(:) => null() 		! 	real numbers required by test case definitions
 end type
 
+real(kreal), protected, save :: GAUSS_CONST = 0.0_kreal
 integer(kint), parameter :: SOLID_BODY_NINT = 0, SOLID_BODY_NREAL = 1
 integer(kint), parameter :: SINGLE_VORTEX_NINT = 0, SINGLE_VORTEX_NREAL = 4
 
@@ -173,14 +175,13 @@ subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
 	real(kreal),  allocatable :: gVort(:)
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	xyzCent = EARTH_RADIUS*[ cos(gaussVort%reals(1))*cos(gaussVort%reals(2)), &
 							 cos(gaussVort%reals(1))*sin(gaussVort%reals(2)), &
 							 sin(gaussVort%reals(1)) ]
-        print *, xyzCent
 	!
 	!	set Gaussian constant if not set already
 	!
@@ -193,22 +194,17 @@ subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 					gaussVort%reals(3), gaussVort%reals(4))
 			endif
 		enddo
-		GAUSS_CONST = sum(gVort*aPanels%area(1:aPanels%N))/(4.0_kreal*PI*EARTH_RADIUS)
-
-                call LogMessage(log,DEBUG_LOGGING_LEVEL,'GAUSS_CONST = ',GAUSS_CONST)
-                call LogMessage(log,DEBUG_LOGGING_LEVEL,'n low level panels = ',aPanels%N - count(aPanels%hasChildren)) 
-                call LogMessage(log,DEBUG_LOGGING_LEVEL,'gauss int = ',sum(gVort*aPanels%area(1:aPanels%N)))
-
+		GAUSS_CONST = sum(gVort*aPanels%area(1:aPanels%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS)
 		deallocate(gVort)
 	endif
-	
+
 	do j=1,aParticles%N
 		aParticles%absVort(j) = GeneralGaussian(aParticles%x0(:,j), xyzCent, &
 				gaussVort%reals(3), gaussVort%reals(4))  &
 					- GAUSS_CONST + 2.0_kreal*OMEGA*aParticles%x0(3,j)/EARTH_RADIUS
-		aParticles%relVort(j) = aParticles%absVort(j) - 2.0_kreal*OMEGA*aParticles%x(3,j)/EARTH_RADIUS			
+		aParticles%relVort(j) = aParticles%absVort(j) - 2.0_kreal*OMEGA*aParticles%x(3,j)/EARTH_RADIUS
 	enddo
-	
+
 	do j=1,aPanels%N
 		if ( aPanels%hasChildren(j) ) then
 			aPanels%absVort(j) = 0.0_kreal
@@ -217,9 +213,9 @@ subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 			aPanels%absVort(j) = GeneralGaussian(aPanels%x0(:,j), xyzCent, &
 				 gaussVort%reals(3), gaussVort%reals(4))  &
 				 - GAUSS_CONST + 2.0_kreal*OMEGA*aPanels%x0(3,j)/EARTH_RADIUS
-			aPanels%relVort(j) = aPanels%absVort(j) - 2.0_kreal*OMEGA*aPanels%x(3,j)/EARTH_RADIUS		
+			aPanels%relVort(j) = aPanels%absVort(j) - 2.0_kreal*OMEGA*aPanels%x(3,j)/EARTH_RADIUS
 		endif
-	enddo		
+	enddo
 end subroutine
 
 subroutine NullVorticity(aMesh,nullVort)
@@ -244,7 +240,7 @@ end function
 function GeneralGaussian(xyz,xyzCent, bb, maxVal)
 	real(kreal) :: GeneralGaussian
 	real(kreal), intent(in) :: xyz(3), xyzCent(3), bb, maxVal
-	GeneralGaussian = maxVal * exp( -2.0_kreal*bb*bb*( EARTH_RADIUS*EARTH_RADIUS - sum(xyz*xyzCent)))
+	GeneralGaussian = maxVal * exp( -2.0_kreal*bb*bb/EARTH_RADIUS/EARTH_RADIUS *( sum((xyz-xyzCent)*(xyz-xyzCent))))
 end function
 
 subroutine InitLogger(aLog,rank)

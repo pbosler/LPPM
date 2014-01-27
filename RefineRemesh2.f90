@@ -45,7 +45,7 @@ integer(kint), parameter :: NULL_REFINE = 70, &
 							TRACER_REFINE = 71, &
 							RELVORT_REFINE = 72, &
 							FLOWMAP_REFINE = 73
-							
+
 type RefinementSetup
 	real(kreal) :: maxTol			! tolerance for extrema
 	real(kreal) :: varTol			! tolerance for variation
@@ -69,7 +69,7 @@ interface Delete
 	module procedure DeletePrivate
 end interface
 
-interface 
+interface
 	subroutine SetTracerOnMesh(genMesh, genTracer)
 		use SphereMeshModule
 		use TracerSetupModule
@@ -78,7 +78,7 @@ interface
 		type(TracerSetup), intent(in) :: genTracer
 	end subroutine
 end interface
-						
+
 interface
 	subroutine SetVorticityOnMesh(genMesh,genVort)
 		use SphereMeshModule
@@ -110,9 +110,9 @@ subroutine NewPrivate(self, limit, maxTol, varTol, type, tracerID)
 	real(kreal), intent(in) :: maxTol, varTol
 	integer(kint), intent(in) :: type, limit
 	integer(kint), intent(in), optional :: tracerID
-	
+
 	if ( .NOT. logInit ) call InitLogger(log, procRank)
-	
+
 	if ( type < NULL_REFINE .OR. type > FLOWMAP_REFINE ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,' invalid refinement type.')
 		return
@@ -120,9 +120,9 @@ subroutine NewPrivate(self, limit, maxTol, varTol, type, tracerID)
 		if ( .NOT. present(tracerID) ) then
 			call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,' must specify which tracer to refine.')
 			return
-		else 
-			self%tracerID = tracerID	
-		endif	
+		else
+			self%tracerID = tracerID
+		endif
 	endif
 	self%limit = limit
 	self%maxTol = maxTOl
@@ -163,7 +163,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 	logical(klog) :: keepGoing
 	type(Panels), pointer :: aPanels
 	logical(klog), allocatable :: refineFlag(:)
-	
+
 	! check for invalid states
 	if ( refineTracer%type == TRACER_REFINE .AND. ( GetNTracer(aMesh%panels) < refineTracer%tracerID ) ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'InitialRefinement ERROR : ','invalid tracer number.')
@@ -202,7 +202,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 		call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 		write(logString,formatString) 'tracerVar criterion triggered ', counter2, ' times.'
 		call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
-	endif	
+	endif
 	if ( refineRelVort%type /= NULL_REFINE) then
 		limit = max(limit,refineRelVort%limit)
 		counter1 = count(refineFlag)
@@ -216,10 +216,10 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 		write(logString,formatString) 'relVortVar criterion triggered ', counter2, ' times.'
 		call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 	endif
-	
+
 	refineCount = count(refineFlag)
 	spaceLeft = aPanels%N_Max - aPanels%N
-	
+
 	!
 	!	exit if refinement is not needed
 	!
@@ -228,19 +228,19 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 		deallocate(refineFlag)
 		return
 	endif
-		
+
 	!
 	!	check for memory, exit if insufficient
 	!
 	if ( spaceLeft/4 < refineCount ) then
 		call LogMessage(log,WARNING_LOGGING_LEVEL,'InitRefine : ',' insufficient memory for AMR.')
 		deallocate(refineFlag)
-		return		
+		return
 	endif
-	
+
 	keepGoing = .TRUE.
 	amrLoopCounter = 0
-	
+
 	do while (keepGoing)
 		amrLoopCounter = amrLoopCounter + 1
 		write(logString,formatString) 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
@@ -292,7 +292,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 			write(logString,formatString) 'tracerVar criterion triggered ', counter2, ' times.'
 			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
-		endif	
+		endif
 		if ( refineRelVort%type /= NULL_REFINE) then
 			counter1 = count(refineFlag)
 			call FlagPanelsForCirculationRefinement(refineFlag,aMesh,refineRelVort,startIndex)
@@ -312,7 +312,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ','refinement converged.')
 			keepGoing = .FALSE.
 		endif
-		
+
 		!
 		!	check for memory, exit if insufficient
 		!
@@ -320,7 +320,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 			call LogMessage(log,WARNING_LOGGING_LEVEL,'InitRefine : ',' insufficient memory for AMR.')
 			keepGoing = .FALSE.
 		endif
-	enddo	
+	enddo
 	 deallocate(refineFlag)
 end subroutine
 
@@ -336,7 +336,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 !	If AMR is in use, this subroutine adaptively refines the new mesh using the input criteria as well.
 !
 !	NewMesh data are copied into the old mesh object, overwriting the previous data.
-!								   
+!
 	! calling parameters
 	type(SphereMesh), intent(inout) :: aMesh
 	procedure(SetVorticityOnMesh) :: setVorticity
@@ -368,17 +368,17 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 	refineFlowMap = .FALSE.
 	refineTracer = .FALSE.
 	refineVort = .FALSE.
-	
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' entering Lagrangian remesh.')
-	
+
 	!
 	!	determine what types of AMR to use
 	!
 	if ( tracerRefine%type == TRACER_REFINE .AND. &
 		GetNTracer(aMesh%panels) <= tracerRefine%tracerID ) refineTracer = .TRUE.
 	if ( vortRefine%type == RELVORT_REFINE ) refineVort = .TRUE.
-	if ( flowMapRefine%type == FLOWMAP_REFINE) refineFlowMap = .TRUE.	
-	
+	if ( flowMapRefine%type == FLOWMAP_REFINE) refineFlowMap = .TRUE.
+
 	!
 	!	set existing mesh as data source for interpolation
 	!
@@ -387,9 +387,9 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 	call New(lagSource,delTri,vectorInterp)
 	if ( present(interpSmoothTol) ) call SetSigmaTol(lagSource,interpSmoothTol)
 	call SetSourceLagrangianParameter(lagSource,delTri)
-	
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' remesh source data ready.')
-	
+
 	!
 	!	Build a new mesh
 	!
@@ -397,7 +397,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 	newParticles => newMesh%particles
 	newEdges => newMesh%edges
 	newPanels => newMesh%panels
-	
+
 	!
 	!	interpolate lagrangian parameter from old mesh to new mesh
 	!
@@ -421,9 +421,9 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 	!	set vorticity values on new mesh
 	!
 	if ( aMesh%problemKind == BVE_SOLVER ) call SetVorticity(newMesh,vortDef)
-	
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' new uniform mesh ready.')
-	
+
 	!
 	!	AMR
 	!
@@ -433,7 +433,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 		startIndex = 1
 		keepGoing = .FALSE.
 		limit = 0
-		
+
 		!
 		!	Apply refinement criteria
 		!
@@ -470,10 +470,10 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			write(formatString,'(A)') '(A,I8,A)'
 			write(logString,formatString) 'flowMap variation criterion triggered ', counter1, ' times.'
 		endif
-		
+
 		refineCount = count(refineFlag)
 		spaceLeft = newPanels%N_Max - newPanels%N
-		
+
 		!
 		!	exit if refinement is not needed, or insufficient memory
 		!
@@ -483,13 +483,13 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 		elseif ( spaceLeft/4 < refineCount ) then
 			call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh : ','insufficient memory for AMR.')
 			keepGoing = .FALSE.
-		else 
+		else
 			keepGoing = .TRUE.
 		endif
-		
+
 		amrLoopCounter = 0
-		
-		do while (keepGoing) 
+
+		do while (keepGoing)
 			amrLoopCounter = amrLoopCounter + 1
 
 			write(logString,formatString) 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
@@ -515,7 +515,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 					refineFlag(j) = .FALSE.
 				endif
 			enddo
-			
+
 			!
 			!	set problem data on mesh
 			!
@@ -526,12 +526,12 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			enddo
 			do j=nOldPanels+1,newPanels%N
 				newPanels%x0(:,j) = InterpolateVector(newPanels%x(:,j),lagSource,delTri)
-				newPanels%x0(:,j) = newPanels%x0(:,j) / & 
+				newPanels%x0(:,j) = newPanels%x0(:,j) / &
 					sqrt(sum(newPanels%x0(:,j)*newPanels%x0(:,j)))*EARTH_RADIUS
 			enddo
 			if ( aMesh%nTracer > 0 ) call SetTracer(newMesh,tracerDef)
 			if ( aMesh%problemKind == BVE_SOLVER) call SetVorticity(newMesh,vortDef)
-			
+
 			!
 			!	prevent too much refinement
 			!
@@ -539,11 +539,11 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 				keepGoing = .FALSE.
 				call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh WARNING :',' refinement limit reached.')
 			endif
-			
+
 			!
 			!	apply refinement criteria
 			!
-			startIndex = nOldPanels + 1 
+			startIndex = nOldPanels + 1
 			nOldPanels = newPanels%N
 			if ( refineTracer ) then
 				limit = max(limit,tracerRefine%limit)
@@ -578,10 +578,10 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 				write(formatString,'(A)') '(A,I8,A)'
 				write(logString,formatString) 'flowMap variation criterion triggered ', counter1, ' times.'
 			endif
-			
+
 			refineCount = count(refineFlag)
 			spaceLeft = newPanels%N_Max - newPanels%N
-			
+
 			!
 			!	exit if refinement is not needed, or insufficient memory
 			!
@@ -591,12 +591,25 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			elseif ( spaceLeft/4 < refineCount ) then
 				call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh : ','insufficient memory to continue AMR.')
 				keepGoing = .FALSE.
-			else 
+			else
 				keepGoing = .TRUE.
-			endif			
+			endif
 		enddo ! while keepgoing
 		deallocate(refineFlag)
-	endif ! AMR			   
+	endif ! AMR
+
+	!
+	!	replace old mesh with new mesh
+	!
+	call Copy(aMesh,newMesh)
+
+	!
+	!	clean up
+	!
+	call Delete(newMesh)
+	call Delete(delTri)
+	call Delete(lagSource)
+
 end subroutine
 
 
@@ -613,12 +626,12 @@ subroutine FlagPanelsForTracerMaxRefinement(refineFlag,aMesh,refineTracer,startI
 	! local variables
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j
-	
+
 	if ( refineTracer%type /= TRACER_REFINE ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsTracer ERROR :',' invalid refinement type.')
 		return
 	endif
-	aPanels => aMesh%panels	
+	aPanels => aMesh%panels
 	do j=startIndex,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			if ( abs(aPanels%tracer(j,refineTracer%tracerID))*aPanels%area(j) > refineTracer%maxTol ) refineFlag(j) = .TRUE.
@@ -638,7 +651,7 @@ subroutine FlagPanelsForCirculationRefinement(refineFlag,aMesh,refineRelVort,sta
 	if ( refineRelVort%type /= RELVORT_REFINE ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsCirc ERROR :',' invalid refinement type.')
 		return
-	endif	
+	endif
 	aPanels => aMesh%panels
 	do j=startIndex,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
@@ -663,10 +676,10 @@ subroutine FlagPanelsForTracerVariationRefinement(refineFlag,aMesh,refineTracer,
 	if ( refineTracer%type /= TRACER_REFINE ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsTracer ERROR :',' invalid refinement type.')
 		return
-	endif	
+	endif
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	do j=startIndex,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			maxTracer = aPanels%tracer(j,refineTracer%tracerID)
@@ -676,7 +689,7 @@ subroutine FlagPanelsForTracerVariationRefinement(refineFlag,aMesh,refineTracer,
 				if ( aParticles%tracer(vertList(k),refineTracer%tracerID) > maxTracer) &
 					maxTracer = aParticles%tracer(vertList(k),refineTracer%tracerID)
 				if ( aParticles%tracer(vertList(k),refineTracer%tracerID) < minTracer) &
-					minTracer = aParticles%tracer(vertList(k),refineTracer%tracerID)	
+					minTracer = aParticles%tracer(vertList(k),refineTracer%tracerID)
 			enddo
 			tracerVar = maxTracer - minTracer
 			if ( tracerVar > refineTracer%varTol ) refineFlag(j) = .TRUE.
@@ -699,10 +712,10 @@ subroutine FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineRelVor
 	if ( refineRelVOrt%type /= RELVORT_REFINE ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsRelVortVar ERROR :',' invalid refinement type.')
 		return
-	endif	
+	endif
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	do j=startIndex,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			maxrelVort = aPanels%relVort(j)
@@ -712,7 +725,7 @@ subroutine FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineRelVor
 				if ( aParticles%relVort(vertList(k)) > maxrelVort) &
 					maxrelVort = aParticles%relVort(vertList(k))
 				if ( aParticles%relVort(vertList(k)) < minrelVort) &
-					minRelVort = aParticles%relVort(vertList(k))			
+					minRelVort = aParticles%relVort(vertList(k))
 			enddo
 			relVortVar = maxRelVort - minRelVort
 			if ( relVortVar > refineRelVort%varTol ) refineFlag(j) = .TRUE.
@@ -735,10 +748,10 @@ subroutine FlagPanelsForFlowMapRefinement(refineFlag,aMesh,refineFlowMap,startIn
 	if ( refineFlowMap%type /= FLOWMAP_REFINE ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsFlowMap ERROR :',' invalid refinement type.')
 		return
-	endif	
+	endif
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	do j=startIndex,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			maxX0 = aPanels%x0(:,j)
@@ -748,15 +761,15 @@ subroutine FlagPanelsForFlowMapRefinement(refineFlag,aMesh,refineFlowMap,startIn
 				if ( aParticles%x0(1,vertList(k)) > maxx0(1)) &
 					maxx0(1) = aParticles%x0(1,vertList(k))
 				if ( aParticles%x0(1,vertList(k)) < minx0(1)) &
-					minx0(1) = aParticles%x0(1,vertList(k))		
+					minx0(1) = aParticles%x0(1,vertList(k))
 				if ( aParticles%x0(2,vertList(k)) > maxx0(2)) &
 					maxx0(2) = aParticles%x0(1,vertList(k))
 				if ( aParticles%x0(2,vertList(k)) < minx0(2)) &
-					minx0(2) = aParticles%x0(1,vertList(k))		
+					minx0(2) = aParticles%x0(1,vertList(k))
 				if ( aParticles%x0(3,vertList(k)) > maxx0(3)) &
 					maxx0(3) = aParticles%x0(1,vertList(k))
 				if ( aParticles%x0(3,vertList(k)) < minx0(3)) &
-					minx0(3) = aParticles%x0(1,vertList(k))				
+					minx0(3) = aParticles%x0(1,vertList(k))
 			enddo
 			lagVar = sum(maxx0 - minx0)
 			if ( lagVar > refineFlowMap%varTol ) refineFlag(j) = .TRUE.
@@ -776,7 +789,7 @@ subroutine InitLogger(aLog,rank)
 	write(logKey,'(A,A,I0.2,A)') trim(logKey),'_',rank,' : '
 	if ( rank == 0 ) then
 		call New(aLog,logLevel)
-	else 
+	else
 		call New(aLog,WARNING_LOGGING_LEVEL)
 	endif
 	logInit = .TRUE.

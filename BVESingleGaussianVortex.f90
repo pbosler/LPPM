@@ -93,7 +93,7 @@ real(kreal) :: broadcastReals(BROADCAST_REAL_SIZE)
 
 namelist /sphereDefine/ panelKind, initNest, AMR, tracerMaxTol, tracerVarTol, &
 						refineMentLimit, circMaxTol, vortVarTol, lagVarTol
-namelist /vorticityDefine/ 	vortLat, vortLon, bb, maxVort					
+namelist /vorticityDefine/ 	vortLat, vortLon, bb, maxVort
 namelist /timeStepping/ tfinal, dt,  remeshInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 
@@ -127,7 +127,7 @@ lagVarTol = broadcastReals(7)
 vortLat = broadcastReals(8)
 vortLon = broadcastReals(9)
 bb = broadcastReals(10)
-maxVort = broadcastReals(11)
+maxVort = broadcastReals(11)*OMEGA
 
 
 !
@@ -159,7 +159,7 @@ if ( AMR > 0 ) then
 	call New(flowMapREfine,refinementLimit,100000.0_kreal,lagVarTol,FLOWMAP_REFINE)
 	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
 						   vortRefine, SetSingleGaussianVortexOnMesh,gaussVort)
-	call SetInitialLatitudeTracerOnMesh(sphere,2)					   
+	call SetInitialLatitudeTracerOnMesh(sphere,2)
 	if ( panelKind == QUAD_PANEL) then
 		write(amrString,'(A,I1,A,I0.2)') 'quadAMR_',initNest,'to',initNest+refinementLimit
 	endif
@@ -241,7 +241,7 @@ enddo
 !	output final data
 !
 
-! TO DO : output final data 
+! TO DO : output final data
 
 
 
@@ -269,8 +269,8 @@ subroutine ReadNamelistfile(rank)
 			endif
 			read(READ_UNIT,nml=sphereDefine)
 			rewind(READ_UNIT)
-                        read(READ_UNIT,nml=vorticityDefine)
-                        rewind(READ_UNIT)
+            read(READ_UNIT,nml=vorticityDefine)
+            rewind(READ_UNIT)
 			read(READ_UNIT,nml=timestepping)
 			rewind(READ_UNIT)
 			read(READ_UNIT,nml=fileIO)

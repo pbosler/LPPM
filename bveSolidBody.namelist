@@ -18,5 +18,5 @@
 & fileIO
 	outputDir = '~/Desktop/solidBody'
 	jobPrefix = 'bveSolidBody_rm30'
-	frameOut = 4
+	frameOut = 1
 /

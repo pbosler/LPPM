@@ -14,17 +14,17 @@
 	vortLat = 0.157079632679490
 	vortLon = 0.0
 	bb = 4.0
-	maxVort = 12.0
+	maxVort = 1.0  ! units of planetary rotation, OMEGA
 /
 
 & timeStepping
-	tfinal = 1		! days
-	dt = 0.01		! days		
+	tfinal = 0.5		! days
+	dt = 0.01		! days
 	remeshInterval = 30	! timesteps
 /
 
 & fileIO
 	outputDir = '.'
 	jobPrefix = 'bveGaussVort_rm30'
-	frameOut = 4
+	frameOut = 1
 /
