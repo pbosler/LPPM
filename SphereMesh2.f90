@@ -47,6 +47,7 @@ public TotalMass, TotalAbsVort, TotalRelVort, TotalEnstrophy
 public CountSubTriangles
 public LocatePoint
 public DividePanel
+public GetRossbyNumber
 !
 !----------------
 ! Types and module constants
@@ -360,6 +361,12 @@ function TotalAbsVort(self)
 end function
 
 
+function GetRossbyNumber(self)
+	real(kreal) :: GetRossbyNumber
+	type(SphereMesh), intent(in) :: self
+	GetRossbyNumber = maxval(abs(self%panels%relVort))/(2.0_kreal*OMEGA)
+end function
+
 function TotalRelVort(self)
 !	Calculates the integral of relative vorticity over the sphere.
 !	For diagnostic purposes (this quantity should be zero).
@@ -390,7 +397,7 @@ function TotalEnstrophy(self)
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'TotalEnstrophy ERROR : ',' relVort not found.')
 		return
 	endif
-	
+
 	totalEnstrophy = 0.5*sum(aPanels%relVort*aPanels%relVort*aPanels%area)
 end function
 
@@ -793,7 +800,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 		childEdges = anEdges%children(:,edgeIndices(3))
 		aPanels%vertices(4,nPanels+3) = anEdges%verts(2,childEdges(1))
 		aPanels%vertices(3,nPanels+4) = anEdges%verts(2,childEdges(1))
-		
+
 		if ( edgeOrientation(3) ) then
 			aPanels%edges(3,nPanels+3) = childEdges(1)
 			anEdges%leftPanel(childEdges(1)) = nPanels+3
@@ -1050,10 +1057,10 @@ subroutine SetEdgeLengths(self)
 	integer(kint) :: j
 	type(Edges), pointer :: anEdges
 	type(Particles), pointer :: aParticles
-	
+
 	anEdges => self%edges
 	aParticles => self%particles
-	
+
 	do j=1,self%edges%N
 		if ( anEdges%hasChildren(j) ) then
 			anEdges%length(j) = 0.0_kreal
@@ -1194,7 +1201,7 @@ function PanelCentroid(self,panelIndex)
 !	Its purpose is to facilitate the TreeSearch algorithm, where inexact results are ok, and the
 !	WalkSearch algorithm, where every panel is a low-level panel with only 3 or 4 vertices.
 !
-!	TO DO :	
+!	TO DO :
 !	-- does not account for AMR --
 !
 	real(kreal) :: PanelCentroid(3)

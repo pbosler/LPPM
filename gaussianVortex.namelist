@@ -1,13 +1,13 @@
 & sphereDefine
 	panelKind = 4
-	AMR = 0
+	AMR = 3
 	initNest = 5
-	tracerMaxTol = 0.0
-	tracerVarTol = 0.0
+	tracerMaxTol = 100000.0
+	tracerVarTol = 100000.0
 	refinementLimit = 0
-	circMaxTol = 0.0
-	vortVarTol = 0.0
-	lagVarTol = 0.0
+	circMaxTol = 0.08
+	vortVarTol = 10000.0
+	lagVarTol = 1.0
 /
 
 & vorticityDefine

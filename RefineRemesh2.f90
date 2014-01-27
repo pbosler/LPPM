@@ -35,6 +35,7 @@ public New, Delete
 public LagrangianRemesh !, DirectRemesh
 public InitialRefinement
 public NULL_REFINE, TRACER_REFINE, RELVORT_REFINE, FLOWMAP_REFINE
+public SetRelativeTracerTols, SetRelativeVorticityTols, SetRelativeFlowMapTol
 
 !
 !----------------
@@ -612,6 +613,136 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 
 end subroutine
 
+subroutine SetRelativeTracerTols(aMesh, tracerRefine)
+!	sets amr tolerance values for relative vorticity refinement, relative to a uniform mesh with
+!	a vorticity distribution.
+	type(SphereMesh), intent(in) :: aMesh
+	type(RefinementSetup), intent(inout) :: tracerRefine
+	real(kreal) :: maxMass, baseVar, maxTracer, minTracer
+	integer(kint) :: j, k
+	type(Panels), pointer :: apanels
+	type(Particles), pointer :: aparticles
+	character(len=28) :: logString
+
+	if ( tracerRefine%type /= TRACER_REFINE ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'SetAMRTol ERROR : ',' refinement type mismatch')
+		return
+	endif
+
+	aParticles => amesh%particles
+	aPanels => aMesh%panels
+
+	maxMass = maxval( abs(apanels%tracer(1:apanels%N,tracerRefine%tracerID))*apanels%area(1:apanels%N))
+	tracerRefine%maxTol = tracerRefine%maxTol * maxMass
+
+	baseVar = 0.0_kreal
+	do j=1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			maxTracer = aPanels%tracer(j,tracerRefine%tracerID)
+			minTracer = maxTracer
+			do k=1,aMesh%panelKind
+				if ( aParticles%tracer(aPanels%vertices(k,j),tracerRefine%tracerID) < minTracer ) &
+					minTracer = aParticles%tracer(aPanels%vertices(k,j),tracerRefine%tracerID)
+				if ( aParticles%tracer(aPanels%vertices(k,j),tracerRefine%tracerID) > maxTracer ) &
+					maxTracer = aParticles%tracer(aPanels%vertices(k,j),tracerRefine%tracerID)
+			enddo
+			if ( maxTracer - minTracer > baseVar ) baseVar = maxTracer - minTracer
+		endif
+	enddo
+
+	tracerRefine%varTol = tracerRefine%varTol * baseVar
+
+	write(logString,'(A,I4)') ' for tracer ', tracerRefine%tracerID
+	call StartSection(log,'tracer refinement tolerances set :',logString)
+		call LogMessage(log,TRACE_LOGGING_LEVEL,'mass per panel < ', tracerRefine%maxTol)
+		call LogMessage(log,TRACE_LOGGING_LEVEL,'mass variation < ',tracerRefine%varTol)
+	call EndSection(log)
+end subroutine
+
+subroutine SetRelativeVorticityTols(aMesh,vortRefine)
+!	sets amr tolerance values for relative vorticity refinement, relative to a uniform mesh with
+!	a vorticity distribution.
+	type(SphereMesh), intent(in) :: aMesh
+	type(RefinementSetup), intent(inout) :: vortRefine
+	real(kreal) :: maxCirc, baseVar, maxVort, minVort
+	integer(kint) :: j, k
+	type(Panels), pointer :: apanels
+	type(Particles), pointer :: aparticles
+
+	if ( vortRefine%type /= RELVORT_REFINE ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'SetAMRTol ERROR : ',' refinement type mismatch')
+		return
+	endif
+
+	aParticles => amesh%particles
+	aPanels => aMesh%panels
+
+	maxCirc = maxval( abs(apanels%relVort(1:apanels%N))*apanels%area(1:apanels%N))
+	vortRefine%maxTol = vortRefine%maxTol * maxCirc
+
+	baseVar = 0.0_kreal
+	do j=1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			maxVort = aPanels%relVort(j)
+			minVort = maxVort
+			do k=1,aMesh%panelKind
+				if ( aParticles%relVort(aPanels%vertices(k,j)) < minVort ) minVort = aParticles%relVort(aPanels%vertices(k,j))
+				if ( aParticles%relVort(aPanels%vertices(k,j)) > maxVort ) maxVort = aParticles%relVort(aPanels%vertices(k,j))
+			enddo
+			if ( maxVort - minVort > baseVar ) baseVar = maxVort - minVort
+		endif
+	enddo
+
+	vortRefine%varTol = vortRefine%varTol*baseVar
+
+	call StartSection(log,'vorticity refinement tolerances set :')
+		call LogMessage(log,TRACE_LOGGING_LEVEL,'|circulation| < ', vortRefine%maxTol)
+		call LogMessage(log,TRACE_LOGGING_LEVEL,'relVortVar < ',vortRefine%varTol)
+	call EndSection(log)
+end subroutine
+
+subroutine SetRelativeFlowMapTol(amesh, flowmapRefine)
+	type(SphereMesh), intent(in) :: aMesh
+	type(RefinementSetup), intent(inout) :: flowmapRefine
+	real(kreal) :: baseVar, maxX, minX, maxY, minY, maxZ, minZ
+	integer(kint) :: j, k
+	type(Panels), pointer :: aPanels
+	type(Particles), pointer :: aParticles
+
+	if ( flowMapRefine%type /= FLOWMAP_REFINE ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'SetAMRTol ERROR : ',' refinement type mismatch')
+		return
+	endif
+
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+
+	baseVar = 0.0_kreal
+	do j=1,aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			maxx = apanels%x0(1,j)
+			minx = apanels%x0(1,j)
+			maxy = aPanels%x0(2,j)
+			miny = aPanels%x0(2,j)
+			maxz = aPanels%x0(3,j)
+			minz = aPanels%x0(3,j)
+			do k=1, aMesh%panelkind
+				if ( aparticles%x0(1,apanels%vertices(k,j)) < minx ) minx = aparticles%x0(1,apanels%vertices(k,j))
+				if ( aparticles%x0(1,apanels%vertices(k,j)) > maxx ) maxx = aparticles%x0(1,apanels%vertices(k,j))
+				if ( aparticles%x0(2,apanels%vertices(k,j)) < miny ) miny = aparticles%x0(2,apanels%vertices(k,j))
+				if ( aparticles%x0(2,apanels%vertices(k,j)) > maxy ) maxy = aparticles%x0(2,apanels%vertices(k,j))
+				if ( aparticles%x0(3,apanels%vertices(k,j)) < minz ) minz = aparticles%x0(3,apanels%vertices(k,j))
+				if ( aparticles%x0(3,apanels%vertices(k,j)) > maxz ) maxz = aparticles%x0(3,apanels%vertices(k,j))
+			enddo
+			if ( maxx - minx + maxy - miny + maxz - minz > baseVar ) basevar = maxx - minx + maxy - miny + maxz - minz
+		endif
+	enddo
+
+	flowMapRefine%varTol = flowMapRefine%varTol * baseVar
+	call StartSection(log,'flowmap refinement tolerance set :')
+		call LogMessage(log,TRACE_LOGGING_LEVEL,'flowMapVar < ',flowMapRefine%varTol)
+	call EndSection(log)
+end subroutine
 
 !
 !----------------

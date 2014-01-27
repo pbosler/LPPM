@@ -1,47 +1,47 @@
 SHELL = /bin/bash
 
+MACHINE='TANK'
+
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
 # MODIFY THIS SECTION FOR EACH PLATFORM #
-
+ifeq ($(MACHINE),'FERRARI') 
 #----------------#
-# FERRARI LAPTOP #
-#FF=ifort
-#FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-#FF_FLAGS= -O2 -openmp -warn all
-#VTK_INCLUDE=/usr/local/include/vtk-5.8
-#VTK_LIB_DIR=/usr/local/lib/vtk-5.8
-#MKLROOT=/opt/intel/mkl
-#MKL_LINK=-L$(MKLROOT)/lib $(MKLROOT)/lib/libmkl_lapack95_lp64.a -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lm
-#MKL_COMPILE=-openmp -I$(MKLROOT)/include/intel64/lp64 -I$(MKLROOT)/include
+# FERRARI LAPTOP #	
+  FF=ifort
+  #FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  FF_FLAGS= -O2 -openmp -warn all
+  VTK_INCLUDE=/usr/local/include/vtk-5.8
+  VTK_LIB_DIR=/usr/local/lib/vtk-5.8
+  MKLROOT=/opt/intel/mkl
+  MKL_LINK=-L$(MKLROOT)/lib $(MKLROOT)/lib/libmkl_lapack95_lp64.a -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lm
+  MKL_COMPILE=-openmp -I$(MKLROOT)/include/intel64/lp64 -I$(MKLROOT)/include
 #----------------#
-
+else ifeq ($(MACHINE),'VORTEX')
 #----------------#
 # vortex.math.lsa.umich.edu
-FF = ifort
-#FF_FLAGS = -g -O0 -check bounds -check pointer -check uninit -traceback -warn all -debug extended -openmp
-FF_FLAGS=-O2 -warn all -opt-report 1
-MKL_ROOT=/usr/local/intel/Compiler/11.1/056/mkl
-MKL_LINK=-L$(MKL_ROOT)/lib $(MKL_ROOT)/lib/libmkl_lapack95_lp64.a -lmkl_intel_lp64 -lmk_intel_thread -lmkl_core -lpthread -lm
-MKL_COMPILE=-openmp -I$(MKL_ROOT)/include/intel64/lp64 -I$(MKL_ROOT)/include
-
-
+  FF = ifort
+  FF_FLAGS = -g -O0 -check bounds -check pointer -check uninit -traceback -warn all -debug extended -openmp
+  #FF_FLAGS=-O2 -warn all -opt-report 1
+  MKL_ROOT=/usr/local/intel/Compiler/11.1/056/mkl
+  MKL_LINK=-L$(MKL_ROOT)/lib $(MKL_ROOT)/lib/libmkl_lapack95_lp64.a -lmkl_intel_lp64 -lmk_intel_thread -lmkl_core -lpthread -lm
+  MKL_COMPILE=-openmp -I$(MKL_ROOT)/include/intel64/lp64 -I$(MKL_ROOT)/include
+else ifeq ($(MACHINE),'TANK')
 #--------------#
 # TANK DESKTOP #
-
-#FF=ifort
-#FF_FLAGS=-g -traceback -warn all -debug extended
-#FF_FLAGS=-O2 -warn all -opt-report 1
-#VTK_INCLUDE=/usr/local/include/vtk-5.10
-#VTK_LIB_DIR=/usr/local/lib/vtk-5.10
-#VTK_LIBS=-lvtkCommon -lvtkGraphics -lvtkRendering -lvtkViews -lvtkWidgets -lvtkImaging -lvtkHybrid -lvtkIO -lvtkFiltering
-#MKLROOT=/opt/intel/mkl
-#MKL_THREADING_LAYER=intel
-#MKL_INTERFACE_LAYER=lp64
-#MKL_LINK=-L$(MKLROOT)/lib $(MKLROOT)/lib/libmkl_lapack95_lp64.a \
-#-lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -openmp -lpthread -lm
-#MKL_COMPILE=-openmp -I/opt/intel/mkl/include/intel64/lp64 -I/opt/intel/mkl/include 
-
+  FF=ifort
+  FF_FLAGS=-g -traceback -warn all -debug extended
+  #FF_FLAGS=-O2 -warn all -opt-report 1
+  VTK_INCLUDE=/usr/local/include/vtk-5.10
+  VTK_LIB_DIR=/usr/local/lib/vtk-5.10
+  VTK_LIBS=-lvtkCommon -lvtkGraphics -lvtkRendering -lvtkViews -lvtkWidgets -lvtkImaging -lvtkHybrid -lvtkIO -lvtkFiltering
+  MKLROOT=/opt/intel/mkl
+  MKL_THREADING_LAYER=intel
+  MKL_INTERFACE_LAYER=lp64
+  MKL_LINK=-L$(MKLROOT)/lib $(MKLROOT)/lib/libmkl_lapack95_lp64.a \
+  -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -openmp -lpthread -lm
+  MKL_COMPILE=-openmp -I/opt/intel/mkl/include/intel64/lp64 -I/opt/intel/mkl/include 
+endif
 #--------------#
 
 #############################################################

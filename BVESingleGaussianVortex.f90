@@ -131,8 +131,9 @@ maxVort = broadcastReals(11)*OMEGA
 
 
 !
-!	define test case in accordance with Williamson et al., JCP 1992, test case 1
+!	define test case
 !
+
 problemKind = BVE_SOLVER
 nTracer = 2
 h0 = 1000.0_kreal	! height of cosine bell center
@@ -155,8 +156,11 @@ call SetInitialLatitudeTracerOnMesh(sphere,2)
 call SetSingleGaussianVortexOnMesh(sphere,gaussVort)
 if ( AMR > 0 ) then
 	call New(tracerRefine,refinementLimit,tracermaxTol,tracerVarTol,TRACER_REFINE,tracerID)
+	call SetRelativeTracerTols(sphere,tracerRefine)
 	call New(vortRefine,refinementLimit,circMaxTol,vortVarTol,RELVORT_REFINE)
+	call SetRelativeVorticityTols(sphere,vortRefine)
 	call New(flowMapREfine,refinementLimit,100000.0_kreal,lagVarTol,FLOWMAP_REFINE)
+	call SetRelativeFlowMapTol(sphere,flowMapRefine)
 	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
 						   vortRefine, SetSingleGaussianVortexOnMesh,gaussVort)
 	call SetInitialLatitudeTracerOnMesh(sphere,2)
@@ -191,6 +195,12 @@ call New(bveRK4,sphere,numProcs)
 timesteps = floor(tfinal/dt)
 t = 0.0_kreal
 remeshCounter = 0
+
+call StartSection(exeLog,'initial setup complete:')
+	call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'initial Rossby number : ',GetRossbyNumber(sphere) )
+call EndSection(exeLog)
+
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	RUN THE PROBLEM
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
