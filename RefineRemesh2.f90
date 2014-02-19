@@ -211,7 +211,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 		call FlagPanelsForCirculationRefinement(refineFlag,aMesh,refineRelVort,startIndex)
 		counter1 = count(refineFlag) - counter1
 		call FlagPanelsForRelVortVariationRefinement(refineFlag,aMesh,refineRelVort,startIndex)
-		counter2 = count(refineFlag) - counter2
+		counter2 = count(refineFlag) - counter1
 		write(formatString,'(A)') '(A,I8,A)'
 		write(logString,formatString) 'circMax criterion triggered ', counter1, ' times.'
 		call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
@@ -235,7 +235,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 	!	check for memory, exit if insufficient
 	!
 	if ( spaceLeft/4 < refineCount ) then
-		call LogMessage(log,WARNING_LOGGING_LEVEL,'InitRefine : ',' insufficient memory for AMR.')
+		call LogMessage(log,WARNING_LOGGING_LEVEL,'InitRefine : WARNING ',' insufficient memory for AMR.')
 		deallocate(refineFlag)
 		return
 	endif
@@ -275,7 +275,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 		!
 		!	Prevent too much refinement
 		!
-		if ( amrLoopCounter + 1 >= limit ) then
+		if ( amrLoopCounter >= limit ) then
 			keepGoing = .FALSE.
 			call LogMessage(log,WARNING_LOGGING_LEVEL,'InitRefine WARNING : ',' refinement limit reached.')
 		endif
@@ -307,6 +307,9 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 			write(logString,formatString) 'relVortVar criterion triggered ', counter2, ' times.'
 			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 		endif
+
+		refineCount = count(refineFlag)
+
 		!
 		!	exit if refinement is not needed
 		!
@@ -449,7 +452,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			write(logString,formatString) 'tracerMax criterion triggered ', counter1, ' times.'
 			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 			write(logString,formatString) 'tracerVar criterion triggered ', counter2, ' times.'
-			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 		endif
 		if ( refineVort) then
 			limit = max(limit,vortRefine%limit)
@@ -462,7 +465,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			write(logString,formatString) 'circMax criterion triggered ', counter1, ' times.'
 			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
 			write(logString,formatString) 'relVortVar criterion triggered ', counter2, ' times.'
-			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 		endif
 		if ( refineFlowMap ) then
 			limit = max(limit,flowMapRefine%limit)
@@ -471,6 +474,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			counter1 = count(refineFlag) - counter1
 			write(formatString,'(A)') '(A,I8,A)'
 			write(logString,formatString) 'flowMap variation criterion triggered ', counter1, ' times.'
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 		endif
 
 		refineCount = count(refineFlag)
@@ -495,7 +499,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			amrLoopCounter = amrLoopCounter + 1
 
 			write(logString,'(A,I3,A,I8,A)') 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
-			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 			!
 			!	divide flagged panels
 			!
@@ -537,7 +541,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 			!
 			!	prevent too much refinement
 			!
-			if ( amrLoopCounter + 1 >= limit ) then
+			if ( amrLoopCounter >= limit ) then
 				keepGoing = .FALSE.
 				call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh WARNING :',' refinement limit reached.')
 			endif
@@ -555,9 +559,9 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 				counter2 = count(refineFlag) - counter1
 				write(formatString,'(A)') '(A,I8,A)'
 				write(logString,formatString) 'tracerMax criterion triggered ', counter1, ' times.'
-				call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 				write(logString,formatString) 'tracerVar criterion triggered ', counter2, ' times.'
-				call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 			endif
 			if ( refineVort) then
 				limit = max(limit,vortRefine%limit)
@@ -568,9 +572,9 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 				counter2 = count(refineFlag) - counter1
 				write(formatString,'(A)') '(A,I8,A)'
 				write(logString,formatString) 'circMax criterion triggered ', counter1, ' times.'
-				call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 				write(logString,formatString) 'relVortVar criterion triggered ', counter2, ' times.'
-				call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 			endif
 			if ( refineFlowMap ) then
 				limit = max(limit,flowMapRefine%limit)
@@ -579,6 +583,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 				counter1 = count(refineFlag) - counter1
 				write(formatString,'(A)') '(A,I8,A)'
 				write(logString,formatString) 'flowMap variation criterion triggered ', counter1, ' times.'
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
 			endif
 
 			refineCount = count(refineFlag)
@@ -591,7 +596,7 @@ subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
 				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh : ','refinement comverged.')
 				keepGoing = .FALSE.
 			elseif ( spaceLeft/4 < refineCount ) then
-				call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh : ','insufficient memory to continue AMR.')
+				call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh : WARNING ','insufficient memory to continue AMR.')
 				keepGoing = .FALSE.
 			else
 				keepGoing = .TRUE.

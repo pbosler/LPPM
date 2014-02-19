@@ -27,6 +27,7 @@ public New, Delete
 public SetSourceLagrangianParameter
 public SetSourceAbsVort, SetSourceRelVort
 public SetSourceTracer
+public SetSourceVelocity
 public SetSigmaTol
 public SIGMA_FLAG, GRAD_FLAG
 public InterpolateVector, InterpolateScalar

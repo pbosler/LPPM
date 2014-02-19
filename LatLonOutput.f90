@@ -26,18 +26,19 @@ use SSRFPACKInterfaceModule
 
 implicit none
 private
-public LatLonSource
+public LLSource
 public New, Delete
-public LatLonOutput, UpdateFilename
+public LLOutput, UpdateFilename
 
-type VTKSource
+type LLSource
 	character(len = 256) :: filename
 	character(len = 128) :: title
 	type(STRIPACKData) :: delTri
 	type(SSRFPACKData) :: vectorSource
 	type(SSRFPACKData) :: scalarSource
 	integer(kint) :: nLon
-	real(kreal), pointer :: lats(:) => null(), lons(:)=>null()
+	real(kreal), pointer :: lats(:) => null(),&
+				   			lons(:) => null()
 end type
 !
 !----------------
@@ -65,7 +66,7 @@ interface Delete
 end interface
 
 interface UpdateFilename
-	module procedure 
+	module procedure UpdateFilenameLL
 end interface
 
 contains
@@ -76,14 +77,14 @@ contains
 !
 
 subroutine NewPrivate(self,aMesh,filename,nLon)
-	type(LatLonSource), intent(out) :: self
+	type(LLSource), intent(out) :: self
 	type(SphereMesh), intent(in) :: aMesh
 	character(len=*), intent(in) :: filename
 	integer(kint), intent(in), optional :: nLon
 	! local variables
 	real(kreal) :: dLambda
 	integer(kint) :: j
-	
+
 	if (.not. logInit) call InitLogger(log,procRank)
 	if ( present(nLon) ) then
 		dLambda = 2.0_kreal*PI/real(nLon,kreal)
@@ -94,7 +95,7 @@ subroutine NewPrivate(self,aMesh,filename,nLon)
 	allocate(self%lats(nLon/2 + 1))
 	do j=1,nLon
 		self%lons(j) = (j-1)*dLambda
-	enddo	
+	enddo
 	do j=1,nLon/2+1
 		self%lats(j) = -PI/2.0_kreal + (j-1)*dLambda
 	enddo
@@ -103,11 +104,12 @@ subroutine NewPrivate(self,aMesh,filename,nLon)
 end subroutine
 
 subroutine DeletePrivate(self)
-	type(LatLonSource), intent(inout) :: self
+	type(LLSource), intent(inout) :: self
 	deallocate(self%lats)
 	deallocate(self%lons)
 	call Delete(self%deltri)
-	call Delete(self%scalar
+	call Delete(self%scalarSource)
+	call Delete(self%vectorSource)
 end subroutine
 
 !
@@ -115,7 +117,11 @@ end subroutine
 ! Public functions
 !----------------
 !
-
+subroutine UpdateFileNameLL(self,filename)
+	type(LLSource), intent(inout) ::: self
+	character(len=*), intent(in) :: filename
+	self%filename = trim(filename)
+end subroutine
 
 
 !

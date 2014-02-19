@@ -516,7 +516,7 @@ subroutine ScatterPanels(self,activePanels,activeMap,passivePanels,passiveMap)
 								passivePanels
 	integer(kint), intent(in) :: activeMap(:), &
 								 passiveMap(:)
-	! local variables							 
+	! local variables
 	integer(kint) :: j
 
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'Entering ScatterPanels...')
@@ -594,8 +594,8 @@ subroutine LogPanelStats(self,aLog,message)
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N_Max)
 	key = 'MaxNest = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxval(self%nest(1:self%N)))
-	key = 'Surface Area = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%area(1:self%N)))
+	key = 'Surface Area error = '
+	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,abs(sum(self%area(1:self%N)) - 4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS) )
 	maxU = 0.0_kreal
 	minU = 0.0_kreal
 	do j=1,self%N

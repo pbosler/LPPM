@@ -6,8 +6,8 @@
 	tracerVarTol = 100000.0
 	refinementLimit = 3
 	circMaxTol = 0.08
-	vortVarTol = 10000.0
-	lagVarTol = 1.0
+	vortVarTol = 0.4
+	lagVarTol = 1000.0
 /
 
 & vorticityDefine
@@ -18,13 +18,13 @@
 /
 
 & timeStepping
-	tfinal = 0.5		! days
+	tfinal = 1.0		! days
 	dt = 0.01		! days
 	remeshInterval = 30	! timesteps
 /
 
 & fileIO
 	outputDir = '.'
-	jobPrefix = 'bveGaussVort_rm30'
+	jobPrefix = 'bveGaussVort_rm30_vortAMR'
 	frameOut = 1
 /

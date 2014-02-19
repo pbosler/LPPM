@@ -37,7 +37,7 @@ module NumberKindsModule
 							    WRITE_UNIT_2 = 13, &
 							    WRITE_UNIT_3 = 14, &
 							    MAX_STRING_LENGTH = 256
-	! Mesh constants
+	! Mesh & application constants
 	integer(KINT), parameter ::	QUAD_PANEL = 4, &
 								TRI_PANEL = 3, &
 								ADVECTION_SOLVER = 90, &

@@ -146,10 +146,10 @@ subroutine WriteReal(self,key,val)
 	character(len=*), intent(in) :: key
 	real(kreal), intent(in) :: val
 	character(len=32) :: form
-	if ( val >= 1.0d9 ) then
+	if ( abs(val) >= 1.0d7 ) then
 		form = FormatWithIndent(self,'(A,2X,E24.8)')
 	else
-		form = FormatWithIndent(self,'(A,2X,F24.15)')
+		form = FormatWithIndent(self,'(A,2X,F24.12)')
 	endif
 	write(self%fileUnit,form) trim(key), val
 end subroutine

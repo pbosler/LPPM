@@ -1,4 +1,4 @@
-program BVESolidBody
+program BVEGaussVort
 !******************************************************************************
 !	Peter A. Bosler
 !	Department of Mathematics
@@ -90,6 +90,7 @@ integer(kint) :: mpiErrCode
 integer(kint), parameter  :: BROADCAST_INT_SIZE = 5, BROADCAST_REAL_SIZE = 11
 integer(kint) :: broadcastIntegers(BROADCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BROADCAST_REAL_SIZE)
+real(kreal) :: wallClock
 
 namelist /sphereDefine/ panelKind, initNest, AMR, tracerMaxTol, tracerVarTol, &
 						refineMentLimit, circMaxTol, vortVarTol, lagVarTol
@@ -105,6 +106,9 @@ call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcs,mpiErrCode)
 call MPI_COMM_RANK(MPI_COMM_WORLD,procRank,mpiErrCode)
 
 call InitLogger(exeLog,procRank)
+
+wallClock = MPI_WTIME()
+
 !
 !	read user input from namelist file, broadcast to all processes
 !
@@ -164,16 +168,23 @@ if ( AMR > 0 ) then
 
 	call New(flowMapREfine,refinementLimit,100000.0_kreal,lagVarTol,FLOWMAP_REFINE)
 	call SetRelativeFlowMapTol(sphere,flowMapRefine)
+
+	!
+	!	initial refinement
+	!
 	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
 						   vortRefine, SetSingleGaussianVortexOnMesh,gaussVort)
 
 	call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' initial refinement done.')
 
-	call SetInitialLatitudeTracerOnMesh(sphere,2)
+
+
+
 	if ( panelKind == QUAD_PANEL) then
 		write(amrString,'(A,I1,A,I0.2,A)') 'quadAMR_',initNest,'to',initNest+refinementLimit,'_'
 	endif
-else
+else ! uniform mesh
+	! nullify AMR variables
 	call New(tracerRefine)
 	call New(vortRefine)
 	call New(flowMapRefine)
@@ -181,6 +192,9 @@ else
 		write(amrString,'(A,I1,A)') 'quadUnif',initNest,'_'
 	endif
 endif
+
+call SetInitialLatitudeTracerOnMesh(sphere,2)
+
 !
 !	initialize output, output t = 0 data
 !
@@ -227,6 +241,7 @@ do timeJ = 0, timesteps - 1
 		call LagrangianRemesh(sphere, SetSingleGaussianVortexOnMesh, gaussVort, vortRefine, &
 									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
 									  flowMapRefine)
+		call SetInitialLatitudeTracerOnMesh(sphere,2)
 		!
 		!	create new associated objects
 		!
@@ -264,6 +279,11 @@ enddo
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	Clear memory and Finalize
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
+call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
+
+
 call Delete(bveRK4)
 if ( procRank == 0 ) call Delete(vtkOut)
 call Delete(vortRefine)
