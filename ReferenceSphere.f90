@@ -1,0 +1,534 @@
+module ReferenceSphereModule
+!******************************************************************************
+!	Peter A. Bosler
+!	Department of Mathematics
+!	University of Michigan
+!	pbosler@umich.edu
+!
+!******************************************************************************
+!
+!	Defines output data structures and methods for plotting Lagrangian meshes of the sphere.
+!
+!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
+!
+!----------------
+use NumberKindsModule
+use SphereGeomModule
+use IntegerListModule
+use LoggerModule
+use ParticlesModule
+use EdgesModule
+use PanelsModule
+use SphereMeshModule
+use STRIPACKInterfaceModule
+use SSRFPACKInterfaceModule
+use RefineRemeshModule
+
+
+implicit none
+private
+public ReferenceSphere
+public New, Delete
+public LagrangianRemesh
+
+type ReferenceSphere
+	type(STRIPACKData) :: delTri
+	real(kreal), pointer :: absVort(:) => null(), &
+							absVortGrad(:,:) => null(), &
+							sigmaAbsVort(:) => null(), &
+							tracer(:,:) => null(), &
+							tracerGrad(:,:,:) => null(), &
+							sigmaTracer(:,:) => null()
+	real(kreal) :: sigmaTol = 0.01_kreal							
+	integer(kint) :: startSearch = 1
+end type
+
+!
+!----------------
+! Interfaces
+!----------------
+!
+interface New
+	module procedure NewPrivate
+end interface
+
+interface Delete
+	module procedure DeletePrivate
+end interface
+
+interface LagrangianRemesh
+	module procedure LagrangianRemeshPrivate
+end interface
+
+
+!
+!----------------
+! Logging
+!----------------
+!
+logical(klog), save :: logInit = .FALSE.
+type(Logger) :: log
+character(len=28), save :: logKey = 'ReferenceSphere'
+integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
+character(len=28) :: formatString
+character(len=128) :: logString
+
+contains
+!
+!----------------
+! Standard methods : Constructor / Destructor, Copy
+!----------------
+!
+subroutine NewPrivate(self, oldSphere)
+	type(ReferenceSphere), intent(out) :: self
+	type(SphereMesh), intent(in) :: oldSphere
+	!
+	integer(kint) :: i, j, k, errCode
+	type(Panels), pointer :: oldPanels
+	type(Particles), pointer :: oldParticles
+	real(kreal) :: dSig
+	
+	if ( .NOT. logInit) call InitLogger(log,procRank)
+	
+	call New(self%delTri,oldSphere)
+	
+	oldParticles => oldSphere%particles
+	oldPanels => oldSphere%panels	
+	
+	if ( oldSphere%problemKind == BVE_SOLVER) then
+		allocate(self%absVort(self%delTri%n))
+		self%absVort = 0.0_kreal
+		k = 1
+		do j=1, oldPanels%N_Active
+			if ( .NOT. oldPanels%hasChildren(j) ) then
+				self%absVort(k) = oldSphere%panels%absVort(j)
+				k = k+1
+			endif
+		enddo
+		do j=1, oldParticles%N
+			self%absVort(oldPanels%N_Active + j) = oldParticles%absVort(j)
+		enddo
+		
+		allocate(self%absVortGrad(3,self%delTri%n))
+		self%absVortGrad = 0.0_kreal
+		do j=1,self%delTri%n
+			call GRADL(self%delTri%n, j, self%delTri%x, self%delTri%y, self%delTri%z, self%absVort, &
+					   self%delTri%list, self%delTri%lptr, self%delTri%lend, self%absVortGrad(:,j), errCode)
+		enddo
+		
+		allocate(self%sigmaAbsVort(6*self%delTri%n - 12))
+		self%sigmaAbsVort = 0.0_kreal
+		
+		call GETSIG(self%delTri%n, self%delTri%x, self%delTri%y, self%delTri%z, self%absVort, &
+				    self%delTri%list, self%delTri%lptr, self%delTri%lend, &
+				    self%absVortGrad, self%sigmaTol, self%sigmaAbsVort, dSig, errCode)
+	endif
+	
+	if ( oldSphere%nTracer > 0 ) then
+		allocate(self%tracer(self%delTri%n,oldSphere%nTracer))
+		self%tracer = 0.0_kreal
+		i = 1
+		do k=1,oldsphere%nTracer
+			do j=1,oldPanels%N_active
+				if (.NOT. oldPanels%hasChildren(j) ) then
+					self%tracer(i,k) = oldPanels%tracer(j,k)
+					i = i + 1
+				endif
+			enddo
+		enddo
+		do k=1,oldsphere%nTracer
+			do j=1,oldParticles%N
+				self%tracer(oldPanels%N_Active + j, k) = oldParticles%tracer(j,k)
+			enddo
+		enddo
+		
+		allocate(self%tracerGrad(3,self%delTri%n,oldSphere%nTracer))
+		self%tracerGrad = 0.0_kreal
+		
+		allocate(self%sigmaTracer(6*self%delTri%n - 12, oldSphere%nTracer))
+		self%sigmaTracer = 0.0_kreal
+		
+		do k=1,oldSphere%nTracer
+			do j=1,self%delTri%n
+				call GRADL(self%delTri%n, j, self%delTri%x, self%delTri%y, self%delTri%z, self%tracer(:,k), &
+					   self%delTri%list, self%delTri%lptr, self%delTri%lend, self%tracerGrad(:,j,k), errCode)
+			enddo
+		
+			call GETSIG(self%delTri%n, self%delTri%x, self%delTri%y, self%delTri%z, self%tracer(:,k), &
+				    self%delTri%list, self%delTri%lptr, self%delTri%lend, &
+				    self%tracerGrad(:,:,k), self%sigmaTol, self%sigmaTracer(:,k), dSig, errCode)
+		enddo
+	endif
+end subroutine
+
+subroutine DeletePrivate(self)
+	type(ReferenceSphere), intent(inout) :: self
+	
+	call Delete(self%delTri)
+	if ( associated(self%absVort)) then
+		deallocate(self%absVort)
+		deallocate(self%absVortGrad)
+		deallocate(self%sigmaAbsVort)
+	endif
+	if ( associated(self%tracer) ) then
+		deallocate(self%tracer)
+		deallocate(self%tracerGrad)
+		deallocate(self%sigmaTracer)
+	endif
+	
+end subroutine
+
+!
+!----------------
+! Public functions
+!----------------
+!
+subroutine LagrangianRemeshPrivate(aMesh, reference, vortRefine, tracerRefine, flowMapRefine)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(ReferenceSphere), intent(inout) :: reference
+	type(RefinementSetup), intent(in) :: vortRefine
+	type(RefinementSetup), intent(in) :: tracerRefine
+	type(RefinementSetup), intent(in) :: flowMapRefine
+	!
+	type(STRIPACKData) :: delTri
+	type(SSRFPACKData) :: lagSource
+	logical(klog) :: vectorInterp
+	type(SphereMesh) :: newMesh
+	type(Particles), pointer :: newParticles
+	type(Edges), pointer :: newEdges
+	type(Panels), pointer :: newPanels
+	integer(kint) :: j, k, amrLoopCounter, counter1, counter2
+	logical(klog), allocatable :: refineFlag(:)
+	logical(klog) :: keepGoing, refineTracer, refineVort, refineFlowMap
+	integer(kint) :: startIndex, nOldPanels, nOldParticles, refineCount, spaceLeft, limit
+	
+	nullify(newParticles)
+	nullify(newEdges)
+	nullify(newPanels)
+	vectorInterp = .TRUE.
+	refineFlowMap = .FALSE.
+	refineTracer = .FALSE.
+	refineVort = .FALSE.
+	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' entering Lagrangian remesh.')
+	!
+	!	determine what types of AMR to use
+	!
+	if ( tracerRefine%type == TRACER_REFINE .AND. &
+		GetNTracer(aMesh%panels) <= tracerRefine%tracerID ) refineTracer = .TRUE.
+	if ( vortRefine%type == RELVORT_REFINE ) refineVort = .TRUE.
+	if ( flowMapRefine%type == FLOWMAP_REFINE) refineFlowMap = .TRUE.
+	!
+	!	set existing mesh as data source for interpolation
+	!
+	call New(delTri,aMesh)
+	call DelaunayTriangulation(delTri)
+	call New(lagSource,delTri,vectorInterp)
+	!if ( present(interpSmoothTol) ) call SetSigmaTol(lagSource,interpSmoothTol)
+	call SetSourceLagrangianParameter(lagSource,delTri)
+
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' remesh source data ready.')
+	!
+	!	Build a new mesh
+	!
+	call New(newMesh,aMesh%panelKind,aMesh%initNest,aMesh%AMR,aMesh%nTracer,aMesh%problemKind)
+	newParticles => newMesh%particles
+	newEdges => newMesh%edges
+	newPanels => newMesh%panels
+
+	!
+	!	interpolate lagrangian parameter from old mesh to new mesh
+	!
+	do j=1,newParticles%N
+		newParticles%x0(:,j) = InterpolateVector(newParticles%x(:,j),lagSource,delTri)
+		! renormalize to spherical surface
+		newParticles%x0(:,j) = newParticles%x0(:,j) / &
+			sqrt(sum(newParticles%x0(:,j)*newParticles%x0(:,j)))*EARTH_RADIUS
+	enddo
+	do j=1,newPanels%N
+		newPanels%x0(:,j) = InterpolateVector(newPanels%x(:,j),lagSource,delTri)
+		! renormalize
+		newPanels%x0(:,j) = newPanels%x0(:,j) / &
+			sqrt(sum(newPanels%x0(:,j)*newPanels%x0(:,j)))*EARTH_RADIUS
+	enddo
+	!
+	!	set tracer values on new mesh
+	!	
+	if ( aMesh%nTracer > 0 ) then
+		do j=1,newParticles%N
+			do k=1,aMesh%nTracer
+				newParticles%tracer(j,k) = GetTracer(reference,newParticles%x0(:,j),k)
+			enddo
+		enddo
+		do j=1,newPanels%N
+			if (.NOT. newPanels%hasChildren(j) ) then
+				do k=1,aMesh%nTracer
+					newPanels%tracer(j,k) = GetTracer(reference,newPanels%x0(:,j),k)
+				enddo
+			else
+				newPanels%tracer(j,:) = 0.0_kreal
+			endif
+		enddo
+	endif
+	!
+	!	set vorticity values on new mesh
+	!
+	if ( aMesh%problemKind == BVE_SOLVER ) then
+		do j=1,newParticles%N
+			newParticles%absVort(j) = GetAbsVort(reference,newParticles%x0(:,j))
+			newParticles%relVort(j) = newParticles%absVort(j) - 2.0_kreal*OMEGA*newParticles%x(3,j)/EARTH_RADIUS
+		enddo
+		do j=1,newPanels%N
+			if ( .NOT. newPanels%hasChildren(j) ) then
+				newPanels%absVort(j) = GetAbsVort(reference,newPanels%x0(:,j))
+				newPanels%relVort(j) = newPanels%absVort(j) - 2.0_kreal*OMEGA*newPanels%x(3,j)/EARTH_RADIUS
+			else
+				newPanels%absVort(j) = 0.0_kreal
+			endif
+		enddo
+	endif
+	!
+	!	AMR
+	!
+	if ( aMesh%AMR > 0 )  then
+		allocate(refineFlag(newPanels%N_Max))
+		refineFlag = .FALSE.
+		startIndex = 1
+		keepGoing = .FALSE.
+		limit = 0	
+		!
+		!	Apply refinement criteria
+		!
+		if ( refineTracer ) then
+			limit = max(limit,tracerRefine%limit)
+			call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+			counter1 = count(refineFlag)
+			call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+			counter2 = count(refineFlag) - counter1
+			write(formatString,'(A)') '(A,I8,A)'
+			write(logString,formatString) 'tracerMax criterion triggered ', counter1, ' times.'
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+			write(logString,formatString) 'tracerVar criterion triggered ', counter2, ' times.'
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+		endif
+		if ( refineVort) then
+			limit = max(limit,vortRefine%limit)
+			counter1 = count(refineFlag)
+			call FlagPanelsForCirculationRefinement(refineFlag,newMesh,vortRefine,startIndex)
+			counter1 = count(refineFlag) - counter1
+			call FlagPanelsForRelVortVariationRefinement(refineFlag,newMesh,vortRefine,startIndex)
+			counter2 = count(refineFlag) - counter1
+			write(formatString,'(A)') '(A,I8,A)'
+			write(logString,formatString) 'circMax criterion triggered ', counter1, ' times.'
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'InitRefine : ',logString)
+			write(logString,formatString) 'relVortVar criterion triggered ', counter2, ' times.'
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+		endif
+		if ( refineFlowMap ) then
+			limit = max(limit,flowMapRefine%limit)
+			counter1 = count(refineFlag)
+			call FlagPanelsForFlowMapRefinement(refineFlag,newMesh,flowMapRefine,startIndex)
+			counter1 = count(refineFlag) - counter1
+			write(formatString,'(A)') '(A,I8,A)'
+			write(logString,formatString) 'flowMap variation criterion triggered ', counter1, ' times.'
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+		endif
+
+		refineCount = count(refineFlag)
+		spaceLeft = newPanels%N_Max - newPanels%N
+
+		!
+		!	exit if refinement is not needed, or insufficient memory
+		!
+		if ( refineCount == 0 ) then
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh : ',' no refinement necessary.')
+			keepGoing = .FALSE.
+		elseif ( spaceLeft/4 < refineCount ) then
+			call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh : ','insufficient memory for AMR.')
+			keepGoing = .FALSE.
+		else
+			keepGoing = .TRUE.
+		endif
+
+		amrLoopCounter = 0
+
+		do while (keepGoing)
+			amrLoopCounter = amrLoopCounter + 1
+
+			write(logString,'(A,I3,A,I8,A)') 'AMR loop ',amrLoopCounter,' : refining ',refineCount,' panels.'
+			call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+			!
+			!	divide flagged panels
+			!
+			nOldPanels = newPanels%N
+			nOldParticles = newParticles%N
+			do j=startIndex,newPanels%N
+				if ( refineFlag(j) ) then
+					call DividePanel(newMesh,j)
+					refineFlag(j) = .FALSE.
+				endif
+			enddo
+			!
+			!	ensure adjacent panels differ by no more than one level
+			!
+			call FlagPanelsAtRefinementBoundaries(refineFlag,newMesh)
+			do j=1,newPanels%N
+				if ( refineFlag(j) ) then
+					call DividePanel(newMesh,j)
+					refineFlag(j) = .FALSE.
+				endif
+			enddo
+
+			!
+			!	set problem data on mesh
+			!
+			do j=nOldParticles+1,newParticles%N
+				newParticles%x0(:,j) = InterpolateVector(newParticles%x(:,j),lagSource,delTri)
+				newParticles%x0(:,j) = newParticles%x0(:,j) / &
+					sqrt(sum(newParticles%x0(:,j)*newParticles%x0(:,j)))*EARTH_RADIUS
+			enddo
+			do j=nOldPanels+1,newPanels%N
+				newPanels%x0(:,j) = InterpolateVector(newPanels%x(:,j),lagSource,delTri)
+				newPanels%x0(:,j) = newPanels%x0(:,j) / &
+					sqrt(sum(newPanels%x0(:,j)*newPanels%x0(:,j)))*EARTH_RADIUS
+			enddo
+			if ( aMesh%nTracer > 0 ) then
+				do j=nOldParticles+1,newParticles%N
+					do k=1,aMesh%nTracer
+						newParticles%tracer(j,k) = GetTracer(reference,newParticles%x0(:,j),k)
+					enddo
+				enddo
+				do j=nOldPanels+1,newPanels%N
+					do k=1,aMesh%nTracer
+						newPanels%tracer(j,k) = GetTracer(reference,newPanels%x0(:,j),k)
+					enddo
+				enddo
+			endif
+			if ( aMesh%problemKind == BVE_SOLVER) then
+				do j=nOldParticles+1,newParticles%N
+					newParticles%absVort(j) = GetAbsVort(reference,newParticles%x0(:,j))
+					newParticles%relVort(j) = newParticles%absVort(j) - 2.0_kreal*OMEGA*newParticles%x(3,j)/EARTH_RADIUS
+				enddo
+				do j=nOldPanels+1,newPanels%N
+					newPanels%absVort(j) = GetAbsVort(reference,newPanels%x0(:,j))
+					newPanels%relVort(j) = newPanels%absVort(j) - 2.0_kreal*OMEGA*newPanels%x(3,j)/EARTH_RADIUS
+				enddo
+			endif
+
+			!
+			!	prevent too much refinement
+			!
+			if ( amrLoopCounter >= limit ) then
+				keepGoing = .FALSE.
+				call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh WARNING :',' refinement limit reached.')
+			endif
+
+			!
+			!	apply refinement criteria
+			!
+			startIndex = nOldPanels + 1
+			nOldPanels = newPanels%N
+			if ( refineTracer ) then
+				limit = max(limit,tracerRefine%limit)
+				call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+				counter1 = count(refineFlag)
+				call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+				counter2 = count(refineFlag) - counter1
+				write(formatString,'(A)') '(A,I8,A)'
+				write(logString,formatString) 'tracerMax criterion triggered ', counter1, ' times.'
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+				write(logString,formatString) 'tracerVar criterion triggered ', counter2, ' times.'
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+			endif
+			if ( refineVort) then
+				limit = max(limit,vortRefine%limit)
+				counter1 = count(refineFlag)
+				call FlagPanelsForCirculationRefinement(refineFlag,newMesh,vortRefine,startIndex)
+				counter1 = count(refineFlag) - counter1
+				call FlagPanelsForRelVortVariationRefinement(refineFlag,newMesh,vortRefine,startIndex)
+				counter2 = count(refineFlag) - counter1
+				write(formatString,'(A)') '(A,I8,A)'
+				write(logString,formatString) 'circMax criterion triggered ', counter1, ' times.'
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+				write(logString,formatString) 'relVortVar criterion triggered ', counter2, ' times.'
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+			endif
+			if ( refineFlowMap ) then
+				limit = max(limit,flowMapRefine%limit)
+				counter1 = count(refineFlag)
+				call FlagPanelsForFlowMapRefinement(refineFlag,newMesh,flowMapRefine,startIndex)
+				counter1 = count(refineFlag) - counter1
+				write(formatString,'(A)') '(A,I8,A)'
+				write(logString,formatString) 'flowMap variation criterion triggered ', counter1, ' times.'
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh AMR : ',logString)
+			endif
+
+			refineCount = count(refineFlag)
+			spaceLeft = newPanels%N_Max - newPanels%N
+
+			!
+			!	exit if refinement is not needed, or insufficient memory
+			!
+			if ( refineCount == 0 ) then
+				call LogMessage(log,TRACE_LOGGING_LEVEL,'LagRemesh : ','refinement comverged.')
+				keepGoing = .FALSE.
+			elseif ( spaceLeft/4 < refineCount ) then
+				call LogMessage(log,WARNING_LOGGING_LEVEL,'LagRemesh : WARNING ','insufficient memory to continue AMR.')
+				keepGoing = .FALSE.
+			else
+				keepGoing = .TRUE.
+			endif
+		enddo ! while keepgoing
+		deallocate(refineFlag)
+	endif ! AMR
+	
+end subroutine
+!
+!----------------
+! Module methods : type-specific functions
+!----------------
+!
+function GetAbsVort(self, alphaIn)
+	real(kreal) :: GetAbsVort
+	type(ReferenceSphere), intent(inout) :: self
+	real(kreal), intent(in) :: alphaIn(3)
+	!
+	real(kreal) :: lat, lon, interp
+	integer(kint) :: errCode
+	
+	lat = Latitude(alphaIn)
+	lon = Longitude(alphaIn)
+	call INTRC1(self%delTri%n, lat, lon, self%delTri%x, self%delTri%y, self%delTri%z, self%absVort, &
+				self%delTri%list, self%delTri%lptr, self%delTri%lend, &
+				SIGMA_FLAG, self%sigmaAbsVort, GRAD_FLAG, self%absVortGrad, self%startSearch, interp, errCode)
+	GetAbsVort = interp	
+end function 
+
+function GetTracer(self, alphaIn, tracerID)
+	real(kreal) :: GetTracer
+	type(ReferenceSphere), intent(inout) :: self
+	real(kreal), intent(in) :: alphaIn(3)
+	integer(kint), intent(in) :: tracerID
+	! 
+	real(kreal) :: lat, lon, interp
+	integer(kint) :: errCode
+	
+	lat = Latitude(alphaIn)
+	lon = Longitude(alphaIn)
+	call INTRC1(self%delTri%n, lat, lon, self%delTri%x, self%delTri%y, self%delTri%z, self%tracer(:,tracerID), &
+			self%delTri%list, self%delTri%lptr, self%delTri%lend, &
+			SIGMA_FLAG, self%sigmaTracer(:,tracerID), GRAD_FLAG, self%tracerGrad(:,:,tracerID), self%startSearch, interp, errCode)
+	GetTracer = interp
+end function
+
+
+
+subroutine InitLogger(aLog,rank)
+	type(Logger), intent(inout) :: aLog
+	integer(kint), intent(in) :: rank
+	write(logKey,'(A,A,I0.2,A)') trim(logKey),'_',rank,' : '
+	call New(aLog,logLevel)
+	logInit = .TRUE.
+end subroutine
+
+end module

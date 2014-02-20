@@ -612,40 +612,40 @@ subroutine LogPanelStats(self,aLog,message)
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%absVort(1:self%N)))
 		key = 'Min absVort = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%absVort(1:self%N)))
-		key = 'absVort integral = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%absVort(1:self%N)*self%area(1:self%N)))
+		key = 'normalized absVort integral = '
+		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%absVort(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%relVort)) then
 		key = 'Max relVort = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%relVort(1:self%N)))
 		key = 'Min relVort = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%relVort(1:self%N)))
-		key = 'relVort integral = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%relVort(1:self%N)*self%area(1:self%N)))
+		key = 'normalized relVort integral = '
+		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%relVort(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%potVort)) then
 		key = 'Max potVort = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%potVort(1:self%N)))
 		key = 'Min potVort = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%potVort(1:self%N)))
-		key = 'potVort integral = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%potVort(1:self%N)*self%area(1:self%N)))
+		key = 'normalized potVort integral = '
+		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%potVort(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%h)) then
 		key = 'Max h = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%h(1:self%N)))
 		key = 'Min h = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%h(1:self%N)))
-		key = 'h integral = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%h(1:self%N)*self%area(1:self%N)))
+		key = 'normalized h integral = '
+		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%h(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%div)) then
 		key = 'Max div = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%div(1:self%N)))
 		key = 'Min div = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%div(1:self%N)))
-		key = 'div integral = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%div(1:self%N)*self%area(1:self%N)))
+		key = 'normalized div integral = '
+		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%div(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%tracer)) then
 		nTracer = GetNTracer(self)
@@ -654,8 +654,8 @@ subroutine LogPanelStats(self,aLog,message)
 			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%tracer(1:self%N,k)))
 			write(key,'(A,I2,A)') 'Min tracer',k,' = '
 			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%tracer(1:self%N,k)))
-			write(key,'(A,I2,A)') 'tracer',k,' integral = '
-			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%tracer(1:self%N,k)*self%area(1:self%N)))
+			write(key,'(A,I2,A)') 'normalized tracer',k,' integral = '
+			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%tracer(1:self%N,k)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 		enddo
 	endif
 

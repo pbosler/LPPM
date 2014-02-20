@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-MACHINE='VORTEX'
+MACHINE='FERRARI'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -9,8 +9,8 @@ ifeq ($(MACHINE),'FERRARI')
 #----------------#
 # FERRARI LAPTOP #	
   FF=ifort
-  #FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-  FF_FLAGS= -O2 -openmp -warn all
+  FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  #FF_FLAGS= -O2 -openmp -warn all
   VTK_INCLUDE=/usr/local/include/vtk-5.8
   VTK_LIB_DIR=/usr/local/lib/vtk-5.8
   MKLROOT=/opt/intel/mkl
@@ -122,6 +122,7 @@ Tracers.o: Tracers.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
 Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
+ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
 
 #############################################################
 ## VTK EXECUTABLES

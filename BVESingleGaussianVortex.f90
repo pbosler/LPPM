@@ -243,11 +243,11 @@ do timeJ = 0, timesteps - 1
 									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
 									  flowMapRefine)
 		call SetInitialLatitudeTracerOnMesh(sphere,2)
-                
-                if ( mod(remeshCounter,resetAlpha) == 0 ) then
-                   call ResetLagrangianParameter(sphere)
-                   call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
-                endif
+		
+		if ( mod(remeshCounter,resetAlpha) == 0 ) then
+		   call ResetLagrangianParameter(sphere)
+		   call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
+		endif
 
 		!
 		!	create new associated objects

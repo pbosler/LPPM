@@ -70,6 +70,10 @@ interface Delete
 	module procedure DeletePrivate
 end interface
 
+interface LagrangianRemesh
+	module procedure LagrangianRemeshPrivate
+end interface
+
 interface
 	subroutine SetTracerOnMesh(genMesh, genTracer)
 		use SphereMeshModule
@@ -329,7 +333,7 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 	 deallocate(refineFlag)
 end subroutine
 
-subroutine LagrangianRemesh(aMesh, setVorticity, vortDef, vortRefine, &
+subroutine LagrangianRemeshPrivate(aMesh, setVorticity, vortDef, vortRefine, &
 								   setTracer, tracerDef, tracerRefine, &
 								   flowMapRefine, interpSmoothTol)
 ! Performs a Lagrangian remeshing of a SphereMesh object.
