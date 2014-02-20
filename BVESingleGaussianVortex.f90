@@ -20,6 +20,7 @@ use TracerSetupModule
 use VTKOutputModule
 use BVESetupModule
 use BVEDirectSumModule
+use ReferenceSphereModule
 
 implicit none
 
@@ -64,6 +65,8 @@ real(kreal) :: lagVarTol
 !	remeshing variables
 !
 integer(kint) :: remeshInterval, remeshCounter, resetAlpha
+type(ReferenceSphere) :: refSphere
+logical(klog), save :: refSphereReady = .FALSE.
 !
 !	User input
 !
@@ -239,16 +242,28 @@ do timeJ = 0, timesteps - 1
 		!
 		! build new mesh
 		!
-		call LagrangianRemesh(sphere, SetSingleGaussianVortexOnMesh, gaussVort, vortRefine, &
-									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
-									  flowMapRefine)
-		call SetInitialLatitudeTracerOnMesh(sphere,2)
-		
-		if ( mod(remeshCounter,resetAlpha) == 0 ) then
-		   call ResetLagrangianParameter(sphere)
-		   call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
+		if (remeshCounter <= 1 ) then
+			call LagrangianRemesh(sphere, SetSingleGaussianVortexOnMesh, gaussVort, vortRefine, &
+										  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
+										  flowMapRefine)
+			call SetInitialLatitudeTracerOnMesh(sphere,2)	
+		elseif ( mod(remeshCounter,resetAlpha) == 0 ) then
+			if ( refSphereReady ) then
+				call Delete(refSphere)
+				refSphereReady = .FALSE.
+			endif
+			call New(refSphere,sphere)
+			refSphereReady = .TRUE.
+			
+			call ResetLagrangianParameter(sphere)
+			call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
+  		    call ResetLagrangianParameter(sphere)
+  		    
+		    call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
+		   
+		else
+		   call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
 		endif
-
 		!
 		!	create new associated objects
 		!
@@ -290,7 +305,7 @@ enddo
 write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
 call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
 
-
+if ( refSphereReady ) call Delete(refSphere)
 call Delete(bveRK4)
 if ( procRank == 0 ) call Delete(vtkOut)
 call Delete(vortRefine)

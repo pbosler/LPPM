@@ -79,15 +79,15 @@ testCase1MPI.exe: TestCase1.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
 solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)	
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
-singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS)	
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
+singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS) ReferenceSphere.o
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE) 
 
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################
 TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)
-BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS)
+BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) ReferenceSphere.o
 
 #############################################################
 ## UNIT TEST EXECUTABLES

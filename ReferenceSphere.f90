@@ -481,7 +481,17 @@ subroutine LagrangianRemeshPrivate(aMesh, reference, vortRefine, tracerRefine, f
 		enddo ! while keepgoing
 		deallocate(refineFlag)
 	endif ! AMR
-	
+	!
+	!	replace old mesh with new mesh
+	!
+	call Copy(aMesh,newMesh)
+
+	!
+	!	clean up
+	!
+	call Delete(newMesh)
+	call Delete(delTri)
+	call Delete(lagSource)
 end subroutine
 !
 !----------------

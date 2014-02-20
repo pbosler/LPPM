@@ -36,6 +36,8 @@ public LagrangianRemesh !, DirectRemesh
 public InitialRefinement
 public NULL_REFINE, TRACER_REFINE, RELVORT_REFINE, FLOWMAP_REFINE
 public SetRelativeTracerTols, SetRelativeVorticityTols, SetRelativeFlowMapTol
+public FlagPanelsForCirculationRefinement, FlagPanelsForFlowMapRefinement, FlagPanelsAtRefinementBoundaries
+public FlagPanelsForRelVortVariationRefinement, FlagPanelsForTracerMaxRefinement, FlagPanelsForTracerVariationRefinement
 
 !
 !----------------
