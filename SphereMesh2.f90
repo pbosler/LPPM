@@ -48,6 +48,7 @@ public CountSubTriangles
 public LocatePoint
 public DividePanel
 public GetRossbyNumber
+public ResetLagrangianParameter
 !
 !----------------
 ! Types and module constants
@@ -430,6 +431,24 @@ function CountSubtriangles(self)
 		endif
 	enddo
 end function
+
+subroutine ResetLagrangianParameter(self)
+  type(SphereMesh), intent(in) :: self
+  integer(kint) :: j
+  type(Particles), pointer :: aParticles
+  type(Panels), pointer :: aPanels
+  
+  aParticles => self%particles
+  aPanels => self%panels
+
+  do j=1,aParticles%N
+     aParticles%x0(:,j) = aParticles%x(:,j)
+  enddo
+  do j=1,aPanels%N
+     aPanels%x0(:,j) = aPanels%x(:,j)
+  enddo
+
+end subroutine
 
 
 !

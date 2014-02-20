@@ -63,7 +63,7 @@ real(kreal) :: lagVarTol
 !
 !	remeshing variables
 !
-integer(kint) :: remeshInterval, remeshCounter
+integer(kint) :: remeshInterval, remeshCounter, resetAlpha
 !
 !	User input
 !
@@ -87,7 +87,7 @@ character(len=128) :: logString
 !
 integer(kint) :: i, j, k
 integer(kint) :: mpiErrCode
-integer(kint), parameter  :: BROADCAST_INT_SIZE = 5, BROADCAST_REAL_SIZE = 11
+integer(kint), parameter  :: BROADCAST_INT_SIZE = 6, BROADCAST_REAL_SIZE = 11
 integer(kint) :: broadcastIntegers(BROADCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BROADCAST_REAL_SIZE)
 real(kreal) :: wallClock
@@ -95,7 +95,7 @@ real(kreal) :: wallClock
 namelist /sphereDefine/ panelKind, initNest, AMR, tracerMaxTol, tracerVarTol, &
 						refineMentLimit, circMaxTol, vortVarTol, lagVarTol
 namelist /vorticityDefine/ 	vortLat, vortLon, bb, maxVort
-namelist /timeStepping/ tfinal, dt,  remeshInterval
+namelist /timeStepping/ tfinal, dt,  remeshInterval, resetAlpha
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,6 +119,7 @@ AMR = broadcastIntegers(2)
 initNest = broadcastIntegers(3)
 refinementLimit = broadcastIntegers(4)
 remeshInterval = broadcastIntegers(5)
+resetAlpha = broadcastIntegers(6)
 
 call MPI_BCAST(broadcastReals,BROADCAST_REAL_SIZE,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,mpiErrCode)
 tracermaxTol = broadcastReals(1)
@@ -242,6 +243,12 @@ do timeJ = 0, timesteps - 1
 									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
 									  flowMapRefine)
 		call SetInitialLatitudeTracerOnMesh(sphere,2)
+                
+                if ( mod(remeshCounter,resetAlpha) == 0 ) then
+                   call ResetLagrangianParameter(sphere)
+                   call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
+                endif
+
 		!
 		!	create new associated objects
 		!
@@ -316,6 +323,7 @@ subroutine ReadNamelistfile(rank)
 			broadcastIntegers(3) = initNest
 			broadcastIntegers(4) = refinementLimit
 			broadcastIntegers(5) = remeshInterval
+                        broadcastIntegers(6) = resetAlpha
 
 			broadcastReals(1) = tracerMaxTol
 			broadcastReals(2) = tracerVarTol

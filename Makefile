@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-MACHINE='TANK'
+MACHINE='VORTEX'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -21,8 +21,8 @@ else ifeq ($(MACHINE),'VORTEX')
 #----------------#
 # vortex.math.lsa.umich.edu
   FF = ifort
-  FF_FLAGS = -g -O0 -check bounds -check pointer -check uninit -traceback -warn all -debug extended -openmp
-  #FF_FLAGS=-O2 -warn all -opt-report 1
+  #FF_FLAGS = -g -O0 -check bounds -check pointer -check uninit -traceback -warn all -debug extended -openmp
+  FF_FLAGS=-O2 -warn all -opt-report 1
   MKL_ROOT=/usr/local/intel/Compiler/11.1/056/mkl
   MKL_LINK=-L$(MKL_ROOT)/lib $(MKL_ROOT)/lib/libmkl_lapack95_lp64.a -lmkl_intel_lp64 -lmk_intel_thread -lmkl_core -lpthread -lm
   MKL_COMPILE=-openmp -I$(MKL_ROOT)/include/intel64/lp64 -I$(MKL_ROOT)/include
@@ -81,7 +81,7 @@ solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
 singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS)	
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
-	
+
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################
