@@ -123,6 +123,90 @@ subroutine UpdateFileNameLL(self,filename)
 	self%filename = trim(filename)
 end subroutine
 
+subroutine LLOutputMatlab(self,aMesh)
+	type(LLSource), intent(in) :: self
+	type(SphereMesh), intent(in) :: aMesh
+	!
+	integer(kint) :: i, j, writeStat, nFields
+	real(kreal) :: interpVector(3), interpScalar, xyzLoc(3), lonUnitVector(3), latUnitVector(3)
+	real(kreal), allocatable :: llgrid1(:,:), llgrid2(:,:)
+	
+	! open output file
+	open(unit = WRITE_UNIT_1, file = self%filename, status = 'REPLACE', action = 'WRITE', iostat = writeStat)
+	if ( writeStat /= 0 ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'LLOutputMatlab : ', 'ERROR opening output file.')
+		return
+	endif
+	
+	! write lon/lat vectors
+	write(WRITE_UNIT_1,'(A)',ADVANCE = 'NO') 'lon = [ '
+	do i=1,self%nlon-1
+		write(WRITE_UNIT_1,'(F24.15,A)') self%lons(i), '; ...'
+	enddo
+	write(WRITE_UNIT_1,'(F24.15,A)') self%lons(self%nLon), ' ] ; '
+	
+	write(WRITE_UNIT_1,'(A)',advance = 'NO') 'lat = [ '
+	do i=1,self%nlon/2
+		write(WRITE_UNIT_1,'(F24.15,A)') self%lats(i), '; ...'
+	enddo	 
+	write(WRITE_UNIT_1,'(F24.15,A)') self%lats(self%lon/2+1), ' ] ;'
+	
+	allocate(llgrid1(self%nLon/2+1,self%nLon))
+	llgrid1 = 0.0_kreal
+	allocate(llgrid2(self%nLon/2+1,self%nLon))
+	llgrid2 = 0.0_kreal
+	!
+	! Lagrangian parameter
+	!
+	call SetSourceLagrangianParameter(self%vectorSource,self%delTri)
+	do j=1,self%nLon
+		do i=1,self%nLon/2+1
+			xyzLoc = EARTH_RADIUS*[ cos(self%lats(i))*cos(self%lons(j)), &
+						cos(self%lats(i))*sin(self%lons(j)), sin(self%lats(i)) ]
+			interpVector = InterpolateVector(xyzLoc, self%vectorSource, self%delTri)
+			llgrid1(i,j) = Longitude(interpVector)
+			llgrid2(i,j) = Latitude(interpVector)
+		enddo
+	enddo
+	
+	write(WRITE_UNIT_1,'(A)',advance = 'NO') ' alphaLongitude = [ '
+	do i=1,self%nLon/2
+		do j=1,self%nLon -1
+			write(WRITE_UNIT_1,'(F24.10)',advance='NO') llgrid1(i,j)
+		enddo
+		write(WRITE_UNIT_1,'(F24.10, A)',advance='YES') llgrid1(i,self%nLon), ' ; ...'
+	enddo	
+	do j=1,self%nLon -1
+		write(WRITE_UNIT_1,'(F24.10)',advance='NO') llgrid1(self%nLon/2+1,j)
+	enddo
+	write(WRITE_UNIT_1,'(F24.10, A)',advance='YES') llgrid1(self%nLon/2+1,self%nLon), ' ] ; '
+	
+	!
+	!	velocity
+	!
+	call SetSourceVelocity(self%vectorSource,self%delTri)
+	do j=1,self%nLon
+		do i=1,self%nLon/2+1
+			xyzLoc = EARTH_RADIUS*[ cos(self%lats(i))*cos(self%lons(j)), &
+						cos(self%lats(i))*sin(self%lons(j)), sin(self%lats(i)) ]
+			interpVector = InterpolateVector(xyzLoc, self%vectorSource, self%delTri)
+			
+			lonUnitVector = 
+			
+			latUnitVector = 
+			
+			llgrid1(i,j) = sum(interpVector*lonUnitVector)
+			
+			llgrid2(i,j) = sum(interpVector*latUnitVector)
+			
+		enddo
+	enddo
+	
+	deallocate(llgrid1)
+	deallocate(llgrid2)
+	close(WRITE_UNIT_1)
+end subroutine
+
 
 !
 !----------------
