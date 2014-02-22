@@ -569,7 +569,7 @@ subroutine LogPanelStats(self,aLog,message)
 	type(Logger), intent(inout) :: aLog
 	character(len=*), intent(in), optional :: message
 	! local variables
-	character(len=24) :: key
+	character(len=32) :: key
 	integer(kint) :: k, nTracer, j
 	real(kreal) :: maxU, minU, uj
 

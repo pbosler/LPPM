@@ -9,8 +9,8 @@ ifeq ($(MACHINE),'FERRARI')
 #----------------#
 # FERRARI LAPTOP #	
   FF=ifort
-  FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-  #FF_FLAGS= -O2 -openmp -warn all
+  #FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  FF_FLAGS= -O2 -openmp -warn all
   VTK_INCLUDE=/usr/local/include/vtk-5.8
   VTK_LIB_DIR=/usr/local/lib/vtk-5.8
   MKLROOT=/opt/intel/mkl

@@ -7,7 +7,7 @@
 	refinementLimit = 4
 	circMaxTol = 0.08
 	vortVarTol = 0.4
-	lagVarTol = 1000.0
+	lagVarTol = 1.0
 /
 
 & vorticityDefine
@@ -18,14 +18,14 @@
 /
 
 & timeStepping
-	tfinal = 12.0		! days
-	dt = 0.0025		! days
-	remeshInterval = 30	! timesteps
-	resetAlpha = 5		! remeshings
+	tfinal = 0.4		! days
+	dt = 0.005		! days
+	remeshInterval = 20	! timesteps
+	resetAlpha = 2		! remeshings
 /
 
 & fileIO
 	outputDir = '.'
-	jobPrefix = 'bveGaussVort_rm30_vortAMR_t12_'
+	jobPrefix = 'bveGaussVort_rm30_vortAMR_t2_'
 	frameOut = 1
 /

@@ -224,7 +224,6 @@ call StartSection(exeLog,'initial setup complete:')
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'initial Rossby number : ',GetRossbyNumber(sphere) )
 call EndSection(exeLog)
 
-
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	RUN THE PROBLEM
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -255,9 +254,22 @@ do timeJ = 0, timesteps - 1
 			call New(refSphere,sphere)
 			refSphereReady = .TRUE.
 			
+			flowMapRefine%type = NULL_REFINE
+			
 			call ResetLagrangianParameter(sphere)
 			call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
+  		    
+  		    
   		    call ResetLagrangianParameter(sphere)
+  		    flowMapRefine%type = FLOWMAP_REFINE
+  		    
+			if ( procRank == 0 .AND. mod(timeJ+1,frameOUt) == 0  ) then
+				call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONE_DAY)
+				write(vtkFile,'(A,A,A)') trim(vtkRoot), 'NEW', '.vtk'
+				call UpdateFileName(vtkOut,vtkFile)
+				call VTKOutput(vtkOut,sphere)
+				frameCounter = frameCounter + 1
+			endif
   		    
 		    call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
 		   
