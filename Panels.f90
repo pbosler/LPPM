@@ -594,7 +594,7 @@ subroutine LogPanelStats(self,aLog,message)
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N_Max)
 	key = 'MaxNest = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxval(self%nest(1:self%N)))
-	key = 'Surface Area error = '
+	key = 'Surface Area error <m^2> = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,abs(sum(self%area(1:self%N)) - 4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS) )
 	maxU = 0.0_kreal
 	minU = 0.0_kreal
@@ -603,38 +603,38 @@ subroutine LogPanelStats(self,aLog,message)
 		 if ( uj > maxU ) maxU = uj
 		 if ( uj < minU ) minU = uj
 	enddo
-	key = 'max. velocity = '
+	key = 'max. velocity <m s^(-1)> = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxU)
-	key = 'min. velocity = '
+	key = 'min. velocity <m s^(-1)> = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minU)
 	if ( associated(self%absVort)) then
-		key = 'Max absVort = '
+		key = 'Max absVort <s^(-1)> = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%absVort(1:self%N)))
-		key = 'Min absVort = '
+		key = 'Min absVort <s^(-1)> = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%absVort(1:self%N)))
-		key = 'normalized absVort integral = '
+		key = 'absVort integral = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%absVort(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%relVort)) then
-		key = 'Max relVort = '
+		key = 'Max relVort <s^(-1)> = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%relVort(1:self%N)))
-		key = 'Min relVort = '
+		key = 'Min relVort <s^(-1)> = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%relVort(1:self%N)))
 		key = 'normalized relVort integral = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%relVort(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%potVort)) then
-		key = 'Max potVort = '
+		key = 'Max potVort < m^(-1) s^(-1)> = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%potVort(1:self%N)))
-		key = 'Min potVort = '
+		key = 'Min potVort = <m^(-1) s^(-1)> '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%potVort(1:self%N)))
 		key = 'normalized potVort integral = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%potVort(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%h)) then
-		key = 'Max h = '
+		key = 'Max h <m> = '
 		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%h(1:self%N)))
-		key = 'Min h = '
+		key = 'Min h <m> = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%h(1:self%N)))
 		key = 'normalized h integral = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%h(1:self%N)*self%area(1:self%N))/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))

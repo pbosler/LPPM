@@ -1,6 +1,7 @@
 SHELL = /bin/bash
 
-MACHINE='FERRARI'
+#MACHINE='FERRARI'
+MACHINE='TANK'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -127,9 +128,13 @@ ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) 
 #############################################################
 ## VTK EXECUTABLES
 #############################################################
+plotNewRemeshingFrames.exe: vtkPlotNewRemeshingFrames.o
+	g++ -O2 -Wno-deprecated -o $@ $< -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
 
 #############################################################
 ## VTK OBJECTS
 #############################################################
 VTKLookupTables.o: VTKLookupTables.cpp 
-	g++ -c -O2 $< -I$(VTK_INCLUDE)
+	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
+vtkPlotNewRemeshingFrames.o: vtkPlotNewRemeshingFrames.cpp
+	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)

@@ -154,6 +154,8 @@ subroutine NewPrivate(self,aMesh)
 
 	self%memoryReady = .TRUE.
 
+	call DelaunayTriangulation(self)
+
 	call Delete(passivePanels)
 	deallocate(passiveMap)
 	nullify(aPanels)

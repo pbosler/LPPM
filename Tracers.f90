@@ -31,7 +31,7 @@ public TracerSetup
 public New, Delete
 public InitCosineBellTracer, SetCosineBellTracerOnMesh
 public COS_BELL_NINT, COS_BELL_NREAL
-public SetInitialLatitudeTracerOnMesh
+public SetFlowMapLatitudeTracerOnMesh
 
 
 !
@@ -81,9 +81,9 @@ contains
 subroutine NewPrivate(self, nInt, nReal)
 	type(TracerSetup), intent(out) :: self
 	integer(kint), intent(in) :: nINt, nReal
-	
+
 	if (.NOT. logInit) call InitLogger(log,procRank)
-	
+
 	if ( nInt > 0 ) then
 		allocate(self%integers(nInt))
 		self%integers = 0
@@ -95,7 +95,7 @@ subroutine NewPrivate(self, nInt, nReal)
 		self%reals = 0.0_kreal
 	else
 		nullify(self%reals)
-	endif			
+	endif
 end subroutine
 
 subroutine DeletePrivate(self)
@@ -116,17 +116,17 @@ subroutine InitCosineBellTracer(cosBell, lat0, lon0, rr, h0, tracerID)
 	type(TracerSetup), intent(inout) :: cosBell
 	real(kreal), intent(in) :: lat0, lon0, rr, h0
 	integer(kint), intent(in) :: tracerID
-	
+
 	if ( size(cosBell%reals) /= 4) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL,'tracerSetup ERROR : ',' real array size incorrect')
 		return
 	endif
-	
+
 	cosBell%reals(1) = lat0	! latitude of center of cosine bell
 	cosBell%reals(2) = lon0 ! longitude of center of cosine bell
 	cosBell%reals(3) = rr	! radius of cosine bell
 	cosBell%reals(4) = h0	! height of center of cosine bell
-	
+
 	cosBell%tracerID = tracerID
 end subroutine
 
@@ -137,36 +137,36 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 	integer(kint) :: j
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	xyzCent = [cos(cosBell%reals(1))*cos(cosBell%reals(2)), cos(cosBell%reals(1))*sin(cosBell%reals(2)), sin(cosBell%reals(1)) ]
-	
+
 	do j=1,aParticles%N
 		aParticles%tracer(j,cosBell%tracerID) = CosineBellX(aParticles%x0(:,j),xyzCent,cosBell%reals(3),cosBell%reals(4))
 	enddo
 	do j=1,aPanels%N
-		if ( .NOT. aPanels%hasChildren(j) ) then 
+		if ( .NOT. aPanels%hasChildren(j) ) then
 			aPanels%tracer(j,cosBell%tracerID) = CosineBellX(aPanels%x0(:,j),xyzCent,cosBell%reals(3), cosBell%reals(4))
 		else
 			aPanels%tracer(j,cosBell%tracerID) = 0.0_kreal
 		endif
 	enddo
-	
+
 end subroutine
 
-subroutine SetInitialLatitudeTracerOnMesh(aMesh,tracerID)
+subroutine SetFlowMapLatitudeTracerOnMesh(aMesh,tracerID)
 	type(SphereMesh), intent(inout) :: aMesh
 	integer(kint), intent(in) :: tracerID
 	! local variables
 	integer(kint) :: j
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	do j=1,aParticles%N
 		aParticles%tracer(j,tracerID) = Latitude(aParticles%x0(:,j))
 	enddo

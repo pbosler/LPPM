@@ -33,13 +33,12 @@ public LagrangianRemesh
 
 type ReferenceSphere
 	type(STRIPACKData) :: delTri
-	real(kreal), pointer :: absVort(:) => null(), &
-							absVortGrad(:,:) => null(), &
-							sigmaAbsVort(:) => null(), &
-							tracer(:,:) => null(), &
+	type(SSRFPACKData), pointer :: absVortSource => null(), &
+								   tracerSource => null()
+	real(kreal), pointer :: tracer(:,:) => null(), &
 							tracerGrad(:,:,:) => null(), &
 							sigmaTracer(:,:) => null()
-	real(kreal) :: sigmaTol = 0.01_kreal							
+	real(kreal) :: sigmaTol = 0.01_kreal
 	integer(kint) :: startSearch = 1
 end type
 
@@ -87,95 +86,45 @@ subroutine NewPrivate(self, oldSphere)
 	type(Panels), pointer :: oldPanels
 	type(Particles), pointer :: oldParticles
 	real(kreal) :: dSig
-	
+
 	if ( .NOT. logInit) call InitLogger(log,procRank)
-	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,' creating new reference sphere.')
 	call New(self%delTri,oldSphere)
-	
+	!call DelaunayTriangulation(self%delTri)
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,' reference sphere delaunay graph ready.')
 	oldParticles => oldSphere%particles
-	oldPanels => oldSphere%panels	
-	
+	oldPanels => oldSphere%panels
+
 	if ( oldSphere%problemKind == BVE_SOLVER) then
-		allocate(self%absVort(self%delTri%n))
-		self%absVort = 0.0_kreal
-		k = 1
-		do j=1, oldPanels%N_Active
-			if ( .NOT. oldPanels%hasChildren(j) ) then
-				self%absVort(k) = oldSphere%panels%absVort(j)
-				k = k+1
-			endif
-		enddo
-		do j=1, oldParticles%N
-			self%absVort(oldPanels%N_Active + j) = oldParticles%absVort(j)
-		enddo
-		
-		allocate(self%absVortGrad(3,self%delTri%n))
-		self%absVortGrad = 0.0_kreal
-		do j=1,self%delTri%n
-			call GRADL(self%delTri%n, j, self%delTri%x, self%delTri%y, self%delTri%z, self%absVort, &
-					   self%delTri%list, self%delTri%lptr, self%delTri%lend, self%absVortGrad(:,j), errCode)
-		enddo
-		
-		allocate(self%sigmaAbsVort(6*self%delTri%n - 12))
-		self%sigmaAbsVort = 0.0_kreal
-		
-		call GETSIG(self%delTri%n, self%delTri%x, self%delTri%y, self%delTri%z, self%absVort, &
-				    self%delTri%list, self%delTri%lptr, self%delTri%lend, &
-				    self%absVortGrad, self%sigmaTol, self%sigmaAbsVort, dSig, errCode)
+		allocate(self%absVortSource)
+		call New(self%absVortSource, self%delTri, .FALSE.)
+		call SetSourceAbsVort(self%absVortSource, self%delTri)
 	endif
-	
+
 	if ( oldSphere%nTracer > 0 ) then
-		allocate(self%tracer(self%delTri%n,oldSphere%nTracer))
-		self%tracer = 0.0_kreal
-		i = 1
-		do k=1,oldsphere%nTracer
-			do j=1,oldPanels%N_active
-				if (.NOT. oldPanels%hasChildren(j) ) then
-					self%tracer(i,k) = oldPanels%tracer(j,k)
-					i = i + 1
-				endif
-			enddo
-		enddo
-		do k=1,oldsphere%nTracer
-			do j=1,oldParticles%N
-				self%tracer(oldPanels%N_Active + j, k) = oldParticles%tracer(j,k)
-			enddo
-		enddo
-		
-		allocate(self%tracerGrad(3,self%delTri%n,oldSphere%nTracer))
-		self%tracerGrad = 0.0_kreal
-		
-		allocate(self%sigmaTracer(6*self%delTri%n - 12, oldSphere%nTracer))
-		self%sigmaTracer = 0.0_kreal
-		
-		do k=1,oldSphere%nTracer
-			do j=1,self%delTri%n
-				call GRADL(self%delTri%n, j, self%delTri%x, self%delTri%y, self%delTri%z, self%tracer(:,k), &
-					   self%delTri%list, self%delTri%lptr, self%delTri%lend, self%tracerGrad(:,j,k), errCode)
-			enddo
-		
-			call GETSIG(self%delTri%n, self%delTri%x, self%delTri%y, self%delTri%z, self%tracer(:,k), &
-				    self%delTri%list, self%delTri%lptr, self%delTri%lend, &
-				    self%tracerGrad(:,:,k), self%sigmaTol, self%sigmaTracer(:,k), dSig, errCode)
-		enddo
+		allocate(self%tracerSource)
+		call New(self%tracerSource, self%delTri, oldSphere%nTracer)
+		call SetSourceTracer(self%tracerSource, self%delTri)
 	endif
+
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,' reference sphere ready.')
+
 end subroutine
 
 subroutine DeletePrivate(self)
 	type(ReferenceSphere), intent(inout) :: self
-	
+
 	call Delete(self%delTri)
-	if ( associated(self%absVort)) then
-		deallocate(self%absVort)
-		deallocate(self%absVortGrad)
-		deallocate(self%sigmaAbsVort)
+	if ( associated(self%absVortSource) ) then
+		call Delete(self%absVortSource)
+		deallocate(self%absVortSource)
 	endif
 	if ( associated(self%tracer) ) then
 		deallocate(self%tracer)
 		deallocate(self%tracerGrad)
 		deallocate(self%sigmaTracer)
 	endif
-	
+
 end subroutine
 
 !
@@ -201,7 +150,7 @@ subroutine LagrangianRemeshPrivate(aMesh, reference, vortRefine, tracerRefine, f
 	logical(klog), allocatable :: refineFlag(:)
 	logical(klog) :: keepGoing, refineTracer, refineVort, refineFlowMap
 	integer(kint) :: startIndex, nOldPanels, nOldParticles, refineCount, spaceLeft, limit
-	
+
 	nullify(newParticles)
 	nullify(newEdges)
 	nullify(newPanels)
@@ -209,7 +158,7 @@ subroutine LagrangianRemeshPrivate(aMesh, reference, vortRefine, tracerRefine, f
 	refineFlowMap = .FALSE.
 	refineTracer = .FALSE.
 	refineVort = .FALSE.
-	
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' entering Lagrangian remesh.')
 	!
 	!	determine what types of AMR to use
@@ -253,7 +202,7 @@ subroutine LagrangianRemeshPrivate(aMesh, reference, vortRefine, tracerRefine, f
 	enddo
 	!
 	!	set tracer values on new mesh
-	!	
+	!
 	if ( aMesh%nTracer > 0 ) then
 		do j=1,newParticles%N
 			do k=1,aMesh%nTracer
@@ -279,12 +228,8 @@ subroutine LagrangianRemeshPrivate(aMesh, reference, vortRefine, tracerRefine, f
 			newParticles%relVort(j) = newParticles%absVort(j) - 2.0_kreal*OMEGA*newParticles%x(3,j)/EARTH_RADIUS
 		enddo
 		do j=1,newPanels%N
-			if ( .NOT. newPanels%hasChildren(j) ) then
-				newPanels%absVort(j) = GetAbsVort(reference,newPanels%x0(:,j))
-				newPanels%relVort(j) = newPanels%absVort(j) - 2.0_kreal*OMEGA*newPanels%x(3,j)/EARTH_RADIUS
-			else
-				newPanels%absVort(j) = 0.0_kreal
-			endif
+			newPanels%absVort(j) = GetAbsVort(reference,newPanels%x0(:,j))
+			newPanels%relVort(j) = newPanels%absVort(j) - 2.0_kreal*OMEGA*newPanels%x(3,j)/EARTH_RADIUS
 		enddo
 	endif
 	!
@@ -295,7 +240,7 @@ subroutine LagrangianRemeshPrivate(aMesh, reference, vortRefine, tracerRefine, f
 		refineFlag = .FALSE.
 		startIndex = 1
 		keepGoing = .FALSE.
-		limit = 0	
+		limit = 0
 		!
 		!	Apply refinement criteria
 		!
@@ -503,32 +448,16 @@ function GetAbsVort(self, alphaIn)
 	type(ReferenceSphere), intent(inout) :: self
 	real(kreal), intent(in) :: alphaIn(3)
 	!
-	real(kreal) :: lat, lon, interp
-	integer(kint) :: errCode
-	
-	lat = Latitude(alphaIn)
-	lon = Longitude(alphaIn)
-	call INTRC1(self%delTri%n, lat, lon, self%delTri%x, self%delTri%y, self%delTri%z, self%absVort, &
-				self%delTri%list, self%delTri%lptr, self%delTri%lend, &
-				SIGMA_FLAG, self%sigmaAbsVort, GRAD_FLAG, self%absVortGrad, self%startSearch, interp, errCode)
-	GetAbsVort = interp	
-end function 
+	GetAbsVort = InterpolateScalar(alphaIn, self%absVortSource, self%delTri)
+end function
 
 function GetTracer(self, alphaIn, tracerID)
 	real(kreal) :: GetTracer
 	type(ReferenceSphere), intent(inout) :: self
 	real(kreal), intent(in) :: alphaIn(3)
 	integer(kint), intent(in) :: tracerID
-	! 
-	real(kreal) :: lat, lon, interp
-	integer(kint) :: errCode
-	
-	lat = Latitude(alphaIn)
-	lon = Longitude(alphaIn)
-	call INTRC1(self%delTri%n, lat, lon, self%delTri%x, self%delTri%y, self%delTri%z, self%tracer(:,tracerID), &
-			self%delTri%list, self%delTri%lptr, self%delTri%lend, &
-			SIGMA_FLAG, self%sigmaTracer(:,tracerID), GRAD_FLAG, self%tracerGrad(:,:,tracerID), self%startSearch, interp, errCode)
-	GetTracer = interp
+	!
+	GetTracer = InterpolateTracer(alphaIn, self%tracerSource, self%delTri, tracerID)
 end function
 
 

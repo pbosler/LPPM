@@ -66,7 +66,7 @@ real(kreal) :: lagVarTol
 !
 integer(kint) :: remeshInterval, remeshCounter, resetAlpha
 type(ReferenceSphere) :: refSphere
-logical(klog), save :: refSphereReady = .FALSE.
+logical(klog) :: refSphereReady
 !
 !	User input
 !
@@ -137,13 +137,13 @@ vortLon = broadcastReals(9)
 bb = broadcastReals(10)
 maxVort = broadcastReals(11)*OMEGA
 
-
+refSphereReady = .FALSE.
 !
 !	define test case
 !
 
 problemKind = BVE_SOLVER
-nTracer = 2
+nTracer = 3
 h0 = 1000.0_kreal	! height of cosine bell center
 lat0 = 0.0_kreal	! latitude of cosine bell center
 lon0 = 3.0_kreal*PI/2.0_kreal ! longitude of cosine bell center
@@ -160,7 +160,8 @@ call InitSingleGaussianVortex(gaussVort,vortLat,vortLon,bb,maxVort)
 !
 call New(sphere,panelKind,initNest,AMR,nTracer,problemKind)
 call SetCosineBellTracerOnMesh(sphere,cosBell)
-call SetInitialLatitudeTracerOnMesh(sphere,2)
+call SetFlowMapLatitudeTracerOnMesh(sphere,2)
+call SetFlowMapLatitudeTracerOnMesh(sphere,3)
 call SetSingleGaussianVortexOnMesh(sphere,gaussVort)
 if ( AMR > 0 ) then
 
@@ -197,7 +198,8 @@ else ! uniform mesh
 	endif
 endif
 
-call SetInitialLatitudeTracerOnMesh(sphere,2)
+call SetFlowMapLatitudeTracerOnMesh(sphere,2)
+call SetFlowMapLatitudeTracerOnMesh(sphere,3)
 
 !
 !	initialize output, output t = 0 data
@@ -245,36 +247,47 @@ do timeJ = 0, timesteps - 1
 			call LagrangianRemesh(sphere, SetSingleGaussianVortexOnMesh, gaussVort, vortRefine, &
 										  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
 										  flowMapRefine)
-			call SetInitialLatitudeTracerOnMesh(sphere,2)	
+			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
+			call SetFlowMapLatitudeTracerOnMesh(sphere,3)
 		elseif ( mod(remeshCounter,resetAlpha) == 0 ) then
+
+			call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' developing new mapping time.')
+
 			if ( refSphereReady ) then
+				call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' deleting reference sphere.')
 				call Delete(refSphere)
 				refSphereReady = .FALSE.
 			endif
+
 			call New(refSphere,sphere)
 			refSphereReady = .TRUE.
-			
+			call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' reference sphere returned.')
+
 			flowMapRefine%type = NULL_REFINE
-			
+			call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' flowMap refinement nullified.')
+
 			call ResetLagrangianParameter(sphere)
 			call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
-  		    
-  		    
+
+
   		    call ResetLagrangianParameter(sphere)
   		    flowMapRefine%type = FLOWMAP_REFINE
-  		    
-			if ( procRank == 0 .AND. mod(timeJ+1,frameOUt) == 0  ) then
-				call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONE_DAY)
-				write(vtkFile,'(A,A,A)') trim(vtkRoot), 'NEW', '.vtk'
-				call UpdateFileName(vtkOut,vtkFile)
-				call VTKOutput(vtkOut,sphere)
-				frameCounter = frameCounter + 1
-			endif
-  		    
+
+!			if ( procRank == 0 .AND. mod(timeJ+1,frameOUt) == 0  ) then
+!				call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONE_DAY)
+!				write(vtkFile,'(A,A,A)') trim(vtkRoot), 'NEW', '.vtk'
+!				call UpdateFileName(vtkOut,vtkFile)
+!				call VTKOutput(vtkOut,sphere)
+!				frameCounter = frameCounter + 1
+!			endif
+
+			call SetFlowMapLatitudeTracerOnMesh(sphere,3)
+
 		    call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
-		   
+
 		else
-		   call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
+		    call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
+		    call SetFlowMapLatitudeTracerOnMesh(sphere,3)
 		endif
 		!
 		!	create new associated objects
@@ -372,7 +385,7 @@ subroutine InitLogger(alog,rank)
 	if ( rank == 0 ) then
 		call New(aLog,DEBUG_LOGGING_LEVEL)
 	else
-		call New(aLog,WARNING_LOGGING_LEVEL)
+		call New(aLog,DEBUG_LOGGING_LEVEL)
 	endif
         write(logKey,'(A,I0.2,A)') 'EXE_LOG',procRank,' : '
 end subroutine
