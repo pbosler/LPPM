@@ -28,7 +28,7 @@ include 'mpif.h'
 
 private
 public TracerSetup
-public New, Delete
+public New, Delete, NullTracer
 public InitCosineBellTracer, SetCosineBellTracerOnMesh
 public COS_BELL_NINT, COS_BELL_NREAL
 public SetFlowMapLatitudeTracerOnMesh
@@ -175,6 +175,10 @@ subroutine SetFlowMapLatitudeTracerOnMesh(aMesh,tracerID)
 	enddo
 end subroutine
 
+subroutine NullTracer(aMesh,nullScalar)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(TracerSetup), intent(in) :: nullScalar
+end subroutine
 
 
 !

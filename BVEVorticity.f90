@@ -29,11 +29,10 @@ include 'mpif.h'
 private
 public BVESetup
 public New, Delete
-public InitSolidBodyRotation, SetSolidBodyRotationOnMesh
-public SOLID_BODY_NINT, SOLID_BODY_NREAL
+public InitSolidBodyRotation, SetSolidBodyRotationOnMesh, SOLID_BODY_NINT, SOLID_BODY_NREAL
 public NullVorticity
-public InitSingleGaussianVortex, SetSingleGaussianVortexOnMesh
-public SINGLE_VORTEX_NINT, SINGLE_VORTEX_NREAL
+public InitSingleGaussianVortex, SetSingleGaussianVortexOnMesh, SINGLE_VORTEX_NINT, SINGLE_VORTEX_NREAL
+public InitRH4Wave, SetRH4WaveOnMesh, RH4_NINT, RH4_NREAL
 public GAUSS_CONST
 
 !
@@ -49,6 +48,7 @@ end type
 real(kreal), protected, save :: GAUSS_CONST = 0.0_kreal
 integer(kint), parameter :: SOLID_BODY_NINT = 0, SOLID_BODY_NREAL = 1
 integer(kint), parameter :: SINGLE_VORTEX_NINT = 0, SINGLE_VORTEX_NREAL = 4
+integer(kint), parameter :: RH4_NINT = 0, RH4_NREAL = 2
 
 !
 !----------------
@@ -166,6 +166,8 @@ subroutine InitSingleGaussianVortex(gaussVort, lat0, lon0, bb, maxVal)
 	gaussVort%reals(4) = maxVal
 end subroutine
 
+
+
 subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(BVESetup), intent(in) :: gaussVort
@@ -218,6 +220,42 @@ subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
 	enddo
 end subroutine
 
+subroutine InitRH4Wave(rh4Wave, alpha, amplitude)
+	type(BVESetup), intent(inout) :: rh4Wave
+	real(kreal), intent(in) :: alpha, amplitude
+	rh4Wave%reals(1) = alpha
+	rh4Wave%reals(2) = amplitude
+end subroutine
+
+subroutine SetRH4WaveOnMesh(aMesh,rhWave)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(BVESetup), intent(in) :: rhWave
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+	
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	
+	do j=1,aParticles%N
+		aParticles%absVort(j) = 2.0_kreal*OMEGA*aParticles%x0(3,j)/EARTH_RADIUS + &
+				RH54Vorticity(aParticles%x0(:,j),rhWave%reals(1),rhWave%reals(2))
+		aParticles%relVort(j) = aParticles%absVort(j) - 2.0_kreal*OMEGA*aParticles%x(3,j)/EARTH_RADIUS
+	enddo
+	
+	do j=1,aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%absVort(j) = 0.0_kreal
+			aPanels%relVort(j) = 0.0_kreal
+		else
+			aPanels%absVort(j) = 2.0_kreal*OMEGA*aPanels%x0(3,j)/EARTH_RADIUS + &
+				RH54Vorticity(aPanels%x0(:,j),rhWave%reals(1), rhWave%reals(2))
+			aPanels%relVort(j) = aPanels%absVort(j) - 2.0_kreal*OMEGA*aPanels%x(3,j)/EARTH_RADIUS
+		endif
+	enddo
+end subroutine
+
 subroutine NullVorticity(aMesh,nullVort)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(BVESetup), intent(in) :: nullVort
@@ -241,6 +279,18 @@ function GeneralGaussian(xyz,xyzCent, bb, maxVal)
 	real(kreal) :: GeneralGaussian
 	real(kreal), intent(in) :: xyz(3), xyzCent(3), bb, maxVal
 	GeneralGaussian = maxVal * exp( -2.0_kreal*bb*bb/EARTH_RADIUS/EARTH_RADIUS *( sum((xyz-xyzCent)*(xyz-xyzCent))))
+end function
+
+function RH54Vorticity(xyz, alpha, amp)
+	real(kreal) :: RH54Vorticity
+	real(kreal), intent(in) :: xyz(3), alpha, amp
+	RH54Vorticity = 2.0_kreal*alpha*xyz(3)/EARTH_RADIUS + 30.0_kreal*amp*cos(4.0_kreal*Longitude(xyz))*Legendre54(xyz(3)/EARTH_RADIUS)
+end function
+
+function Legendre54(z)
+	real(kreal) Legendre54
+	real(kreal), intent(in) :: z
+	Legendre54 = z * (-1.0_kreal + z*z) * (-1.0_kreal + z*z)
 end function
 
 subroutine InitLogger(aLog,rank)
