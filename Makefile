@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-#MACHINE='FERRARI'
-MACHINE='TANK'
+MACHINE='FERRARI'
+#MACHINE='TANK'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 

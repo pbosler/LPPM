@@ -113,6 +113,7 @@ subroutine NewPrivate(self,aMesh,filename,title)
 	endif
 	if ( associated(aPanels%absVort) ) self%nScalars = self%nScalars+1
 	if ( associated(aPanels%relVort) ) self%nScalars = self%nScalars+1
+	if ( associated(aPanels%ke)) self%nScalars = self%nScalars+1
 	self%nScalars = self%nScalars + GetNTracer(aPanels)
 end subroutine
 
@@ -232,6 +233,20 @@ subroutine vtkOutput(self,aMesh)
 			do j=1,aPanels%N
 				if ( .NOT. aPanels%hasChildren(j)) then
 					write(WRITE_UNIT_1,'(F24.15)') aPanels%relVort(j)
+				endif
+			enddo
+		endif
+		
+		if ( associated(aPanels%ke)) then
+			dataString = 'SCALARS KE double 1'
+			write(WRITE_UNIT_1,'(A)') datastring
+			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+			do j=1,aParticles%N
+				write(WRITE_UNIT_1,'(F24.15)') aParticles%ke(j)
+			enddo
+			do j=1,aPanels%N
+				if (.NOT. aPanels%hasChildren(j)) then
+					write(WRITE_UNIT_1,'(F24.15)') aPanels%ke(j)
 				endif
 			enddo
 		endif

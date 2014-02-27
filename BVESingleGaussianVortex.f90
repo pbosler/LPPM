@@ -13,6 +13,7 @@ program BVEGaussVort
 !
 !----------------
 use NumberKindsModule
+use OutputWriterModule
 use LoggerModule
 use SphereMeshModule
 use RefineRemeshModule
@@ -43,11 +44,13 @@ integer(kint) :: timesteps, timeJ
 type(tracerSetup) :: cosBell
 real(kreal) :: h0, RR, lat0, lon0
 integer(kint) :: tracerID
+real(kreal), allocatable :: massIntegral(:)
 !
 !	vorticity variables
 !
 type(BVESetup) :: gaussVort
 real(kreal) :: vortLat, vortLon, bb, maxVort
+real(kreal), allocatable :: totalKE(:), totalEns(:)
 !
 !	refinement variables
 !
@@ -77,8 +80,10 @@ integer(kint) :: readStat
 !
 type(VTKSource) :: vtkOut
 character(len = 128) :: vtkRoot, vtkFile, outputDir, jobPrefix
+character(len = 128) :: conservedDataFile, summaryFile
 character(len = 56 ) :: amrString
-integer(kint) :: frameCounter, frameOut
+integer(kint) :: frameCounter, frameOut, writeStat1, writeStat2
+type(OutputWriter) :: writer
 !
 !	logging
 !
@@ -138,15 +143,15 @@ bb = broadcastReals(10)
 maxVort = broadcastReals(11)*OMEGA
 
 refSphereReady = .FALSE.
+
 !
 !	define test case
 !
-
 problemKind = BVE_SOLVER
 nTracer = 3
 h0 = 1000.0_kreal	! height of cosine bell center
 lat0 = 0.0_kreal	! latitude of cosine bell center
-lon0 = 3.0_kreal*PI/2.0_kreal ! longitude of cosine bell center
+lon0 = 0.0_kreal ! longitude of cosine bell center
 RR = EARTH_RADIUS/3.0_kreal ! radius of cosine bell
 tracerID = 1
 call New(cosBell, COS_BELL_NINT, COS_BELL_NREAL)
@@ -221,6 +226,16 @@ call New(bveRK4,sphere,numProcs)
 timesteps = floor(tfinal/dt)
 t = 0.0_kreal
 remeshCounter = 0
+
+allocate(totalKE(0:timesteps))
+allocate(totalEns(0:timesteps))
+allocate(massIntegral(0:timesteps))
+totalKE = 0.0_kreal
+totalEns = 0.0_kreal
+massIntegral = 0.0_kreal
+
+massIntegral(0) = TotalMass(sphere,1)
+totalEns(0) = TotalEnstrophy(sphere)
 
 call StartSection(exeLog,'initial setup complete:')
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'initial Rossby number : ',GetRossbyNumber(sphere) )
@@ -302,6 +317,11 @@ do timeJ = 0, timesteps - 1
 	!	advance timestep
 	!
 	call BVERK4Timestep(bveRK4, sphere, dt, procRank, numProcs)
+	
+	if ( timeJ == 0 ) totalKE(0) = sphere%totalKE
+	totalKE(timeJ+1) = sphere%totalKE
+	totalEns(timeJ+1) = TotalEnstrophy(sphere)
+	massIntegral(timeJ+1) = TotalMass(sphere,1)
 
 	t = real(timeJ+1,kreal)*dt
 	!
@@ -318,7 +338,43 @@ enddo
 !
 !	output final data
 !
+if ( procRank == 0 ) then
+	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
+	write(conservedDataFile,'(6A)') trim(outputDir), '/',trim(jobPrefix), trim(amrString),'_conservedData', '.txt'
+	write(summaryFile,'(6A)') trim(outputDir), '/',trim(jobPrefix), trim(amrString),'_summary', '.txt'
 
+	open(unit=WRITE_UNIT_1,file=conservedDataFile,status='REPLACE',action='WRITE',iostat=writeStat1)
+	if ( writeStat1 /= 0 ) then
+		call LogMessage(exeLog,ERROR_LOGGING_LEVEL,trim(logKey),' ERROR writing final data.')
+	else
+		write(WRITE_UNIT_1,'(3A24)') 'totalMass', 'totalKE', 'totalEns'
+		do j = 0, timesteps
+			write(WRITE_UNIT_1,'(E24.8,E24.8, E24.8)') massIntegral(j), totalKE(j), totalEns(j)
+		enddo		
+	endif
+	close(WRITE_UNIT_1)
+	
+	call New(writer,WRITE_UNIT_2,summaryFile)
+	call StartSection(writer,'JOB SUMMARY :',' SINGLE GAUSSIAN VORTEX')
+	call Write(writer,'tfinal = ',tfinal)
+	call Write(writer,'dt = ', dt )
+	call Write(writer,'remeshInterval = ',remeshInterval)
+	call Write(writer,'resetAlpha = ', resetAlpha)
+	if (AMR > 0 ) then
+		call Write(writer,'AMR, initNest = ', initNest)
+		call Write(writer,'AMR, maxNest = ', maxval(sphere%panels%nest))
+		call Write(writer,'AMR, refinementLimit = ', refinementLimit)
+		call Write(writer,'circMaxTol = ', vortRefine%maxTol)
+		call Write(writer,'relVortVarTol = ', vortRefine%varTol)
+		call Write(writer,'tracer1 maxTol = ', tracerRefine%maxTol)
+		call Write(writer,'tracer1 varTol = ', tracerRefine%maxTol)
+		call Write(writer,'flowMap varTol = ', flowMapRefine%varTol)
+	else
+		call Write(writer,'uniformMesh, initNest = ', initNest)
+	endif
+	
+	call Delete(writer)
+endif
 ! TO DO : output final data
 
 
@@ -330,6 +386,9 @@ enddo
 write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
 call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
 
+deallocate(totalKE)
+deallocate(totalEns)
+deallocate(massIntegral)
 if ( refSphereReady ) call Delete(refSphere)
 call Delete(bveRK4)
 if ( procRank == 0 ) call Delete(vtkOut)
