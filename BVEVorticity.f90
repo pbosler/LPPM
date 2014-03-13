@@ -32,7 +32,7 @@ public New, Delete
 public InitSolidBodyRotation, SetSolidBodyRotationOnMesh, SOLID_BODY_NINT, SOLID_BODY_NREAL
 public NullVorticity
 public InitSingleGaussianVortex, SetSingleGaussianVortexOnMesh, SINGLE_VORTEX_NINT, SINGLE_VORTEX_NREAL
-public InitRH4Wave, SetRH4WaveOnMesh, RH4_NINT, RH4_NREAL
+public InitRH4Wave, SetRH4WaveOnMesh, RH4_NINT, RH4_NREAL, RH54Vorticity
 public GAUSS_CONST
 
 !

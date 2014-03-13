@@ -17,6 +17,8 @@ program RH4Wave
 use NumberKindsModule
 use OutputWriterModule
 use LoggerModule
+use ParticlesModule
+use PanelsModule
 use SphereMeshModule
 use RefineRemeshModule
 use TracerSetupModule
@@ -34,6 +36,8 @@ include 'mpif.h'
 !
 type(SphereMesh) :: sphere
 integer(kint) :: panelKind, initNest, AMR, nTracer, problemKind
+type(Particles), pointer :: sphereParticles => null()
+type(Panels), pointer :: spherePanels => null()
 !
 !	time stepping variables
 !
@@ -44,8 +48,9 @@ integer(kint) :: timesteps, timeJ
 !	vorticity variables
 !
 type(BVESetup) :: rhWave
-real(kreal) :: alpha, amp
-real(kreal), allocatable :: totalKE(:), totalEns(:)
+real(kreal) :: alpha, amp, beta
+real(kreal), allocatable :: totalKE(:), totalEns(:), vortErrorLinf(:), vortErrorL2(:)
+real(kreal), allocatable :: exactVortParticles(:), exactVortPanels(:)
 !
 !	tracer variables
 !
@@ -113,7 +118,7 @@ wallClock = MPI_WTIME()
 !
 call ReadNamelistFile(procRank)
 refSphereReady = .FALSE.  
-nTracer = 2
+nTracer = 3
 !
 !	define test case
 !
@@ -179,9 +184,27 @@ t = 0.0_kreal
 remeshCounter = 0
 allocate(totalKE(0:timesteps))
 allocate(totalEns(0:timesteps))
+allocate(vortErrorLinf(0:timesteps))
+allocate(vortErrorL2(0:timesteps))
 totalKE = 0.0_kreal
 totalEns = 0.0_kreal
+vortErrorLinf = 0.0_kreal
+vortErrorL2 = 0.0_kreal
 totalEns(0) = TotalEnstrophy(sphere)
+
+sphereParticles => sphere%particles
+spherePanels => sphere%panels
+allocate(exactVortParticles(sphereparticles%N))
+allocate(exactVortPanels(spherepanels%N))
+exactVortParticles = 0.0_kreal
+exactVortPanels = 0.0_kreal
+beta = 2.0_kreal*(OMEGA - alpha)*4.0_kreal/30.0_kreal - alpha*4.0_kreal
+do j=1, sphereParticles%N
+	exactVortParticles(j) = RH54Vorticity(sphereParticles%x(:,j), alpha, amp)
+enddo
+do j=1, spherePanels%N
+	if ( .NOT. spherePanels%hasChildren(j) ) exactVortPanels(j) = RH54Vorticity(spherePanels%x(:,j), alpha, amp)
+enddo
 
 call StartSection(exeLog,'initial setup complete:')
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'initial Rossby number : ',GetRossbyNumber(sphere) )
@@ -199,6 +222,8 @@ do timeJ = 0, timesteps - 1
 		!
 		!	delete objects associated with old mesh
 		!
+		nullify(sphereParticles)
+		nullify(spherePanels)
 		call Delete(bveRK4)
 		call Delete(vtkOut)
 		!
@@ -208,6 +233,7 @@ do timeJ = 0, timesteps - 1
 			call LagrangianRemesh(sphere, SetRH4WaveOnMesh, rhWave, vortRefine, &
 										  nullTracer, nullScalar, nullRefine, &
 										  flowMapRefine)
+										  
 			call SetFlowMapLatitudeTracerOnMesh(sphere,1)
 			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
 		elseif ( mod(remeshCounter,resetAlpha) == 0 ) then
@@ -235,11 +261,12 @@ do timeJ = 0, timesteps - 1
   		    flowMapRefine%type = FLOWMAP_REFINE
 
 			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
-
+			
 		    call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
 
 		else
 		    call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
+
 		    call SetFlowMapLatitudeTracerOnMesh(sphere,2)
 		endif
 		!
@@ -247,7 +274,9 @@ do timeJ = 0, timesteps - 1
 		!
 		call New(bveRK4,sphere,numProcs)
 		call New(vtkOut,sphere,vtkFile,'gaussVort')
-
+		
+		sphereParticles => sphere%particles
+		spherePanels => sphere%panels
 		write(logString,'(A,I4)') 'remesh ', remeshCounter
 		if ( procRank == 0 ) call LogStats(sphere,exelog,trim(logString))
 	endif
@@ -258,14 +287,29 @@ do timeJ = 0, timesteps - 1
 	!
 	!	error calculations
 	!
-			! TO DO
-			
-			
 	if ( timeJ == 0 ) totalKE(0) = sphere%totalKE
 	totalKE(timeJ+1) = sphere%totalKE
 	totalEns(timeJ+1) = TotalEnstrophy(sphere)
 
 	t = real(timeJ+1,kreal)*dt
+	
+	do j=1,sphereParticles%N
+		exactVortParticles(j) = -30.0_kreal*amp*cos(beta*t + 4.0_kreal*Longitude(sphereParticles%x(:,j)))*&
+				Legendre54(sphereParticles%x(3,j)/EARTH_RADIUS) - 2.0_kreal*OMEGA*sphereParticles%x(3,j)
+		sphereParticles%tracer(j,3) = abs(exactVortParticles(j) - sphereParticles%relVort(j))
+	enddo
+	do j=1,spherePanels%N
+		if ( .NOT. spherePanels%hasChildren(j) ) then
+			exactVortPanels(j) = -30.0_kreal*amp*cos(beta*t + 4.0_kreal*Longitude(spherePanels%x(:,j)))*&
+				Legendre54(spherePanels%x(3,j)/EARTH_RADIUS) - 2.0_kreal*OMEGA*spherePanels%x(3,j)
+			spherePanels%tracer(j,3) = abs(exactVortPanels(j) - spherePanels%relVort(j))	
+		endif
+	enddo	
+	
+	vortErrorLinf(timeJ+1) = maxval(spherePanels%tracer(1:spherePanels%N,3))/maxVal(abs(spherePanels%relVort(1:spherePanels%N)))
+	vortErrorL2(timeJ+1) = sqrt(sum(spherePanels%tracer(1:spherePanels%N,3)*spherePanels%tracer(1:spherePanels%N,3)*&
+		spherePanels%area(1:spherePanels%N))) / &
+		sqrt(sum(spherePanels%relVort(1:spherePanels%N)*spherePanels%relVort(1:spherePanels%N)*spherePanels%area(1:spherePanels%N)))
 	!
 	!	output timestep data
 	!
