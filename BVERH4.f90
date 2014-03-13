@@ -63,7 +63,6 @@ type(RefinementSetup) :: vortRefine
 real(kreal) :: circMaxTol, vortVarTol
 type(RefinementSetup) :: flowMapRefine
 type(RefinementSetup) :: nullRefine
-type(RefinementSetup) :: tracerRefine
 real(kreal) :: lagVarTol
 integer(kint) :: refinementLimit
 !
@@ -77,7 +76,7 @@ logical(klog) :: refSphereReady
 !
 type(VTKSource) :: vtkOut
 character(len = 128) :: vtkRoot, vtkFile, outputDir, jobPrefix
-character(len = 128) :: conservedDataFile, summaryFile
+character(len = 128) :: dataFile, summaryFile
 character(len = 56 ) :: amrString
 integer(kint) :: frameCounter, frameOut, writeStat1, writeStat2
 type(OutputWriter) :: writer
@@ -328,7 +327,41 @@ enddo
 !	Output final data
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	! TO DO 
+if ( procRank == 0 ) then
+	write(dataFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_finalData','.txt.'
+	write(summaryFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_summary','.txt.'
+	
+	open(unit=WRITE_UNIT_1,file = dataFile, status='REPLACE', action='WRITE',iostat=writeStat1)
+	if ( writeStat1 /= 0 ) then
+		call LogMessage(exeLog,ERROR_LOGGING_LEVEL,trim(logKey),' ERROR writing final data.')
+	else
+		write(WRITE_UNIT_1,'(4A24)') 'totalKE', 'totalEns', 'vortL2', 'vortLinf'
+		do j=0, timesteps
+			write(WRITE_UNIT_1,'(4E24.8)') totalKE(j), totalEns(j), vortErrorL2(j), vortErrorLinf(j)
+		enddo
+	endif
+	close(WRITE_UNIT_1)
+	
+	call New(writer,WRITE_UNIT_2,summaryFile)
+	call StartSection(writer,'JOB SUMMARY : ',' ROSSBY-HAURWITZ 54 WAVE ')
+	call Write(writer,'RH wave alpha = ',alpha)
+	call Write(writer,'RH wave amplitude = ', amp)
+	call Write(writer,'tfinal = ',tfinal)
+	call Write(writer,'dt = ', dt)
+	call Write(writer,'remeshInterval = ',remeshInterval)
+	call Write(writer,'reset LagParam = ',resetAlpha)
+		if (AMR > 0 ) then
+		call Write(writer,'AMR initNest = ', initNest)
+		call Write(writer,'AMR maxNest = ', maxval(sphere%panels%nest))
+		call Write(writer,'AMR refinementLimit = ', refinementLimit)
+		call Write(writer,'AMR circMaxTol = ', vortRefine%maxTol)
+		call Write(writer,'AMR relVortVarTol = ', vortRefine%varTol)
+		call Write(writer,'AMR flowMap varTol = ', flowMapRefine%varTol)
+	else
+		call Write(writer,'uniformMesh, initNest = ', initNest)
+	endif
+	call Delete(writer)
+endif 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	Clear memory and Finalize
