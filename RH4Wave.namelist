@@ -1,0 +1,27 @@
+& sphereDefine
+	panelKind = 4
+	initNest = 5
+	AMR = 0	
+	refinementLimit = 4
+	circMaxTol = 0.08
+	vortVarTol = 0.4
+	lagVarTol = 1.0
+/
+
+& vorticityDefine
+	alpha = 0.0
+	amp = 100.0  ! units of planetary rotation, OMEGA
+/
+
+& timeStepping
+	tfinal = 1.0		! days
+	dt = 0.01		! days
+	remeshInterval = 20	! timesteps
+	resetAlpha = 2		! remeshings
+/
+
+& fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'rhWave_1dayTest_'
+	frameOut = 1
+/

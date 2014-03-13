@@ -284,7 +284,7 @@ end function
 function RH54Vorticity(xyz, alpha, amp)
 	real(kreal) :: RH54Vorticity
 	real(kreal), intent(in) :: xyz(3), alpha, amp
-	RH54Vorticity = 2.0_kreal*alpha*xyz(3)/EARTH_RADIUS + 30.0_kreal*amp*cos(4.0_kreal*Longitude(xyz))*Legendre54(xyz(3)/EARTH_RADIUS)
+	RH54Vorticity = 2.0_kreal*alpha*xyz(3)/EARTH_RADIUS + 30.0_kreal*amp*cos(4.0_kreal*Longitude(xyz))*Legendre54(xyz(3)/EARTH_RADIUS)/EARTH_RADIUS
 end function
 
 function Legendre54(z)

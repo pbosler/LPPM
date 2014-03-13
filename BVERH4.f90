@@ -100,7 +100,7 @@ character(len=128) :: logString
 !
 integer(kint) :: i, j, k
 integer(kint) :: mpiErrCode
-integer(kint), parameter  :: BROADCAST_INT_SIZE = 6, BROADCAST_REAL_SIZE = 11
+integer(kint), parameter  :: BROADCAST_INT_SIZE = 6, BROADCAST_REAL_SIZE = 7
 integer(kint) :: broadcastIntegers(BROADCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BROADCAST_REAL_SIZE)
 real(kreal) :: wallClock
@@ -114,6 +114,7 @@ call MPI_COMM_RANK(MPI_COMM_WORLD,procRank,mpiErrCode)
 
 call InitLogger(exeLog,procRank)
 
+
 wallClock = MPI_WTIME()
 !
 !	read user input from namelist file, set starting state
@@ -121,12 +122,20 @@ wallClock = MPI_WTIME()
 call ReadNamelistFile(procRank)
 refSphereReady = .FALSE.  
 nTracer = 3
+problemKind = BVE_SOLVER
+
+call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,trim(logKey),' initial broadcasts done.')
+
 !
 !	define test case
 !
 call New(rhWave,RH4_NINT, RH4_NREAL)
 call InitRH4Wave(rhWave,alpha,amp)
+call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,trim(logKey),' vorticity object done.')
+
 call New(nullScalar, 0, 0)
+call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,trim(logKey),' null tracer object done.')
+
 !
 !	initialize sphere
 !
@@ -134,6 +143,7 @@ call New(sphere,panelKind,initNest,AMR,nTracer,problemKind)
 call SetFlowMapLatitudeTracerOnMesh(sphere,1)
 call SetFlowMapLatitudeTracerOnMesh(sphere,2)
 call SetRH4WaveOnMesh(sphere,rhWave)
+call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,trim(logKey),' base sphere (t = 0) done.')
 if ( AMR > 0 ) then
 	call New(vortRefine,refinementLimit,circMaxTol,vortVarTol,RELVORT_REFINE)
 	call SetRelativeVorticityTols(sphere,vortRefine)
@@ -297,13 +307,13 @@ do timeJ = 0, timesteps - 1
 	
 	do j=1,sphereParticles%N
 		exactVortParticles(j) = -30.0_kreal*amp*cos(beta*t + 4.0_kreal*Longitude(sphereParticles%x(:,j)))*&
-				Legendre54(sphereParticles%x(3,j)/EARTH_RADIUS) - 2.0_kreal*OMEGA*sphereParticles%x(3,j)
+				Legendre54(sphereParticles%x(3,j)/EARTH_RADIUS)/EARTH_RADIUS - 2.0_kreal*alpha*sphereParticles%x(3,j)/EARTH_RADIUS
 		sphereParticles%tracer(j,3) = abs(exactVortParticles(j) - sphereParticles%relVort(j))
 	enddo
 	do j=1,spherePanels%N
 		if ( .NOT. spherePanels%hasChildren(j) ) then
 			exactVortPanels(j) = -30.0_kreal*amp*cos(beta*t + 4.0_kreal*Longitude(spherePanels%x(:,j)))*&
-				Legendre54(spherePanels%x(3,j)/EARTH_RADIUS) - 2.0_kreal*OMEGA*spherePanels%x(3,j)
+				Legendre54(spherePanels%x(3,j)/EARTH_RADIUS)/EARTH_RADIUS - 2.0_kreal*alpha*spherePanels%x(3,j)/EARTH_RADIUS
 			spherePanels%tracer(j,3) = abs(exactVortPanels(j) - spherePanels%relVort(j))	
 		endif
 	enddo	
