@@ -15,6 +15,7 @@ program RH4Wave
 !
 !----------------
 use NumberKindsModule
+use SphereGeomModule
 use OutputWriterModule
 use LoggerModule
 use ParticlesModule
@@ -62,7 +63,9 @@ type(RefinementSetup) :: vortRefine
 real(kreal) :: circMaxTol, vortVarTol
 type(RefinementSetup) :: flowMapRefine
 type(RefinementSetup) :: nullRefine
+type(RefinementSetup) :: tracerRefine
 real(kreal) :: lagVarTol
+integer(kint) :: refinementLimit
 !
 !	remeshing variables
 !
@@ -122,7 +125,7 @@ nTracer = 3
 !
 !	define test case
 !
-call New(rhWave,RH4WAVE_NINT, RH4WAVE_NREAL)
+call New(rhWave,RH4_NINT, RH4_NREAL)
 call InitRH4Wave(rhWave,alpha,amp)
 call New(nullScalar, 0, 0)
 !
@@ -265,7 +268,7 @@ do timeJ = 0, timesteps - 1
 		    call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
 
 		else
-		    call LagrangianRemesh(sphere,refSphere,vortRefine,tracerRefine,flowMapRefine)
+		    call LagrangianRemesh(sphere,refSphere,vortRefine,nullRefine,flowMapRefine)
 
 		    call SetFlowMapLatitudeTracerOnMesh(sphere,2)
 		endif
