@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-MACHINE='FERRARI'
-#MACHINE='TANK'
+#MACHINE='FERRARI'
+MACHINE='TANK'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -67,11 +67,11 @@ MESH_OBJS = $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
 mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o 
 INTERP_OBJS = $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
-OUTPUT_OBJS = VTKOutput.o $(BASE_OBJS) $(MESH_OBJS)
+OUTPUT_OBJS = VTKOutput.o LatLonOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 TEST_CASE_OBJS = Tracers.o BVEVorticity.o
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o RefineRemesh2.o
-
+PLOTTING = ModelLookupTables.o ModelLookupTables.h
 
 #############################################################
 ## LPPM MODEL RUNS
@@ -126,17 +126,21 @@ BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
 Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
 ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
+LatLonOutput.o: LatLonOutput.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES
 #############################################################
 plotNewRemeshingFrames.exe: vtkPlotNewRemeshingFrames.o
 	g++ -O2 -Wno-deprecated -o $@ $< -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
-
+plotRH4WaveFrames.exe: vtkPlotBigRHWave.o $(PLOTTING)
+	g++ -O2 -Wno-deprecated -o $@ $^ -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
 #############################################################
 ## VTK OBJECTS
 #############################################################
-VTKLookupTables.o: VTKLookupTables.cpp 
+ModelLookupTables.o: ModelLookupTables.cpp ModelLookupTables.h 
 	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
 vtkPlotNewRemeshingFrames.o: vtkPlotNewRemeshingFrames.cpp
 	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
+vtkPlotBigRHWave.o: vtkPlotBigRHWave.cpp $(PLOTTING)
+	g++ -c -Wno-deprecated -O2 $^ -I$(VTK_INCLUDE)	

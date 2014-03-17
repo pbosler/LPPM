@@ -9,19 +9,21 @@
 /
 
 & vorticityDefine
-	alpha = 0.0
-	amp = 100.0  ! units of planetary rotation, OMEGA
+	alpha = 0.0	! stationary wave alpha = 0.448798950512828, (test case 6 alpha = amp/EARTH_RADIUS)
+	amp = 50.0  ! units of planetary rotation, OMEGA (test case 6 amp = 50)
 /
 
 & timeStepping
-	tfinal = 1.0		! days
-	dt = 0.01		! days
-	remeshInterval = 20	! timesteps
-	resetAlpha = 2		! remeshings
+	tfinal = 14.0		! days (test case 6 tfinal = 14)
+	dt = 0.01			! days 
+	remeshInterval = 10	! timesteps
+	resetAlpha = 4		! remeshings
 /
 
 & fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
 	jobPrefix = 'rhWave_1dayTest_'
-	frameOut = 1
+	frameOut = 4
+	nLon = 360
+	outputContours = 0
 /

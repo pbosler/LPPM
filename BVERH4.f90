@@ -27,6 +27,7 @@ use VTKOutputModule
 use BVESetupModule
 use BVEDirectSumModule
 use ReferenceSphereModule
+use LatLonOutputModule
 
 implicit none
 
@@ -75,11 +76,13 @@ logical(klog) :: refSphereReady
 !	Output variables
 !
 type(VTKSource) :: vtkOut
-character(len = 128) :: vtkRoot, vtkFile, outputDir, jobPrefix
+type(LLSource) :: LLOut
+character(len = 128) :: vtkRoot, vtkFile, outputDir, jobPrefix, LLRoot, LLFile
 character(len = 128) :: dataFile, summaryFile
 character(len = 56 ) :: amrString
 integer(kint) :: frameCounter, frameOut, writeStat1, writeStat2
 type(OutputWriter) :: writer
+integer(kint) :: nLon, outputContours
 !
 !	User input
 !
@@ -88,7 +91,7 @@ integer(kint) :: readStat
 namelist /sphereDefine/ panelKind, initNest, AMR, refineMentLimit, circMaxTol, vortVarTol, lagVarTol
 namelist /vorticityDefine/ 	alpha, amp
 namelist /timeStepping/ tfinal, dt,  remeshInterval, resetAlpha
-namelist /fileIO/ outputDir, jobPrefix, frameOut
+namelist /fileIO/ outputDir, jobPrefix, frameOut, nLon, outputContours
 !
 !	logging
 !
@@ -120,7 +123,7 @@ wallClock = MPI_WTIME()
 !	read user input from namelist file, set starting state
 !
 call ReadNamelistFile(procRank)
-refSphereReady = .FALSE.  
+refSphereReady = .FALSE.
 nTracer = 3
 problemKind = BVE_SOLVER
 
@@ -150,9 +153,9 @@ if ( AMR > 0 ) then
 
 	call New(flowMapREfine,refinementLimit,100000.0_kreal,lagVarTol,FLOWMAP_REFINE)
 	call SetRelativeFlowMapTol(sphere,flowMapRefine)
-	
+
 	call New(nullRefine)
-	
+
 	!
 	!	initial refinement
 	!
@@ -162,7 +165,7 @@ if ( AMR > 0 ) then
 
 	if ( panelKind == QUAD_PANEL) then
 		write(amrString,'(A,I1,A,I0.2,A)') 'quadAMR_',initNest,'to',initNest+refinementLimit,'_'
-	endif					
+	endif
 else
 	! uniform mesh
 	! nullify AMR variables
@@ -183,8 +186,18 @@ if ( procRank == 0 ) then
 	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),frameCounter,'.vtk'
 
+
 	call New(vtkOut,sphere,vtkFile,'RH4Wave')
 	call VTKOutput(vtkOut,sphere)
+
+	if ( outputContours > 0 ) then
+		write(LLRoot,'(A,A,A,A,A)') trim(outputDir), '/LLOut/',trim(jobPrefix),trim(amrString),'_'
+		write(LLFile,'(A,I0.4,A)') trim(LLRoot),frameCounter,'.m'
+
+		call New(LLOut,sphere,LLFile,nLon)
+		call LLOutputMatlab(LLOut,sphere)
+	endif
+
 	frameCounter = frameCounter + 1
 endif
 !
@@ -241,11 +254,11 @@ do timeJ = 0, timesteps - 1
 		!
 		! build new mesh
 		!
-		if (remeshCounter <= 1 ) then
+		if (remeshCounter < resetAlpha ) then
 			call LagrangianRemesh(sphere, SetRH4WaveOnMesh, rhWave, vortRefine, &
 										  nullTracer, nullScalar, nullRefine, &
 										  flowMapRefine)
-										  
+
 			call SetFlowMapLatitudeTracerOnMesh(sphere,1)
 			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
 		elseif ( mod(remeshCounter,resetAlpha) == 0 ) then
@@ -273,7 +286,7 @@ do timeJ = 0, timesteps - 1
   		    flowMapRefine%type = FLOWMAP_REFINE
 
 			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
-			
+
 		    call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
 
 		else
@@ -286,7 +299,7 @@ do timeJ = 0, timesteps - 1
 		!
 		call New(bveRK4,sphere,numProcs)
 		call New(vtkOut,sphere,vtkFile,'gaussVort')
-		
+
 		sphereParticles => sphere%particles
 		spherePanels => sphere%panels
 		write(logString,'(A,I4)') 'remesh ', remeshCounter
@@ -304,7 +317,7 @@ do timeJ = 0, timesteps - 1
 	totalEns(timeJ+1) = TotalEnstrophy(sphere)
 
 	t = real(timeJ+1,kreal)*dt
-	
+
 	do j=1,sphereParticles%N
 		exactVortParticles(j) = -30.0_kreal*amp*cos(beta*t + 4.0_kreal*Longitude(sphereParticles%x(:,j)))*&
 				Legendre54(sphereParticles%x(3,j)/EARTH_RADIUS)/EARTH_RADIUS - 2.0_kreal*alpha*sphereParticles%x(3,j)/EARTH_RADIUS
@@ -314,10 +327,10 @@ do timeJ = 0, timesteps - 1
 		if ( .NOT. spherePanels%hasChildren(j) ) then
 			exactVortPanels(j) = -30.0_kreal*amp*cos(beta*t + 4.0_kreal*Longitude(spherePanels%x(:,j)))*&
 				Legendre54(spherePanels%x(3,j)/EARTH_RADIUS)/EARTH_RADIUS - 2.0_kreal*alpha*spherePanels%x(3,j)/EARTH_RADIUS
-			spherePanels%tracer(j,3) = abs(exactVortPanels(j) - spherePanels%relVort(j))	
+			spherePanels%tracer(j,3) = abs(exactVortPanels(j) - spherePanels%relVort(j))
 		endif
-	enddo	
-	
+	enddo
+
 	vortErrorLinf(timeJ+1) = maxval(spherePanels%tracer(1:spherePanels%N,3))/maxVal(abs(spherePanels%relVort(1:spherePanels%N)))
 	vortErrorL2(timeJ+1) = sqrt(sum(spherePanels%tracer(1:spherePanels%N,3)*spherePanels%tracer(1:spherePanels%N,3)*&
 		spherePanels%area(1:spherePanels%N))) / &
@@ -327,9 +340,16 @@ do timeJ = 0, timesteps - 1
 	!
 	if ( procRank == 0 .AND. mod(timeJ+1,frameOUt) == 0  ) then
 		call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONE_DAY)
+
 		write(vtkFile,'(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
 		call UpdateFileName(vtkOut,vtkFile)
 		call VTKOutput(vtkOut,sphere)
+
+		if ( outputContours > 0 ) then
+			write(LLFile,'(A,I0.4,A)') trim(LLRoot), frameCounter, '.m'
+			call UpdateFileName(LLOut,LLFile)
+			call LLOutputMatlab(LLOut,sphere)
+		endif
 		frameCounter = frameCounter + 1
 	endif
 enddo
@@ -338,26 +358,28 @@ enddo
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if ( procRank == 0 ) then
-	write(dataFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_finalData','.txt.'
-	write(summaryFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_summary','.txt.'
-	
+	write(dataFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_finalData','.txt'
+	write(summaryFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_summary','.txt'
+
 	open(unit=WRITE_UNIT_1,file = dataFile, status='REPLACE', action='WRITE',iostat=writeStat1)
 	if ( writeStat1 /= 0 ) then
 		call LogMessage(exeLog,ERROR_LOGGING_LEVEL,trim(logKey),' ERROR writing final data.')
 	else
 		write(WRITE_UNIT_1,'(4A24)') 'totalKE', 'totalEns', 'vortL2', 'vortLinf'
+		write(WRITE_UNIT_1,'()') 'finalData = ['
 		do j=0, timesteps
-			write(WRITE_UNIT_1,'(4E24.8)') totalKE(j), totalEns(j), vortErrorL2(j), vortErrorLinf(j)
+			write(WRITE_UNIT_1,'(4E24.8, A)') totalKE(j), totalEns(j), vortErrorL2(j), vortErrorLinf(j) ' ; ...'
 		enddo
+		write(WRITE_UNIT_1,'()') '];'
 	endif
 	close(WRITE_UNIT_1)
-	
+
 	call New(writer,WRITE_UNIT_2,summaryFile)
 	call StartSection(writer,'JOB SUMMARY : ',' ROSSBY-HAURWITZ 54 WAVE ')
 	call Write(writer,'RH wave alpha = ',alpha)
 	call Write(writer,'RH wave amplitude = ', amp)
-	call Write(writer,'tfinal = ',tfinal)
-	call Write(writer,'dt = ', dt)
+	call Write(writer,'tfinal (days) = ',tfinal/ONE_DAY)
+	call Write(writer,'dt (seconds) = ', dt)
 	call Write(writer,'remeshInterval = ',remeshInterval)
 	call Write(writer,'reset LagParam = ',resetAlpha)
 		if (AMR > 0 ) then
@@ -371,16 +393,21 @@ if ( procRank == 0 ) then
 		call Write(writer,'uniformMesh, initNest = ', initNest)
 	endif
 	call Delete(writer)
-endif 
+endif
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	Clear memory and Finalize
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-if ( procRank == 0 ) call Delete(vtkOut)
+if ( procRank == 0 ) then
+	call Delete(vtkOut)
+	if (outputContours > 0 ) call Delete(LLOut)
+endif
 call Delete(bveRK4)
-allocate(totalKE(0:timesteps))
-allocate(totalEns(0:timesteps))
+deallocate(totalKE)
+deallocate(totalEns)
+deallocate(vortErrorLinf)
+deallocate(vortErrorL2)
 call Delete(sphere)
 call Delete(vortRefine)
 call Delete(flowMapRefine)
@@ -411,14 +438,14 @@ subroutine ReadNamelistfile(rank)
 			broadcastIntegers(4) = refinementLimit
 			broadcastIntegers(5) = remeshInterval
             broadcastIntegers(6) = resetAlpha
-			
+
 			broadcastReals(1) = alpha
 			broadcastReals(2) = amp
 			broadcastReals(3) = tfinal
 			broadcastReals(4) = circMaxTol
 			broadcastReals(5) = vortVarTol
 			broadcastReals(6) = dt
-			broadcastReals(7) = lagVarTol	
+			broadcastReals(7) = lagVarTol
 	endif
 	call MPI_BCAST(broadcastIntegers,BROADCAST_INT_SIZE,MPI_INTEGER,0,MPI_COMM_WORLD,mpiErrCode)
 	panelKind = broadcastIntegers(1)
@@ -427,7 +454,7 @@ subroutine ReadNamelistfile(rank)
 	refinementLimit = broadcastIntegers(4)
 	remeshInterval = broadcastIntegers(5)
 	resetAlpha = broadcastIntegers(6)
-	
+
 	call MPI_BCAST(broadcastReals,BROADCAST_REAL_SIZE,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,mpiErrCode)
 	alpha = broadcastReals(1)
 	amp = broadcastReals(2)
@@ -450,4 +477,4 @@ subroutine InitLogger(alog,rank)
 end subroutine
 
 
-end program 
+end program

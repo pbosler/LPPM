@@ -35,10 +35,10 @@ type ReferenceSphere
 	type(STRIPACKData) :: delTri
 	type(SSRFPACKData), pointer :: absVortSource => null(), &
 								   tracerSource => null()
-	real(kreal), pointer :: tracer(:,:) => null(), &
-							tracerGrad(:,:,:) => null(), &
-							sigmaTracer(:,:) => null()
-	real(kreal) :: sigmaTol = 0.01_kreal
+!	real(kreal), pointer :: tracer(:,:) => null(), &
+							!tracerGrad(:,:,:) => null(), &
+							!sigmaTracer(:,:) => null()
+	!real(kreal) :: sigmaTol = 0.01_kreal
 	integer(kint) :: startSearch = 1
 end type
 
@@ -119,10 +119,13 @@ subroutine DeletePrivate(self)
 		call Delete(self%absVortSource)
 		deallocate(self%absVortSource)
 	endif
-	if ( associated(self%tracer) ) then
-		deallocate(self%tracer)
-		deallocate(self%tracerGrad)
-		deallocate(self%sigmaTracer)
+	!	deallocate(self%tracer)
+
+		!deallocate(self%tracerGrad)
+		!deallocate(self%sigmaTracer)
+	if ( associated(self%tracerSource) ) then
+		call Delete(self%tracerSource)
+		deallocate(self%tracerSource)
 	endif
 
 end subroutine

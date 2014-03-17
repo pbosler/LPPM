@@ -29,6 +29,7 @@ public SetSourceLagrangianParameter
 public SetSourceAbsVort, SetSourceRelVort
 public SetSourceTracer
 public SetSourceVelocity
+public SetSourceEnergy, SetSourceKineticEnergy
 public SetSigmaTol
 public SIGMA_FLAG, GRAD_FLAG
 public InterpolateVector, InterpolateScalar, InterpolateTracer
@@ -339,7 +340,7 @@ subroutine SetSourceAbsVort(self,delTri)
 end subroutine
 
 
-subroutine SetSourcerelVort(self,delTri)
+subroutine SetSourceRelVort(self,delTri)
 ! Setup SSSRFPACK to interpolate scalar relative vorticity data
 	type(SSRFPACKData), intent(inout) :: self
 	type(STRIPACKData), intent(in) :: delTri
@@ -401,6 +402,38 @@ subroutine SetSourceEnergy(self,delTri)
 
 end subroutine
 
+subroutine SetSourceKineticEnergy(self,delTri)
+	type(SSRFPACKData), intent(inout) :: self
+	type(STRIPACKData), intent(in) :: delTri
+	integer(kint) :: j, nActive, nParticles, errCode
+
+	if ( (.NOT. associated(delTri%activePanels%ke) ).OR. (.NOT. associated(delTri%particles%ke) ) ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey),' SetSourceKineticEnergy ERROR : KE not defined.')
+		return
+	endif
+
+	nActive = delTri%activePanels%N_Active
+	nParticles = delTri%particles%N
+
+	do j=1,nActive
+		self%data1(j) = delTri%activePanels%ke(j)
+	enddo
+
+	do j=1,nParticles
+		self%data1(nActive+j) = delTri%particles%ke(j)
+	enddo
+
+	do j=1,delTri%n
+		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
+				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
+	enddo
+
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
+	call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig relVort = ',self%dSig1)
+
+end subroutine
 
 !subroutine SetSourceTracer(self,delTri,tracerNumber)
 !! Setup SSRFPACK to interpolate scalar tracer data
