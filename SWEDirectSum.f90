@@ -97,12 +97,10 @@ type SWERK4Data
 							passivePanelsStage4(:,:) => null(), &
 							newPassivePanelsX(:,:) => null(), &
 							&
-							activeVelocityInput(:,:) => null(), &
 							activeVelocityStage1(:,:) => null(), &
 							activeVelocityStage2(:,:) => null(), &
 							activeVelocityStage3(:,:) => null(), &
 							activeVelocityStage4(:,:) => null(), &
-							newActiveVelocity(:,:) => null(), &
 							&
 							activeRelVortInput(:) => null(), &
 							activeRelVortStage1(:) => null(), &
@@ -124,6 +122,13 @@ type SWERK4Data
 							activeHStage3(:) => null(), &
 							activeHStage4(:) => null(), &
 							newActiveH(:) => null(), &
+							&
+							particlesHInput(:) => null(), &
+							particlesHStage1(:) => null(), &
+							particlesHStage2(:) => null(), &
+							particlesHStage3(:) => null(), &
+							particlesHStage4(:) => null(), &
+							newParticlesH(:) => null(), &
 							&
 							activeAreaInput(:) => null(), &
 							activeAreaStage1(:) => null(), &
@@ -420,7 +425,63 @@ end subroutine
 ! Public member functions
 !----------------
 !
-
+subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
+	type(SWERK4Data), intent(inout) :: self
+	type(SphereMesh), intent(inout) :: aMesh
+	real(kreal), intent(in) :: dt
+	integer(kint), intent(in) :: procRank, nProcs
+	!
+	type(Particles), pointer :: aParticles
+	integer(kint) :: j, errCode
+	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering SWERK4Timestep.')
+	
+	if ( self%rk4isReady .AND. self%mpiIsReady) then
+		call ZeroRK4(self)
+	else
+		call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'SWERK4 ERROR : data not ready.')
+		return
+	endif
+	
+	aParticles => aMesh%particles
+	
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! 		RK Stage 1       !
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! Set input arrays for stage 1
+	self%particlesInput = aParticles%x(:,1:aParticles%N)
+	self%activePanelsInput = self%activePanels%x
+	self%passivePanelsInput = self%passivePanels%x
+	self%activeRelVortInput = self%activePanels%relVort
+	self%activeDivInput = self%activePanels%div
+	self%activeAreaInput = self%activePanels%area
+	self%activeHInput = self%activePanels%h
+	self%particlesHInput = aParticles%h(1:aParticles%N)
+	!
+	! compute particle velocities
+	!
+	call SWEVelocityActive(self%activeVelocityStage1, self%activePanelsInput, &
+				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
+				self%activePanelsIndexStart(procRank), self%activePanelsIndexEnd(procRank))
+	call SWEVelocityPassive(self%particlesVelocityStage1, self%particlesInput, &
+				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
+				self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
+	call SWEVelocitySmooth(self%passivePanelsVelocityStage1, self%passivePanelsInput, &
+				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
+				self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank))	
+	!
+	! compute divergence equation forcing terms
+	!
+	call ComputeDoubleDotU(self%doubleDotUParticles, self%delTri, self%velocitySource, &
+		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
+	call ComputeDoubleDotU(self%doubleDotUActive, self%delTri, self%velocitySource, &
+		self%activePanelsIndexStart(procRank), self%activePanelsIndexEnd(procRank))	
+	call ComputeLaplacianH(self%lapHparticles, self%delTri, self%hSource1, self%hSource2, &	
+		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
+	call ComputeLaplacianH(self%lapHActive, self%delTri, self%hSource1, self%hSource2, &
+		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
+	
+end subroutine
 
 subroutine SetVelocitySmoothingParameter(newSmooth)
 	real(kreal), intent(in) :: newSmooth
