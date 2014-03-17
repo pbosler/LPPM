@@ -69,8 +69,9 @@ type SWERK4Data
 	integer(kint), pointer :: activeMap(:) => null(), &
 							  passiveMap(:) => null()
 	type(STRIPACKData), pointer :: delTri => null()
-	type(SSRFPACKData), pointer :: velocitySource => null(), &
-								   thicknessSource => null()
+	type(SSRFPACKData), pointer :: velocitySource1 => null(), &
+								   thicknessSource1 => null(), &
+								   thicknessSource2 => null()
 
 	!
 	! Runge-Kutta variables
@@ -251,11 +252,13 @@ subroutine NewPrivate(self, aMesh, nProcs)
 	call New(self%delTri,aMesh)
 	call DelaunayTriangulation(self%delTri)
 
-	allocate(self%velocitySource)
-	call New(self%velocitySource,self%delTri,.TRUE.)
+	allocate(self%velocitySource1)
+	call New(self%velocitySource1,self%delTri,.TRUE.)
 
-	allocate(self%thicknessSource)
-	call New(self%thicknessSource,self%delTri,.FALSE.)
+	allocate(self%thicknessSource1)
+	call New(self%thicknessSource1,self%delTri,.FALSE.)
+	allocate(self%thicknessSource2)
+	call New(self%thicknessSource2,self%delTri,.FALSE.)
 
 	!
 	! allocate RK4 variables
@@ -322,6 +325,95 @@ subroutine NewPrivate(self, aMesh, nProcs)
 	call LoadBalance(self,nParticles,nActive,nPassive,nProcs)
 
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'RK4 data ready.')
+end subroutine
+
+subroutine DeletePrivate(self)
+	type(SWERK4Data), intent(inout) :: self
+	
+	self%rk4IsReady = .FALSE.
+	self%mpiIsReady = .FALSE.
+	
+	call Delete(self%activePanels)
+	call Delete(self%passivePanels)
+	deallocate(self%activeMap)
+	deallocate(self%passiveMap)
+	deallocate(self%activePanels)
+	deallocate(self%passivePanels)
+	
+	call Delete(self%delTri)
+	call Delete(self%velocitySource1)
+	call Delete(self%thicknessSource1)
+	call Delete(self%thicknessSource2)
+	deallocate(self%delTri)
+	deallocate(self%velocitySource1)
+	deallocate(self%thicknessSource1)
+	deallocate(self%thicknessSource2)
+	
+	deallocate(self%particlesIndexStart)
+	deallocate(self%particlesIndexEnd)
+	deallocate(self%particlesMessageSize)
+	deallocate(self%activePanelsIndexStart)
+	deallocate(self%activePanelsIndexEnd)
+	deallocate(self%activePanelsMessageSize)
+	deallocate(self%passivePanelsIndexStart)
+	deallocate(self%passivePanelsIndexEnd)
+	deallocate(self%passivePanelsMessageSize)
+	
+	deallocate(self%particlesInput)
+	deallocate(self%particlesStage1)
+	deallocate(self%particlesStage2)
+	deallocate(self%particlesStage3)
+	deallocate(self%particlesStage4)
+	deallocate(self%newParticlesX)
+
+	deallocate(self%activePanelsInput)
+	deallocate(self%activePanelsStage1)
+	deallocate(self%activePanelsStage2)
+	deallocate(self%activePanelsStage3)
+	deallocate(self%activePanelsStage4)
+	deallocate(self%newActivePanelsX)
+
+	deallocate(self%passivePanelsInput)
+	deallocate(self%passivePanelsStage1)
+	deallocate(self%passivePanelsStage2)
+	deallocate(self%passivePanelsStage3)
+	deallocate(self%passivePanelsStage4)
+	deallocate(self%newPassivePanelsX)
+
+	deallocate(self%activeVelocityInput)
+	deallocate(self%activeVelocityStage1)
+	deallocate(self%activeVelocityStage2)
+	deallocate(self%activeVelocityStage3)
+	deallocate(self%activeVelocityStage4)
+	deallocate(self%newActiveVelocity)
+
+	deallocate(self%activeRelVortInput)
+	deallocate(self%activeRelVortStage1)
+	deallocate(self%activeRelVortStage2)
+	deallocate(self%activeRelVortStage3)
+	deallocate(self%activeRelVortStage4)
+	deallocate(self%newActiveRelVort)
+
+	deallocate(self%activeDivInput)
+	deallocate(self%activeDivStage1)
+	deallocate(self%activeDivStage2)
+	deallocate(self%activeDivStage3)
+	deallocate(self%activeDivStage4)
+	deallocate(self%newActiveDiv)
+
+	deallocate(self%activeHInput)
+	deallocate(self%activeHStage1)
+	deallocate(self%activeHStage2)
+	deallocate(self%activeHStage3)
+	deallocate(self%activeHStage4)
+	deallocate(self%newActiveH)
+
+	deallocate(self%activeAreaInput)
+	deallocate(self%activeAreaStage1)
+	deallocate(self%activeAreaStage2)
+	deallocate(self%activeAreaStage3)
+	deallocate(self%activeAreaStage4)
+	deallocate(self%newActiveArea)
 end subroutine
 !
 !----------------
@@ -399,6 +491,107 @@ subroutine ZeroRK4(self)
 	self%newActiveArea = 0.0_kreal
 end subroutine
 
+subroutine ComputeDoubleDotU(ddU, delTri, velocitySource1, indexStart, indexEnd)
+	real(kreal), intent(out) :: ddU(:)
+	type(STRIPACKData), intent(in) :: delTri
+	type(SSRFPACKData), intent(in) :: velocitySource1
+	integer(kint), intent(in) :: indexStart, indexEnd
+	!
+	integer(kint) :: j, errCode
+	
+	do j=indexStart, indexEnd
+		ddU(j) = velocitySource1%grad1(1,j)*velocitySource1%grad1(1,j) + &
+				 velocitySource1%grad1(2,j)*velocitySource1%grad1(2,j) + &
+				 velocitySource1%grad1(3,j)*velocitySource1%grad1(3,j) + &
+				 2.0_kreal*velocitySource1%grad1(1,j)*velocitySource1%grad1(2,j) + &
+				 2.0_kreal*velocitySource1%grad1(1,j)*velocitySource1%grad1(3,j) + &
+				 2.0_kreal*velocitySource1%grad1(2,j)*velocitySource1%grad1(3,j)
+	enddo
+end subroutine
+
+subroutine ComputeLaplacianH(lapH, delTri, hSource1, hsource2, indexStart, indexEnd)
+	real(kreal), intent(out) :: lapH(:)
+	type(STRIPACKData), intent(in) :: delTri
+	type(SSRFPACKData), intent(inout) :: hSource1, hSource2
+	integer(kint), intent(in) :: indexStart, indexEnd
+	!
+	integer(kint) :: j, errCode
+	
+	do j=1, delTri%n
+		hSource2%data1(j) = hSource1%grad1(1,j)
+		hSource2%data2(j) = hSource1%grad1(2,j)
+		hSource2%data3(j) = hSource1%grad1(3,j)
+	enddo
+	
+	do j = indexStart, indexEnd
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, hSource2%data1, &
+				   delTri%list, delTri%lptr, delTri%lend, hSource2%grad1(:,j), errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, hSource2%data2, &
+				   delTri%list, delTri%lptr, delTri%lend, hSource2%grad2(:,j), errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, hSource2%data3, &
+				   delTri%list, delTri%lptr, delTri%lend, hSource2%grad3(:,j), errCode)
+		lapH(j) = hSource2%grad1(1,j) + hSource2%grad2(2,j) + hSource2%grad(3,j)				   		   		   
+	enddo
+end subroutine
+
+subroutine SWEVelocityActive(u, x, relVort, div, area, indexStart, indexEnd)
+	real(kreal), intent(out) :: u(:,:)
+	real(kreal), intent(in) :: x(:,:)
+	real(kreal), intent(in) :: relVort(:), div(:), area(:)
+	integer(kint), intent(in) :: indexStart, indexEnd
+	!
+	integer(kint) :: j, k, nn
+	real(kreal) :: denom
+	
+	u = 0.0_kreal
+	nn = size(x,2)
+	do j=indexStart, indexEnd
+		do k=1,j-1
+			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k))
+			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
+							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/denom
+			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
+							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/denom
+			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + 
+					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/denom		  				  
+		enddo
+		do k=j+1,nn
+			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k))
+			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
+							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/denom
+			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
+							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/denom
+			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + 
+					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/denom				
+		enddo
+	enddo
+	u(:,indexStart:indexEnd) = u(:,indexStart:indexEnd)/(-4.0_kreal*PI*EARTH_RADIUS)
+end subroutine
+
+subroutine SWEVelocityPassive(u, x, xActive, relVort, div, area, indexStart, indexEnd)
+	real(kreal), intent(out) :: u(:,:)
+	real(kreal), intent(in) :: x(:,:), xActive(:,:)
+	real(kreal), intent(in) :: relVort(:), div(:), area(:)
+	integer(kint), intent(in) :: indexStart, indexEnd
+	!
+	integer(kint) :: j, k, nn
+	real(kreal) :: denom
+	
+	u = 0.0_kreal
+	nn = size(xActive,2)
+	do j=indexStart, indexEnd
+		do k=1,nn
+			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k))
+			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
+							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/denom
+			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
+							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/denom
+			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + 
+					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/denom		  				  
+		enddo
+	enddo
+	u(:,indexStart:indexEnd) = u(:,indexStart:indexEnd)/(-4.0_kreal*PI*EARTH_RADIUS)
+end subroutine
 
 subroutine LoadBalance(self,nParticles,nActive,nPassive,nProcs)
 	type(SWERK4Data), intent(inout) :: self
