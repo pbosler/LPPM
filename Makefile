@@ -72,6 +72,7 @@ TEST_CASE_OBJS = Tracers.o BVEVorticity.o
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o RefineRemesh2.o
 PLOTTING = ModelLookupTables.o ModelLookupTables.h
+SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o RefineRemesh2.o
 
 #############################################################
 ## LPPM MODEL RUNS
@@ -127,6 +128,7 @@ Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
 ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
 LatLonOutput.o: LatLonOutput.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
+SWEDirectSum.o: SWEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES
