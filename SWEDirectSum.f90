@@ -102,6 +102,20 @@ type SWERK4Data
 							activeVelocityStage3(:,:) => null(), &
 							activeVelocityStage4(:,:) => null(), &
 							&
+							particlesRelVortInput(:) => null(), &
+							particlesRelVortStage1(:) => null(), &
+							particlesRelVortStage2(:) => null(), &
+							particlesRelVortStage3(:) => null(), &
+							particlesRelVortStage4(:) => null(), &
+							newparticlesRelVort(:) => null(), &
+							&
+							particlesDivInput(:) => null(), &
+							particlesDivStage1(:) => null(), &
+							particlesDivStage2(:) => null(), &
+							particlesDivStage3(:) => null(), &
+							particlesDivStage4(:) => null(), &
+							newparticlesDiv(:) => null(), &
+							&
 							activeRelVortInput(:) => null(), &
 							activeRelVortStage1(:) => null(), &
 							activeRelVortStage2(:) => null(), &
@@ -458,19 +472,37 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	self%activeHInput = self%activePanels%h
 	self%particlesHInput = aParticles%h(1:aParticles%N)
 	!
-	! compute particle velocities
+	! PARALLEL : compute particle velocities
 	!
 	call SWEVelocityActive(self%activeVelocityStage1, self%activePanelsInput, &
 				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
 				self%activePanelsIndexStart(procRank), self%activePanelsIndexEnd(procRank))
-	call SWEVelocityPassive(self%particlesVelocityStage1, self%particlesInput, &
+	call SWEVelocityPassive(self%particlesVelocityStage1, self%particlesInput, self%activePanelsInput, &
 				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
 				self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
-	call SWEVelocitySmooth(self%passivePanelsVelocityStage1, self%passivePanelsInput, &
+	call SWEVelocitySmooth(self%passivePanelsVelocityStage1, self%passivePanelsInput, self%activePanelsInput, &
 				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
-				self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank))	
+				self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank))
 	!
-	! compute divergence equation forcing terms
+	! broadcast velocities (needed for divergence equation)
+	!			
+	do j=0, nProcs-1
+		call MPI_BCAST(self%particlesVelocityStage1(:,self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
+					   3*self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
+		call MPI_BCAST(self%activeVelocityStage1(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
+					   3*self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)	
+		call MPI_BCAST(self%passivePanelsVelocityStage1(:,self%passivePanelsIndexStart(j):passivePanelsIndexEnd(j)), &
+					   3*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)			   
+	enddo
+	!
+	! END PARALLEL
+	!
+	
+	! SET SSRFPACK SOURCE TO NEW VELOCITY (not mesh velocity)
+	! SET SSRFPACK H SOURCE TO HINPUT (not mesh h)
+	
+	!
+	! PARALLEL : compute divergence equation forcing terms
 	!
 	call ComputeDoubleDotU(self%doubleDotUParticles, self%delTri, self%velocitySource, &
 		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
@@ -480,6 +512,188 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
 	call ComputeLaplacianH(self%lapHActive, self%delTri, self%hSource1, self%hSource2, &
 		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
+	
+	!
+	! compute RHS for vorticity, divergence, h, and area
+	!
+	do j=self%particlesIndexStart(procRank),self%particlesIndexEnd(procRank)
+		self%particlesRelVortStage1(j) = -(self%particlesRelVortInput(j) + 2.0_kreal*OMEGA*self%particlesInput(3,j)/EARTH_RADIUS)*&
+					self%particlesDivInput(j) - 2.0_kreal*OMEGA*self%particlesVelocityStage1(j)/EARTH_RADIUS
+		self%particlesDivStage1(j) = -self%doubleDotUParticles(j) + &
+			2.0_kreal*OMEGA*self%particlesInput(3,j)/EARTH_RADIUS*self%particlesRelVortInput(j) - &
+			GRAVITY*self%lapHParticles(j)
+		self%particlesHStage1(j) = -self%particlesDivInput(j)*self%particlesHInput(j)
+	enddo
+	
+	do j=self%activePanelsIndexStart(procRank), self%activePanelsIndexEnd(procRank)
+		self%activeRelVortStage1(j) = -(self%activeRelVortInput(j) + 2.0_kreal*OMEGA*self%activePanelsInput(3,j)/EARTH_RADIUS)*&
+			self%activeDivInput(j) - 2.0_kreal*OMEGA*self%activeVelocityStage1(3,j)/EARTH_RADIUS
+		self%activeDivStage1(j) = - self%doubleDotUActive(j) + &
+			2.0_kreal*OMEGA*self%activePanelsInput(3,j)/EARTH_RADIUS*self%activeRelVortInput(j) - &
+			GRAVITY*self%lapHActive(j)
+		self%activeHStage1(j) = -self%activeDivInput(j)*self%activeHInput(j)
+		self%activeAreaStage1(j) = self%activeDivInput(j)*self%activeAreaInput(j)	
+	enddo
+	
+	do j=1, nProcs-1
+		!
+		! broadcast stage1 particles' flow quantities 
+		!
+		call MPI_BCAST(self%particlesRelVortStage1(self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
+						self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
+		call MPI_BCAST(self%particlesDivStage1(self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
+						self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
+		call MPI_BCAST(self%particlesHStage1(self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
+						self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)							   
+		
+		!
+		! broadcast stage1 active panels' flow quantities
+		!
+		call MPI_BCAST(self%activeRelVortStage1(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
+						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
+		call MPI_BCAST(self%activeDivStage1(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
+						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
+		call MPI_BCAST(self%activeHStage1(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
+						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
+		call MPI_BCAST(self%activeAreaStage1(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
+						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)												
+	enddo
+	!
+	! END PARALLEL
+	!
+	
+	!
+	! STAGE 1 ONLY : Store velocity and energy
+	!
+	! TO DO : store kinetic energy separately
+	! TO DO : add total energy to sphereMesh
+	! TO DO : no need to keep velocity separately
+	do j=1,aParticles%N
+		aParticles%energy(j) = sum(self%particlesVelocityStage1(:,j)*self%particlesVelocityStage1(:,j)) + GRAVITY*self%particlesHInput(j)
+		aParticles%u(:,j) = self%particlesVelocityStage1(:,j)
+	enddo
+	do j=1,self%activePanels%N
+		self%activePanels%ke(j) = sum(self%activePanelsVelocityStage1(:,j)*self%activePanelsVelocityStage1(:,j)) + GRAVITY*self%activeHinput(j)
+		self%activePanels%u(:,j) = self%activePanelsVelocityStage1(:,j)
+	enddo
+
+	self%particlesStage1 = dt*self%particlesVelocityStage1
+	self%particlesRelVortStage1 = dt*self%particlesRelVortStage1
+	self%particlesDivStage1 = dt*self%particlesDivStage1
+	self%particlesHStage1 = dt*self%particlesHStage1
+	
+	self%activePanelsStage1 = dt*self%activePanelsVelocity
+	self%activePanelsRelVortStage1 = dt*self%activePanelsRelVortStage1
+	self%activePanelsDivStage1 = dt*self%activePanels%
+	
+
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! 		RK Stage 2       !
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! Set input arrays for stage 2
+	
+	!
+	! PARALLEL : compute particle velocities
+	!
+	
+	!
+	! broadcast velocities (needed for divergence equation)
+	!
+	
+	!
+	! END PARALLEL
+	!
+	
+	! SET SSRFPACK SOURCE TO NEW VELOCITY (not mesh velocity)
+	! SET SSRFPACK H SOURCE TO HINPUT (not mesh h)
+	
+	!
+	! PARALLEL : compute divergence equation forcing terms
+	!
+	
+	!
+	! compute RHS for vorticity, divergence, h, and area
+	!
+
+	!
+	! broadcast stage2 vorticity, divergence, h, area
+	!
+
+	!
+	! END PARALLEL
+	!
+
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! 		RK Stage 3       !
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! Set input arrays for stage 3
+	
+	!
+	! PARALLEL : compute particle velocities
+	!
+	
+	!
+	! broadcast velocities (needed for divergence equation)
+	!
+	
+	!
+	! END PARALLEL
+	!
+	
+	! SET SSRFPACK SOURCE TO NEW VELOCITY (not mesh velocity)
+	! SET SSRFPACK H SOURCE TO HINPUT (not mesh h)
+	
+	!
+	! PARALLEL : compute divergence equation forcing terms
+	!
+	
+	!
+	! compute RHS for vorticity, divergence, h, and area
+	!
+
+	!
+	! broadcast stage3 vorticity, divergence, h, area
+	!
+
+	!
+	! END PARALLEL
+	!	
+	
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! 		RK Stage 4      !
+	!!!!!!!!!!!!!!!!!!!!!!!!!!
+	! Set input arrays for stage 4
+	
+	!
+	! PARALLEL : compute particle velocities
+	!
+	
+	!
+	! broadcast velocities (needed for divergence equation)
+	!
+	
+	!
+	! END PARALLEL
+	!
+	
+	! SET SSRFPACK SOURCE TO NEW VELOCITY (not mesh velocity)
+	! SET SSRFPACK H SOURCE TO HINPUT (not mesh h)
+	
+	!
+	! PARALLEL : compute divergence equation forcing terms
+	!
+	
+	!
+	! compute RHS for vorticity, divergence, h, and area
+	!
+
+	!
+	! broadcast stage4 vorticity, divergence, h, area
+	!
+
+	!
+	! END PARALLEL
+	!
 	
 end subroutine
 
