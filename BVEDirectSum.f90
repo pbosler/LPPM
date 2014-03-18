@@ -369,7 +369,7 @@ subroutine BVERK4Timestep(self,aMesh,dt,procRank, nProcs)
 		self%activePanels%ke(j) = sum(self%activePanelsStage1(:,j)*self%activePanelsStage1(:,j))
 		self%activePanels%u(:,j) = self%activePanelsStage1(:,j)
 	enddo
-	aMesh%totalKE = 0.5*sum(self%activePanels%ke*self%area)
+	aMesh%totalE = 0.5*sum(self%activePanels%ke*self%area)
 
 
 	self%particlesStage1 = dt*self%particlesStage1

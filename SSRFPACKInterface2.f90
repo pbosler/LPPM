@@ -29,10 +29,11 @@ public SetSourceLagrangianParameter
 public SetSourceAbsVort, SetSourceRelVort
 public SetSourceTracer
 public SetSourceVelocity
-public SetSourceEnergy, SetSourceKineticEnergy
+public SetSourceKineticEnergy
 public SetSigmaTol
 public SIGMA_FLAG, GRAD_FLAG
 public InterpolateVector, InterpolateScalar, InterpolateTracer
+public SetSourceH
 
 !
 !----------------
@@ -62,6 +63,15 @@ end type
 integer(kint), parameter :: SIGMA_FLAG = 1,& ! Flag indicates smoothing parameters are pre-computed
 						    GRAD_FLAG = 1	 ! Flag indicates gradient estimates are pre-computed
 integer(kint), save :: startTriangle = 1	 ! Stores initial guesses for locating new points within a Delaunay triangulation.
+
+interface SetSourceVelocity
+	module procedure SetSourceVelocityFromMeshData
+	module procedure SetSourceVelocityFromArrays
+end interface
+
+interface SetSourceH
+	module procedure SetSourceHFromArrays
+end interface
 
 !
 !----------------
@@ -229,15 +239,15 @@ subroutine SetSourceLagrangianParameter(self,delTri)
 	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
 				delTri%list,delTri%lptr,delTri%lend,&
 			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
-	if ( procRank == 0 ) call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig x0 = ',self%dSig1)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig x0 = ',self%dSig1)
 	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data2,&
 				delTri%list,delTri%lptr,delTri%lend,&
 			    self%grad2,self%sigmaTol,self%sigma2,self%dSig2,errCode)
-	if ( procRank == 0 ) call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig y0 = ',self%dSig2)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig y0 = ',self%dSig2)
 	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data3,&
 				delTri%list,delTri%lptr,delTri%lend,&
 			    self%grad3,self%sigmaTol,self%sigma3,self%dSig3,errCode)
-	if ( procRank == 0 ) call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig z0 = ',self%dSig3)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig z0 = ',self%dSig3)
 end subroutine
 
 subroutine SetSourceTracer(self,delTri)
@@ -279,7 +289,7 @@ subroutine SetSourceTracer(self,delTri)
 
 end subroutine
 
-subroutine SetSourceVelocity(self,delTri)
+subroutine SetSourceVelocityFromMeshData(self,delTri)
 	type(SSRFPACKData), intent(inout) :: self
 	type(STRIPACKData), intent(in) :: delTri
 	integer(kint) :: j, nActive, nParticles, errCode
@@ -308,8 +318,96 @@ subroutine SetSourceVelocity(self,delTri)
 		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data3,&
 				   delTri%list,delTri%lptr,delTri%lend,self%grad3(:,j),errCode)
 	enddo
+	
+	! Determine smoothing factors at each Delaunay node
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig u = ',self%dSig1)
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data2,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad2,self%sigmaTol,self%sigma2,self%dSig2,errCode)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig v = ',self%dSig2)
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data3,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad3,self%sigmaTol,self%sigma3,self%dSig3,errCode)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig w = ',self%dSig3)
 end subroutine
 
+subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, activePanelsVelocity)
+	type(SSRFPACKData), intent(inout) :: self
+	type(STRIPACKData), intent(in) :: delTri
+	real(kreal), intent(in) :: particlesVelocity(:,:), activePanelsVelocity(:,:)
+	!
+	integer(kint) :: j, nActive, nParticles, errCode
+	
+	nActive = delTri%activePanels%N_Active
+	nParticles = delTri%particles%N
+	
+	do j=1, nActive
+		self%data1(j) = activePanelsVelocity(1,j)
+		self%data2(j) = activePanelsVelocity(2,j)
+		self%data3(j) = activePanelsVelocity(3,j)
+	enddo
+	
+	do j=1, nParticles
+		self%data1(nActive + j) = particlesVelocity(1,j)
+		self%data2(nActive + j) = particlesVelocity(2,j)
+		self%data3(nActive + j) = particlesVelocity(3,j)
+	enddo
+	
+	do j=1, delTri%n
+		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
+				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
+		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data2,&
+				   delTri%list,delTri%lptr,delTri%lend,self%grad2(:,j),errCode)
+		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data3,&
+				   delTri%list,delTri%lptr,delTri%lend,self%grad3(:,j),errCode)
+	enddo
+	
+	! Determine smoothing factors at each Delaunay node
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig u = ',self%dSig1)
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data2,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad2,self%sigmaTol,self%sigma2,self%dSig2,errCode)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig v = ',self%dSig2)
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data3,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad3,self%sigmaTol,self%sigma3,self%dSig3,errCode)
+	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig w = ',self%dSig3)
+end subroutine
+
+subroutine SetSourceHFromArrays(self, delTri, particlesH, activePanelsH)
+	type(SSRFPACKData), intent(inout) :: self
+	type(STRIPACKData), intent(in) :: delTri
+	real(kreal), intent(in) :: particlesH(:), activePanelsH(:)
+	!
+	integer(kint) :: j, nActive, nParticles, errCode
+	
+	nActive = delTri%activePanels%N_Active
+	nParticles = delTri%particles%N
+	
+	do j=1, nActive
+		self%data1(j) = activePanelsH(j)
+	enddo
+	
+	do j=1, nParticles
+		self%data1(nActive + j) = particlesH(j)
+	enddo
+	
+	do j=1, delTri%n
+		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
+				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
+	enddo
+	
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
+				delTri%list,delTri%lptr,delTri%lend,&
+			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig H = ',self%dSig1)
+end subroutine
 
 subroutine SetSourceAbsVort(self,delTri)
 ! Setup SSRFPACK to interpolate scalar absolute vorticity data
@@ -369,38 +467,39 @@ subroutine SetSourceRelVort(self,delTri)
 end subroutine
 
 
-subroutine SetSourceEnergy(self,delTri)
-	type(SSRFPACKData), intent(inout) :: self
-	type(STRIPACKData), intent(in) :: delTri
-	integer(kint) :: j, nActive, nParticles, errCode
 
-	if ( (.NOT. associated(delTri%activePanels%energy) ).OR. (.NOT. associated(delTri%particles%energy) ) ) then
-		call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey),' SetSourceEnergy ERROR : energy not defined.')
-		return
-	endif
-
-	nActive = delTri%activePanels%N_Active
-	nParticles = delTri%particles%N
-
-	do j=1,nActive
-		self%data1(j) = delTri%activePanels%energy(j)
-	enddo
-
-	do j=1,nParticles
-		self%data1(nActive+j) = delTri%particles%energy(j)
-	enddo
-
-	do j=1,delTri%n
-		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
-				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
-	enddo
-
-	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
-				delTri%list,delTri%lptr,delTri%lend,&
-			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
-	call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig relVort = ',self%dSig1)
-
-end subroutine
+!subroutine SetSourceEnergy(self,delTri)
+!	type(SSRFPACKData), intent(inout) :: self
+!	type(STRIPACKData), intent(in) :: delTri
+!	integer(kint) :: j, nActive, nParticles, errCode
+!
+!	if ( (.NOT. associated(delTri%activePanels%energy) ).OR. (.NOT. associated(delTri%particles%energy) ) ) then
+!		call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey),' SetSourceEnergy ERROR : energy not defined.')
+!		return
+!	endif
+!
+!	nActive = delTri%activePanels%N_Active
+!	nParticles = delTri%particles%N
+!
+!	do j=1,nActive
+!		self%data1(j) = delTri%activePanels%energy(j)
+!	enddo
+!
+!	do j=1,nParticles
+!		self%data1(nActive+j) = delTri%particles%energy(j)
+!	enddo
+!
+!	do j=1,delTri%n
+!		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
+!				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
+!	enddo
+!
+!	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
+!				delTri%list,delTri%lptr,delTri%lend,&
+!			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
+!	call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig relVort = ',self%dSig1)
+!
+!end subroutine
 
 subroutine SetSourceKineticEnergy(self,delTri)
 	type(SSRFPACKData), intent(inout) :: self

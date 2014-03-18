@@ -50,8 +50,7 @@ type Panels
 	real(kreal), pointer :: h(:) => null()			! fluid thickness
 	real(kreal), pointer :: div(:) => null()		! divergence
 	real(kreal), pointer :: u(:,:) => null()		! fluid velocity
-	real(kreal), pointer :: ke(:) => null()			! local kinetic energy
-	real(kreal), pointer :: energy(:) => null()		! total energy at each particle
+	real(kreal), pointer :: ke(:) => null()			! local kinetic pe
 end type
 
 !
@@ -171,6 +170,7 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		! nullify swe variables
 		nullify(self%h)
 		nullify(self%div)
+		nullify(self%potVort)
 	elseif (problemKind == SWE_SOLVER) then
 		! allocate swe variables
 		allocate(self%relVort(nMax))
@@ -181,11 +181,10 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		self%h = 0.0_kreal
 		allocate(self%div(nMax))
 		self%div = 0.0_kreal
-		allocate(self%energy(nMax))
-		self%energy = 0.0_kreal
+		allocate(self%ke(nMax))
+		self%ke = 0.0_kreal
 		! nullify bve variables
 		nullify(self%absVort)
-		nullify(self%ke)
 	endif
 	self%N = 0
 	self%N_Active = 0
@@ -211,7 +210,6 @@ subroutine DeletePrivate(self)
 	if ( associated(self%h)) deallocate(self%h)
 	if ( associated(self%div)) deallocate(self%div)
 	if ( associated(self%ke)) deallocate(self%ke)
-	if ( associated(self%energy)) deallocate(self%energy)
 	self%N = 0
 	self%N_Active = 0
 	self%N_Max = 0
@@ -268,12 +266,12 @@ subroutine CopyPanels(newPanels,oldPanels)
 			return
 		endif
 	endif
-	if ( associated(oldPanels%energy) ) then
-		if (.NOT. associated(newPanels%energy)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign energy.')
-			return
-		endif
-	endif
+!	if ( associated(oldPanels%pe) ) then
+!		if (.NOT. associated(newPanels%pe)) then
+!			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign pe.')
+!			return
+!		endif
+!	endif
 	if ( associated(oldPanels%ke) ) then
 		if (.NOT. associated(newPanels%ke)) then
 			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign ke.')
@@ -330,11 +328,11 @@ subroutine CopyPanels(newPanels,oldPanels)
 			newPanels%ke(j) = oldPanels%ke(j)
 		enddo
 	endif
-	if ( associated(oldPanels%energy)) then
-		do j=1,oldPanels%N
-			newPanels%energy(j) = oldPanels%energy(j)
-		enddo
-	endif
+!	if ( associated(oldPanels%pe)) then
+!		do j=1,oldPanels%N
+!			newPanels%pe(j) = oldPanels%pe(j)
+!		enddo
+!	endif
 	newPanels%N = oldPanels%N
 	newPanels%N_Active = oldPanels%N_Active
 end subroutine
@@ -413,13 +411,13 @@ subroutine CopyPanelByIndex(newPanels,newIndex,oldPanels,oldIndex)
 			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyPanelByIndex WARNING: cannot assign ke.')
 		endif
 	endif
-	if ( associated(oldPanels%energy)) then
-		if ( associated(newPanels%energy)) then
-			newPanels%energy(newIndex) = oldPanels%energy(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyPanelByIndex WARNING: cannot assign energy.')
-		endif
-	endif
+!	if ( associated(oldPanels%pe)) then
+!		if ( associated(newPanels%pe)) then
+!			newPanels%pe(newIndex) = oldPanels%pe(oldIndex)
+!		else
+!			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyPanelByIndex WARNING: cannot assign pe.')
+!		endif
+!	endif
 end subroutine
 
 function GetPanelKind(self)

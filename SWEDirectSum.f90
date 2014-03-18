@@ -72,7 +72,6 @@ type SWERK4Data
 	type(SSRFPACKData), pointer :: velocitySource1 => null(), &
 								   thicknessSource1 => null(), &
 								   thicknessSource2 => null()
-
 	!
 	! Runge-Kutta variables
 	!
@@ -83,24 +82,9 @@ type SWERK4Data
 							particlesStage4(:,:) => null(), &
 							newParticlesX(:,:) => null(), &
 							&
-							activePanelsInput(:,:) => null(), &
-							activePanelsStage1(:,:) => null(), &
-							activePanelsStage2(:,:) => null(), &
-							activePanelsStage3(:,:) => null(), &
-							activePanelsStage4(:,:) => null(), &
-							newActivePanelsX(:,:) => null(), &
-							&
-							passivePanelsInput(:,:) => null(), &
-							passivePanelsStage1(:,:) => null(), &
-							passivePanelsStage2(:,:) => null(), &
-							passivePanelsStage3(:,:) => null(), &
-							passivePanelsStage4(:,:) => null(), &
-							newPassivePanelsX(:,:) => null(), &
-							&
-							activeVelocityStage1(:,:) => null(), &
-							activeVelocityStage2(:,:) => null(), &
-							activeVelocityStage3(:,:) => null(), &
-							activeVelocityStage4(:,:) => null(), &
+							particlesVelocity(:,:) => null(), &
+							particlesDoubleDotU(:) => null(), &
+							particlesLapH(:) => null(), &
 							&
 							particlesRelVortInput(:) => null(), &
 							particlesRelVortStage1(:) => null(), &
@@ -115,6 +99,24 @@ type SWERK4Data
 							particlesDivStage3(:) => null(), &
 							particlesDivStage4(:) => null(), &
 							newparticlesDiv(:) => null(), &
+							&
+							particlesHInput(:) => null(), &
+							particlesHStage1(:) => null(), &
+							particlesHStage2(:) => null(), &
+							particlesHStage3(:) => null(), &
+							particlesHStage4(:) => null(), &
+							newParticlesH(:) => null(), &
+							&					
+							activePanelsInput(:,:) => null(), &
+							activePanelsStage1(:,:) => null(), &
+							activePanelsStage2(:,:) => null(), &
+							activePanelsStage3(:,:) => null(), &
+							activePanelsStage4(:,:) => null(), &
+							newActivePanelsX(:,:) => null(), &
+							&
+							activePanelsVelocity(:,:) => null(), &
+							activePanelsDoubleDotU(:) => null(), &
+							activePanelsLapH(:) => null(), &
 							&
 							activeRelVortInput(:) => null(), &
 							activeRelVortStage1(:) => null(), &
@@ -137,19 +139,19 @@ type SWERK4Data
 							activeHStage4(:) => null(), &
 							newActiveH(:) => null(), &
 							&
-							particlesHInput(:) => null(), &
-							particlesHStage1(:) => null(), &
-							particlesHStage2(:) => null(), &
-							particlesHStage3(:) => null(), &
-							particlesHStage4(:) => null(), &
-							newParticlesH(:) => null(), &
-							&
 							activeAreaInput(:) => null(), &
 							activeAreaStage1(:) => null(), &
 							activeAreaStage2(:) => null(), &
 							activeAreaStage3(:) => null(), &
 							activeAreaStage4(:) => null(), &
-							newActiveArea(:) => null()
+							newActiveArea(:) => null(), &
+							&
+							passivePanelsInput(:,:) => null(), &
+							passivePanelsStage1(:,:) => null(), &
+							passivePanelsStage2(:,:) => null(), &
+							passivePanelsStage3(:,:) => null(), &
+							passivePanelsStage4(:,:) => null(), &
+							newPassivePanelsX(:,:) => null()
 end type
 
 !
@@ -464,73 +466,76 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! Set input arrays for stage 1
 	self%particlesInput = aParticles%x(:,1:aParticles%N)
+	self%particlesRelVortInput = aParticles%relVort(1:aParticles%N)
+	self%particlesDivInput = aParticles%div(1:aParticles%N)
+	self%particlesHInput = aParticles%h(1:aParticles%N)
+	
 	self%activePanelsInput = self%activePanels%x
-	self%passivePanelsInput = self%passivePanels%x
 	self%activeRelVortInput = self%activePanels%relVort
 	self%activeDivInput = self%activePanels%div
-	self%activeAreaInput = self%activePanels%area
 	self%activeHInput = self%activePanels%h
-	self%particlesHInput = aParticles%h(1:aParticles%N)
+	self%activeAreaInput = self%activePanels%area
+	
+	self%passivePanelsInput = self%passivePanels%x
 	!
 	! PARALLEL : compute particle velocities
 	!
-	call SWEVelocityActive(self%activeVelocityStage1, self%activePanelsInput, &
+	call SWEVelocityActive(self%activePanelsVelocity, self%activePanelsInput, &
 				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
 				self%activePanelsIndexStart(procRank), self%activePanelsIndexEnd(procRank))
-	call SWEVelocityPassive(self%particlesVelocityStage1, self%particlesInput, self%activePanelsInput, &
+	call SWEVelocityPassive(self%particlesVelocity, self%particlesInput, self%activePanelsInput, &
 				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
 				self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
-	call SWEVelocitySmooth(self%passivePanelsVelocityStage1, self%passivePanelsInput, self%activePanelsInput, &
+	call SWEVelocitySmooth(self%passivePanelsStage1, self%passivePanelsInput, self%activePanelsInput, &
 				self%activeRelVortInput, self%activeDivInput, self%activeAreaInput, &
 				self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank))
 	!
-	! broadcast velocities (needed for divergence equation)
+	! broadcast velocities (complete set needed for divergence equation)
 	!			
 	do j=0, nProcs-1
-		call MPI_BCAST(self%particlesVelocityStage1(:,self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
+		call MPI_BCAST(self%particlesVelocity(:,self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
 					   3*self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
-		call MPI_BCAST(self%activeVelocityStage1(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
+		call MPI_BCAST(self%activePanelsVelocity(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 					   3*self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)	
-		call MPI_BCAST(self%passivePanelsVelocityStage1(:,self%passivePanelsIndexStart(j):passivePanelsIndexEnd(j)), &
+		call MPI_BCAST(self%passivePanelsStage1(:,self%passivePanelsIndexStart(j):passivePanelsIndexEnd(j)), &
 					   3*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)			   
 	enddo
 	!
 	! END PARALLEL
 	!
-	
-	! SET SSRFPACK SOURCE TO NEW VELOCITY (not mesh velocity)
-	! SET SSRFPACK H SOURCE TO HINPUT (not mesh h)
+	call SetSourceVelocity(self%velocitySource, self%delTri, self%particlesVelocity, self%activePanelsVelocity)
+	call SetSourceH(self%thicknessSource, self%delTri, self%particlesHInput, self%activePanelsHInput)
 	
 	!
 	! PARALLEL : compute divergence equation forcing terms
 	!
-	call ComputeDoubleDotU(self%doubleDotUParticles, self%delTri, self%velocitySource, &
+	call ComputeDoubleDotU(self%particlesDoubleDotU, self%delTri, self%velocitySource, &
 		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
-	call ComputeDoubleDotU(self%doubleDotUActive, self%delTri, self%velocitySource, &
+	call ComputeLaplacianH(self%particlesLapH, self%delTri, self%hSource1, self%hSource2, &	
+		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
+
+	call ComputeDoubleDotU(self%activePanelsDoubleDotU, self%delTri, self%velocitySource, &
 		self%activePanelsIndexStart(procRank), self%activePanelsIndexEnd(procRank))	
-	call ComputeLaplacianH(self%lapHparticles, self%delTri, self%hSource1, self%hSource2, &	
+	call ComputeLaplacianH(self%activePanelsLapH, self%delTri, self%hSource1, self%hSource2, &
 		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
-	call ComputeLaplacianH(self%lapHActive, self%delTri, self%hSource1, self%hSource2, &
-		self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
-	
 	!
 	! compute RHS for vorticity, divergence, h, and area
 	!
 	do j=self%particlesIndexStart(procRank),self%particlesIndexEnd(procRank)
 		self%particlesRelVortStage1(j) = -(self%particlesRelVortInput(j) + 2.0_kreal*OMEGA*self%particlesInput(3,j)/EARTH_RADIUS)*&
 					self%particlesDivInput(j) - 2.0_kreal*OMEGA*self%particlesVelocityStage1(j)/EARTH_RADIUS
-		self%particlesDivStage1(j) = -self%doubleDotUParticles(j) + &
+		self%particlesDivStage1(j) = -self%particlesDoubleDotU(j) + &
 			2.0_kreal*OMEGA*self%particlesInput(3,j)/EARTH_RADIUS*self%particlesRelVortInput(j) - &
-			GRAVITY*self%lapHParticles(j)
+			GRAV*self%particlesLapH(j)
 		self%particlesHStage1(j) = -self%particlesDivInput(j)*self%particlesHInput(j)
 	enddo
 	
 	do j=self%activePanelsIndexStart(procRank), self%activePanelsIndexEnd(procRank)
 		self%activeRelVortStage1(j) = -(self%activeRelVortInput(j) + 2.0_kreal*OMEGA*self%activePanelsInput(3,j)/EARTH_RADIUS)*&
 			self%activeDivInput(j) - 2.0_kreal*OMEGA*self%activeVelocityStage1(3,j)/EARTH_RADIUS
-		self%activeDivStage1(j) = - self%doubleDotUActive(j) + &
+		self%activeDivStage1(j) = - self%activePanelsDoubleDotU(j) + &
 			2.0_kreal*OMEGA*self%activePanelsInput(3,j)/EARTH_RADIUS*self%activeRelVortInput(j) - &
-			GRAVITY*self%lapHActive(j)
+			GRAV*self%activePanelsLapH(j)
 		self%activeHStage1(j) = -self%activeDivInput(j)*self%activeHInput(j)
 		self%activeAreaStage1(j) = self%activeDivInput(j)*self%activeAreaInput(j)	
 	enddo
@@ -563,21 +568,18 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	!
 	
 	!
-	! STAGE 1 ONLY : Store velocity and energy
+	! STAGE 1 ONLY : Store velocity and kinetic energy
 	!
-	! TO DO : store kinetic energy separately
-	! TO DO : add total energy to sphereMesh
-	! TO DO : no need to keep velocity separately
 	do j=1,aParticles%N
-		aParticles%energy(j) = sum(self%particlesVelocityStage1(:,j)*self%particlesVelocityStage1(:,j)) + GRAVITY*self%particlesHInput(j)
-		aParticles%u(:,j) = self%particlesVelocityStage1(:,j)
+		aParticles%ke(j) = sum(self%particlesVelocity(:,j)*self%particlesVelocity(:,j))
+		aParticles%u(:,j) = self%particlesVelocity(:,j)
 	enddo
 	do j=1,self%activePanels%N
-		self%activePanels%ke(j) = sum(self%activePanelsVelocityStage1(:,j)*self%activePanelsVelocityStage1(:,j)) + GRAVITY*self%activeHinput(j)
-		self%activePanels%u(:,j) = self%activePanelsVelocityStage1(:,j)
+		self%activePanels%ke(j) = sum(self%activePanelsVelocity(:,j)*self%activePanelsVelocity(:,j))
+		self%activePanels%u(:,j) = self%activePanelsVelocity(:,j)
 	enddo
 
-	self%particlesStage1 = dt*self%particlesVelocityStage1
+	self%particlesStage1 = dt*self%particlesVelocity
 	self%particlesRelVortStage1 = dt*self%particlesRelVortStage1
 	self%particlesDivStage1 = dt*self%particlesDivStage1
 	self%particlesHStage1 = dt*self%particlesHStage1
@@ -585,12 +587,19 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	self%activePanelsStage1 = dt*self%activePanelsVelocity
 	self%activePanelsRelVortStage1 = dt*self%activePanelsRelVortStage1
 	self%activePanelsDivStage1 = dt*self%activePanels%
-	
+		
+	self%passivePanelsStage1 = dt*self%passivePanelsStage1
 
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 2       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! Set input arrays for stage 2
+	self%particlesInput = aParticles%x(:,1:aParticles%N) + 0.5_kreal*self%particlesStage1
+	self%particlesRelVortInput = aParticles%relVort(1:aParticles%N) + 0.5_kreal*self%particlesRelVortStage1
+	self%particlesDivInput = aParticles%div(1:aParticles%N) + 0.5_kreal*self%particlesDivStage1
+	self%particlesHInput = aParticles%h(1:aParticles%N) + 0.5_kreal*self%particlesHStage1
+	
+	
 	
 	!
 	! PARALLEL : compute particle velocities
@@ -776,11 +785,11 @@ subroutine ComputeDoubleDotU(ddU, delTri, velocitySource1, indexStart, indexEnd)
 	
 	do j=indexStart, indexEnd
 		ddU(j) = velocitySource1%grad1(1,j)*velocitySource1%grad1(1,j) + &
-				 velocitySource1%grad1(2,j)*velocitySource1%grad1(2,j) + &
-				 velocitySource1%grad1(3,j)*velocitySource1%grad1(3,j) + &
-				 2.0_kreal*velocitySource1%grad1(1,j)*velocitySource1%grad1(2,j) + &
-				 2.0_kreal*velocitySource1%grad1(1,j)*velocitySource1%grad1(3,j) + &
-				 2.0_kreal*velocitySource1%grad1(2,j)*velocitySource1%grad1(3,j)
+				 velocitySource1%grad2(2,j)*velocitySource1%grad2(2,j) + &
+				 velocitySource1%grad3(3,j)*velocitySource1%grad3(3,j) + &
+				 2.0_kreal*velocitySource1%grad1(2,j)*velocitySource1%grad2(1,j) + &
+				 2.0_kreal*velocitySource1%grad1(3,j)*velocitySource1%grad3(1,j) + &
+				 2.0_kreal*velocitySource1%grad2(3,j)*velocitySource1%grad3(2,j)
 	enddo
 end subroutine
 
@@ -805,7 +814,7 @@ subroutine ComputeLaplacianH(lapH, delTri, hSource1, hsource2, indexStart, index
 				   delTri%list, delTri%lptr, delTri%lend, hSource2%grad2(:,j), errCode)
 		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, hSource2%data3, &
 				   delTri%list, delTri%lptr, delTri%lend, hSource2%grad3(:,j), errCode)
-		lapH(j) = hSource2%grad1(1,j) + hSource2%grad2(2,j) + hSource2%grad(3,j)				   		   		   
+		lapH(j) = hSource2%grad1(1,j) + hSource2%grad2(2,j) + hSource2%grad3(3,j)				   		   		   
 	enddo
 end subroutine
 
@@ -857,6 +866,31 @@ subroutine SWEVelocityPassive(u, x, xActive, relVort, div, area, indexStart, ind
 	do j=indexStart, indexEnd
 		do k=1,nn
 			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k))
+			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
+							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/denom
+			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
+							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/denom
+			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + 
+					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/denom		  				  
+		enddo
+	enddo
+	u(:,indexStart:indexEnd) = u(:,indexStart:indexEnd)/(-4.0_kreal*PI*EARTH_RADIUS)
+end subroutine
+
+subroutine SWEVelocitySmooth(u, x, xActive, relVort, div, area, indexStart, indexEnd)
+	real(kreal), intent(out) :: u(:,:)
+	real(kreal), intent(in) :: x(:,:), xActive(:,:)
+	real(kreal), intent(in) :: relVort(:), div(:), area(:)
+	integer(kint), intent(in) :: indexStart, indexEnd
+	!
+	integer(kint) :: j, k, nn
+	real(kreal) :: denom
+	
+	u = 0.0_kreal
+	nn = size(xActive,2)
+	do j=indexStart, indexEnd
+		do k=1,nn
+			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k)) + VELOCITY_SMOOTH*VELOCITY_SMOOTH
 			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
 							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/denom
 			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &

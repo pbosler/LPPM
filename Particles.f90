@@ -46,8 +46,8 @@ type Particles
 	real(kreal), pointer :: h(:) => null()  ! fluid thickness
 	real(kreal), pointer :: div(:) => null() ! divergence
 	real(kreal), pointer :: u(:,:) => null() ! fluid velocity
-	real(kreal), pointer :: ke(:) => null()  ! local kinetic energy
-	real(kreal), pointer :: energy(:) => null() ! total energy of each particle
+	real(kreal), pointer :: ke(:) => null()  ! local kinetic pe
+	!real(kreal), pointer :: pe(:) => null() ! total pe of each particle
 end type
 
 !
@@ -155,7 +155,6 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 	elseif (problemKind == SWE_SOLVER ) then
 		! nullify bve variables
 		nullify(self%absVort)
-		nullify(self%ke)
 		! allocate swe variables
 		allocate(self%relVort(nMax))
 		self%relVort = 0.0_kreal
@@ -165,8 +164,8 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		self%h = 0.0_kreal
 		allocate(self%div(nMax))
 		self%div = 0.0_kreal
-		allocate(self%energy(nMax))
-		self%energy = 0.0_kreal
+		allocate(self%ke(nMax))
+		self%ke = 0.0_kreal
 	endif
 	self%N = 0
 	self%N_Max = nMax
@@ -186,7 +185,7 @@ subroutine DeletePrivate(self)
 	if ( associated(self%h)) deallocate(self%h)
 	if ( associated(self%div)) deallocate(self%div)
 	if ( associated(self%ke)) deallocate(self%ke)
-	if ( associated(self%energy)) deallocate(self%energy)
+	!if ( associated(self%pe)) deallocate(self%pe)
 	self%N = 0
 	self%N_Max = 0
 end subroutine
@@ -251,12 +250,12 @@ subroutine CopyParticles(newParticles,oldParticles)
 			return
 		endif
 	endif
-	if ( associated(oldParticles%energy) ) then
-		if ( .NOT. associated(newParticles%energy) ) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign energy.')
-			return
-		endif
-	endif
+!	if ( associated(oldParticles%pe) ) then
+!		if ( .NOT. associated(newParticles%pe) ) then
+!			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign pe.')
+!			return
+!		endif
+!	endif
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'Entering CopyParticles.')
 
 	do j=1,oldParticles%N
@@ -299,11 +298,11 @@ subroutine CopyParticles(newParticles,oldParticles)
 			newParticles%ke(j) = oldParticles%ke(j)
 		enddo
 	endif
-	if ( associated(oldParticles%energy)) then
-		do j=1,oldParticles%N
-			newParticles%energy(j) = oldParticles%energy(j)
-		enddo
-	endif
+!	if ( associated(oldParticles%pe)) then
+!		do j=1,oldParticles%N
+!			newParticles%pe(j) = oldParticles%pe(j)
+!		enddo
+!	endif
 	newParticles%N = oldParticles%N
 end subroutine
 
@@ -376,13 +375,13 @@ subroutine CopyParticleByIndex(newParticles,newIndex,oldParticles,oldIndex)
 			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign ke.')
 		endif
 	endif
-	if ( associated(oldParticles%energy)) then
-		if ( associated(newParticles%energy)) then
-			newParticles%energy(newIndex) = oldParticles%energy(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign energy.')
-		endif
-	endif
+!	if ( associated(oldParticles%pe)) then
+!		if ( associated(newParticles%pe)) then
+!			newParticles%pe(newIndex) = oldParticles%pe(oldIndex)
+!		else
+!			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign pe.')
+!		endif
+!	endif
 end subroutine
 
 

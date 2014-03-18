@@ -63,7 +63,7 @@ type SphereMesh
 	integer(kint) :: AMR
 	integer(kint) :: nTracer
 	integer(kint) :: problemKind
-	real(kreal) :: totalKE
+	real(kreal) :: totalE
 	real(kreal) :: totalEnstrophy
 	real(kreal), pointer :: totalMass(:)
 end type
@@ -361,6 +361,25 @@ function TotalAbsVort(self)
 	TotalAbsVort = sum(aPanels%absVort*aPanels%area)
 end function
 
+function TotalEnergy(self)
+!	Calculates the integral of absolute vorticity over the sphere.
+!	For diagnostic purposes (this quantity should be zero).
+	type(SphereMesh), intent(in) :: self
+	real(kreal) :: TotalEnergy
+	type(Panels), pointer :: aPanels
+
+	aPanels=>self%panels
+
+	! Error checking
+	if ( .NOT. associated(aPanels%ke) ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'TotalAbsVort ERROR : ','absVort not found.')
+		return
+	endif
+	TotalEnergy = 0.5_kreal*sum(aPanels%ke*aPanels%area)
+	if ( associated(aPanels%h) ) then
+		TotalEnergy = TotalEnergy + GRAV*sum(aPanels%h*aPanels%area)
+	endif
+end function
 
 function GetRossbyNumber(self)
 	real(kreal) :: GetRossbyNumber

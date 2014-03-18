@@ -51,7 +51,7 @@ integer(kint) :: timesteps, timeJ
 !
 type(BVESetup) :: rhWave
 real(kreal) :: alpha, amp, beta
-real(kreal), allocatable :: totalKE(:), totalEns(:), vortErrorLinf(:), vortErrorL2(:)
+real(kreal), allocatable :: totalE(:), totalEns(:), vortErrorLinf(:), vortErrorL2(:)
 real(kreal), allocatable :: exactVortParticles(:), exactVortPanels(:)
 !
 !	tracer variables
@@ -207,11 +207,11 @@ call New(bveRK4,sphere,numProcs)
 timesteps = floor(tfinal/dt)
 t = 0.0_kreal
 remeshCounter = 0
-allocate(totalKE(0:timesteps))
+allocate(totalE(0:timesteps))
 allocate(totalEns(0:timesteps))
 allocate(vortErrorLinf(0:timesteps))
 allocate(vortErrorL2(0:timesteps))
-totalKE = 0.0_kreal
+totalE = 0.0_kreal
 totalEns = 0.0_kreal
 vortErrorLinf = 0.0_kreal
 vortErrorL2 = 0.0_kreal
@@ -312,8 +312,8 @@ do timeJ = 0, timesteps - 1
 	!
 	!	error calculations
 	!
-	if ( timeJ == 0 ) totalKE(0) = sphere%totalKE
-	totalKE(timeJ+1) = sphere%totalKE
+	if ( timeJ == 0 ) totalE(0) = sphere%totalE
+	totalE(timeJ+1) = sphere%totalE
 	totalEns(timeJ+1) = TotalEnstrophy(sphere)
 
 	t = real(timeJ+1,kreal)*dt
@@ -365,10 +365,10 @@ if ( procRank == 0 ) then
 	if ( writeStat1 /= 0 ) then
 		call LogMessage(exeLog,ERROR_LOGGING_LEVEL,trim(logKey),' ERROR writing final data.')
 	else
-		write(WRITE_UNIT_1,'(4A24)') 'totalKE', 'totalEns', 'vortL2', 'vortLinf'
+		write(WRITE_UNIT_1,'(4A24)') 'totalE', 'totalEns', 'vortL2', 'vortLinf'
 		write(WRITE_UNIT_1,'()') 'finalData = ['
 		do j=0, timesteps
-			write(WRITE_UNIT_1,'(4E24.8, A)') totalKE(j), totalEns(j), vortErrorL2(j), vortErrorLinf(j) ' ; ...'
+			write(WRITE_UNIT_1,'(4E24.8, A)') totalE(j), totalEns(j), vortErrorL2(j), vortErrorLinf(j), ' ; ...'
 		enddo
 		write(WRITE_UNIT_1,'()') '];'
 	endif
@@ -404,7 +404,7 @@ if ( procRank == 0 ) then
 	if (outputContours > 0 ) call Delete(LLOut)
 endif
 call Delete(bveRK4)
-deallocate(totalKE)
+deallocate(totalE)
 deallocate(totalEns)
 deallocate(vortErrorLinf)
 deallocate(vortErrorL2)
