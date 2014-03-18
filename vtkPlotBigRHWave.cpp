@@ -15,6 +15,8 @@
 #include "vtkWindowToImageFilter.h"
 #include "vtkPNGWriter.h"
 #include "vtkScalarsToColors.h"
+#include "vtkMath.h"
+#include "vtkPoints.h"
 #include "ModelLookupTables.h"
 
 #include <iostream>
@@ -253,6 +255,12 @@ int main(){
 	// RENDERING LOOP
 	//
 	cout << "... RENDERING ... \n";
+	vtkPoints* points1 = vtkPoints::New();
+	vtkPoints* points2 = vtkPoints::New();
+	vtkPoints* points3 = vtkPoints::New();
+	vtkPolyData* polydata1 = vtkPolyData::New();
+	vtkPolyData* polydata2 = vtkPolyData::New();
+	vtkPolyData* polydata3 = vtkPolyData::New();
 	int nActive = 0;
 	char titleString[64];
 	for ( int frameJ = 0; frameJ <= finalFrame; frameJ++){
@@ -263,11 +271,42 @@ int main(){
 		textActor1 -> SetInput(titleString);
 		
 		//
-		// read data, send to mappers
+		// read data
 		//
-		sphereMapper1 -> SetInput(relVortData[frameJ] -> GetOutput());
-		sphereMapper2 -> SetInput(meshData[frameJ] -> GetOutput());
-		sphereMapper3 -> SetInput(flowMapData[frameJ] -> GetOutput());
+		polydata1->DeepCopy(relVortData[frameJ]->GetOutput());
+		polydata2->DeepCopy(meshData[frameJ]->GetOutput());
+		polydata3->DeepCopy(flowMapData[frameJ]->GetOutput());
+	
+		points1 = polydata1->GetPoints();
+		points2 = polydata2->GetPoints();
+		points3 = polydata3->GetPoints();
+		
+		//
+		// normalize sphere to fit in single precision OpenGL used by VTK rendering
+		//
+		for ( vtkIdType i = 0; i < polydata1->GetNumberOfPoints(); i++){
+			
+			double xyz[3];
+			double norm;
+			
+			points1->GetPoint(i,xyz);
+			norm = sqrt( xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2]);
+			
+			xyz[0]/=norm;
+			xyz[1]/=norm;
+			xyz[2]/=norm;
+			
+			points1->SetPoint(i,xyz);
+			points2->SetPoint(i,xyz);
+			points3->SetPoint(i,xyz);
+		
+		}
+		polydata1->SetPoints(points1);
+		polydata2->SetPoints(points2);
+		polydata3->SetPoints(points3);
+		sphereMapper1 -> SetInput(polydata1);
+		sphereMapper2 -> SetInput(polydata2);
+		sphereMapper3 -> SetInput(polydata3);
 		
 		//
 		// render
@@ -304,6 +343,12 @@ int main(){
 	//
 	// clean up / free memory
 	//
+	polydata1->Delete();
+	polydata2->Delete();
+	polydata3->Delete();
+	points1->Delete();
+	points2->Delete();
+	points3->Delete();
 	win2im->Delete();
 	writer->Delete();
 	renWin->Delete();
