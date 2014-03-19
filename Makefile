@@ -129,6 +129,7 @@ BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
 ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
 LatLonOutput.o: LatLonOutput.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 SWEDirectSum.o: SWEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
+SWEVorticityAndDivergence.o: SWEVorticityAndDivergence.f90 $(BASE_OBJS) $(MESH_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES
