@@ -73,7 +73,7 @@ subroutine NewPrivate(self, nInt, nReal)
 	endif
 	if ( nReal > 0 ) then
 		allocate(self%reals(nReal))
-		self%real = 0.0_kreal
+		self%reals = 0.0_kreal
 	else
 		nullify(self%reals)
 	endif
