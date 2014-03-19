@@ -68,7 +68,7 @@ mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o
 INTERP_OBJS = $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 OUTPUT_OBJS = VTKOutput.o LatLonOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
-TEST_CASE_OBJS = Tracers.o BVEVorticity.o
+TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o RefineRemesh2.o
 PLOTTING = ModelLookupTables.o ModelLookupTables.h
@@ -85,6 +85,8 @@ singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS) ReferenceSphe
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
 rossbyHaurwitz4waveMPI.exe: BVERH4.o $(BVE_OBJS) ReferenceSphere.o	 
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
+sweTestCase2MPI.exe: SWETestCase2.o $(SWE_OBJS)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showmw:link` $(MKL_COMPILE)	
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################
@@ -92,6 +94,7 @@ TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)
 BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) ReferenceSphere.o
 BVERH4.o: BVERH4.f90 $(BVE_OBJS) ReferenceSphere.o
+SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 
 #############################################################
 ## UNIT TEST EXECUTABLES

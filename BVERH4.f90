@@ -473,7 +473,7 @@ subroutine InitLogger(alog,rank)
 	else
 		call New(aLog,DEBUG_LOGGING_LEVEL)
 	endif
-        write(logKey,'(A,I0.2,A)') 'EXE_LOG',procRank,' : '
+        write(logKey,'(A,I0.2,A)') 'EXE_LOG',rank,' : '
 end subroutine
 
 
