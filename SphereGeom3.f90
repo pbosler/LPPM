@@ -380,6 +380,18 @@ function RandomSpherePoint()
 	RandomSpherePoint = RandomSpherePoint/sqrt(sum(RandomSpherePoint*RandomSpherePoint))*EARTH_RADIUS
 end function
 
+subroutine NormalizePositionVectors(xyz)
+	real(kreal), intent(inout) :: xyz(:,:)
+	integer(kint) :: j, n
+!	real(kreal) :: norm
+	if ( size(xyz,1) /= 3) stop 'ERROR : position vector array shape error.'
+	n = size(xyz,2)
+	do j=1,n
+		xyz(:,j) = xyz(:,j)/(sqrt(sum(xyz(:,j)*xyz(:,j))))*EARTH_RADIUS
+	enddo
+end subroutine
+
+
 !function NorthPoleRotationMatrix(xyz)
 !! returns a rotation matrix R so that R*x = (0,0,1)^T
 !	real(kreal) :: NorthPoleRotationMatrix(3,3)

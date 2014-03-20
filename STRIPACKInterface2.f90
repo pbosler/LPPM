@@ -27,6 +27,7 @@ private
 public STRIPACKData
 public New, Delete
 public DelaunayTriangulation
+public UpdateNodePositions
 
 !
 !----------------
@@ -230,6 +231,31 @@ subroutine DelaunayTriangulation(self)
 	deallocate(next)
 	deallocate(dist)
 end subroutine
+
+subroutine UpdateNodePositions(self, newParticlesX, newactivePanelsX)
+	type(STRIPACKData), intent(inout) :: self
+	real(kreal), intent(in) :: newParticlesX(:,:), newActivePanelsX(:,:)
+	!
+	integer(kint) :: j, nActive
+	real(kreal) :: norm
+	
+	!  Get STRIPACK Delauanay source data from SphereMesh
+	!	Renormalize input to unit sphere for STRIPACK
+	nActive = self%activePanels%N_active
+	do j=1,nActive
+		norm = sqrt(sum(newactivePanelsx(:,j)*newActivePanelsX(:,j)))
+		self%x(j) = newActivePanelsX(1,j)/norm
+		self%y(j) = newActivePanelsX(2,j)/norm
+		self%z(j) = newActivePanelsX(3,j)/norm
+	enddo
+	do j=1,self%particles%N
+		norm = sqrt(sum(newParticlesX(:,j)*newParticlesX(:,j)))
+		self%x(nActive+j) = newParticlesX(1,j)/norm
+		self%y(nActive+j) = newParticlesX(2,j)/norm
+		self%z(nActive+j) = newParticlesX(3,j)/norm
+	enddo
+end subroutine
+
 
 !
 !----------------

@@ -1,0 +1,22 @@
+& sphereDefine
+	panelKind = 4
+	initNest = 5
+	AMR = 0	
+/
+
+& testCaseDefine
+	u0 = 38.727223021446406
+	rotAlpha = 0.0
+	h0 = 2998.115470275827
+/
+
+& timeStepping
+	tfinal = 0.10		! days 
+	dt = 0.01			! days 
+/
+
+& fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'swe_test2_'
+	frameOut = 1
+/

@@ -113,7 +113,10 @@ subroutine NewPrivate(self,aMesh,filename,title)
 	endif
 	if ( associated(aPanels%absVort) ) self%nScalars = self%nScalars+1
 	if ( associated(aPanels%relVort) ) self%nScalars = self%nScalars+1
+	if ( associated(aPanels%potVort) ) self%nScalars = self%nScalars+1
+	if ( associated(aPanels%h) ) self%nScalars = self%nScalars+1
 	if ( associated(aPanels%ke)) self%nScalars = self%nScalars+1
+	if ( associated(aPanels%div) ) self%nScalars = self%nScalars+1
 	self%nScalars = self%nScalars + GetNTracer(aPanels)
 end subroutine
 
@@ -223,7 +226,7 @@ subroutine vtkOutput(self,aMesh)
 				endif
 			enddo
 		endif
-		if ( associated(aPanels%absVort)) then
+		if ( associated(aPanels%relVort)) then
 			dataString = 'SCALARS  RelVort  double 1'
 			write(WRITE_UNIT_1,'(A)') dataString
 			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
@@ -233,6 +236,48 @@ subroutine vtkOutput(self,aMesh)
 			do j=1,aPanels%N
 				if ( .NOT. aPanels%hasChildren(j)) then
 					write(WRITE_UNIT_1,'(F24.15)') aPanels%relVort(j)
+				endif
+			enddo
+		endif
+		
+		if ( associated(aPanels%potVort)) then
+			dataString = 'SCALARS  PotVort  double 1'
+			write(WRITE_UNIT_1,'(A)') dataString
+			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+			do j=1,aParticles%N
+				write(WRITE_UNIT_1,'(F24.15)') aParticles%potVort(j)
+			enddo
+			do j=1,aPanels%N
+				if ( .NOT. aPanels%hasChildren(j)) then
+					write(WRITE_UNIT_1,'(F24.15)') aPanels%potVort(j)
+				endif
+			enddo
+		endif
+		
+		if ( associated(aPanels%h)) then
+			dataString = 'SCALARS  h  double 1'
+			write(WRITE_UNIT_1,'(A)') dataString
+			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+			do j=1,aParticles%N
+				write(WRITE_UNIT_1,'(F24.15)') aParticles%h(j)
+			enddo
+			do j=1,aPanels%N
+				if ( .NOT. aPanels%hasChildren(j)) then
+					write(WRITE_UNIT_1,'(F24.15)') aPanels%h(j)
+				endif
+			enddo
+		endif
+		
+		if ( associated(aPanels%div)) then
+			dataString = 'SCALARS  div  double 1'
+			write(WRITE_UNIT_1,'(A)') dataString
+			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+			do j=1,aParticles%N
+				write(WRITE_UNIT_1,'(F24.15)') aParticles%div(j)
+			enddo
+			do j=1,aPanels%N
+				if ( .NOT. aPanels%hasChildren(j)) then
+					write(WRITE_UNIT_1,'(F24.15)') aPanels%div(j)
 				endif
 			enddo
 		endif

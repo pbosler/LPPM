@@ -270,7 +270,7 @@ subroutine NewPrivate(self, aMesh, nProcs)
 	allocate(self%thicknessSource1)
 	call New(self%thicknessSource1,self%delTri,.FALSE.)
 	allocate(self%thicknessSource2)
-	call New(self%thicknessSource2,self%delTri,.FALSE.)
+	call New(self%thicknessSource2,self%delTri,.TRUE.)
 
 	!
 	! allocate RK4 variables
@@ -512,6 +512,9 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	self%activePanelsAreaInput = self%activePanels%area
 	
 	self%passivePanelsInput = self%passivePanels%x
+	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 1 ready.')
+	
 	!
 	! PARALLEL : compute particle velocities
 	!
@@ -524,6 +527,7 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	call SWEVelocitySmooth(self%passivePanelsStage1, self%passivePanelsInput, self%activePanelsInput, &
 				self%activePanelsRelVortInput, self%activePanelsDivInput, self%activePanelsAreaInput, &
 				self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank))
+	
 	!
 	! broadcast velocities (complete set needed for divergence equation)
 	!			
@@ -535,12 +539,14 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%passivePanelsStage1(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 					   3*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)			   
 	enddo
+	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 1 velocity done.')			
 	!
 	! END PARALLEL
 	!
 	call SetSourceVelocity(self%velocitySource, self%delTri, self%particlesVelocity, self%activePanelsVelocity)
 	call SetSourceH(self%thicknessSource1, self%delTri, self%particlesHInput, self%activePanelsHInput)
-	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage1 derivative sources ready.')
 	!
 	! PARALLEL : compute divergence equation forcing terms
 	!
@@ -597,6 +603,7 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%activePanelsAreaStage1(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)												
 	enddo
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 1 data done.')			
 	!
 	! END PARALLEL
 	!
@@ -642,7 +649,8 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	self%activePanelsAreaInput = self%activePanels%area + 0.5_kreal*self%activePanelsAreaStage1
 	
 	self%passivePanelsInput = self%passivePanels%x + 0.5_kreal*self%passivePanelsStage1
-	
+
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 2 ready.')
 	!
 	! PARALLEL : compute particle velocities
 	!
@@ -666,10 +674,11 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%passivePanelsStage2(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 					   3*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)			   
 	enddo
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 2 velocity done.')
 	!
 	! END PARALLEL
 	!
-	
+	call UpdateNodePositions(self%delTri, self%particlesInput, self%activePanelsInput)
 	call SetSourceVelocity(self%velocitySource, self%delTri, self%particlesVelocity, self%activePanelsVelocity)
 	call SetSourceH(self%thicknessSource1, self%delTri, self%particlesHInput, self%activePanelsHInput)
 	
@@ -725,6 +734,7 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%activePanelsAreaStage2(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)												
 	enddo
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 2 data done.')
 	!
 	! END PARALLEL
 	!
@@ -758,7 +768,7 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	self%activePanelsAreaINput = self%activePanels%area + 0.5_kreal*self%activePanelsAreaStage2
 	
 	self%passivePanelsInput = self%passivePanels%x + 0.5_kreal*self%passivePanelsStage2
-	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 3 ready.')
 	!
 	! PARALLEL : compute particle velocities
 	!
@@ -782,10 +792,11 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%passivePanelsStage3(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 					   3*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)			   
 	enddo
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 3 velocity done.')
 	!
 	! END PARALLEL
 	!
-	
+	call UpdateNodePositions(self%delTri, self%particlesInput, self%activePanelsInput)
 	call SetSourceVelocity(self%velocitySource, self%delTri, self%particlesVelocity, self%activePanelsVelocity)
 	call SetSourceH(self%thicknessSource1, self%delTri, self%particlesHInput, self%activePanelsHInput)
 	
@@ -841,6 +852,7 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%activePanelsAreaStage3(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)												
 	enddo
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 3 data done.')
 	!
 	! END PARALLEL
 	!	
@@ -875,7 +887,7 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 	self%activePanelsAreaInput = self%activePanels%area + self%activePanelsAreaStage3
 	
 	self%passivePanelsInput = self%passivePanels%x + self%passivePanelsStage3
-	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 4 ready.')
 	!
 	! PARALLEL : compute particle velocities
 	!
@@ -899,10 +911,11 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%passivePanelsStage4(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 					   3*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)			   
 	enddo
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 4 velocity done.')
 	!
 	! END PARALLEL
 	!
-	
+	call UpdateNodePositions(self%delTri, self%particlesInput, self%activePanelsInput)
 	call SetSourceVelocity(self%velocitySource, self%delTri, self%particlesVelocity, self%activePanelsVelocity)
 	call SetSourceH(self%thicknessSource1, self%delTri, self%particlesHInput, self%activePanelsHInput)
 	
@@ -958,6 +971,7 @@ subroutine SWERK4Timestep(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST(self%activePanelsAreaStage4(self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 						self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)												
 	enddo
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'stage 4 data done.')
 	!
 	! END PARALLEL
 	!
@@ -1031,6 +1045,9 @@ end subroutine
 !
 subroutine ZeroRK4(self)
 	type(SWERK4Data), intent(inout) :: self
+	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering ZeroRK4.')
+	
 	self%particlesInput = 0.0_kreal
 	self%particlesStage1 = 0.0_kreal
 	self%particlesStage2 = 0.0_kreal
@@ -1118,6 +1135,8 @@ subroutine ComputeDoubleDotU(ddU, delTri, velocitySource1, indexStart, indexEnd)
 	!
 	integer(kint) :: j, errCode
 	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering ComputeDoubleDotU.')			
+	
 	do j=indexStart, indexEnd
 		ddU(j) = velocitySource1%grad1(1,j)*velocitySource1%grad1(1,j) + &
 				 velocitySource1%grad2(2,j)*velocitySource1%grad2(2,j) + &
@@ -1135,6 +1154,8 @@ subroutine ComputeLaplacianH(lapH, delTri, hSource1, hsource2, indexStart, index
 	integer(kint), intent(in) :: indexStart, indexEnd
 	!
 	integer(kint) :: j, errCode
+	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering ComputeLaplacianH.')			
 	
 	do j=1, delTri%n
 		hSource2%data1(j) = hSource1%grad1(1,j)

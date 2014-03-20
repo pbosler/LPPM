@@ -10,8 +10,8 @@ ifeq ($(MACHINE),'FERRARI')
 #----------------#
 # FERRARI LAPTOP #	
   FF=ifort
-  FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-  #FF_FLAGS= -O2 -openmp -warn all
+  #FF_FLAGS=-O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  FF_FLAGS= -O2 -openmp -warn all
   VTK_INCLUDE=/usr/local/include/vtk-5.8
   VTK_LIB_DIR=/usr/local/lib/vtk-5.8
   MKLROOT=/opt/intel/mkl
@@ -72,7 +72,7 @@ TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o RefineRemesh2.o
 PLOTTING = ModelLookupTables.o ModelLookupTables.h
-SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o RefineRemesh2.o
+SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o RefineRemesh2.o $(TEST_CASE_OBJS)
 
 #############################################################
 ## LPPM MODEL RUNS
@@ -86,7 +86,7 @@ singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS) ReferenceSphe
 rossbyHaurwitz4waveMPI.exe: BVERH4.o $(BVE_OBJS) ReferenceSphere.o	 
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
 sweTestCase2MPI.exe: SWETestCase2.o $(SWE_OBJS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showmw:link` $(MKL_COMPILE)	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)	
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################

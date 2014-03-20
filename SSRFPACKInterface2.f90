@@ -81,7 +81,7 @@ end interface
 logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
 character(len=28) :: logKey = 'SSRFPACK'
-integer(kint), parameter :: logLevel = TRACE_LOGGING_LEVEL
+integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
 character(len=28) :: formatString
 character(len=128) :: logString
 !
@@ -344,6 +344,8 @@ subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, activePa
 	nActive = delTri%activePanels%N_Active
 	nParticles = delTri%particles%N
 	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering SetSourceVelocityFromArrays...')
+	
 	do j=1, nActive
 		self%data1(j) = activePanelsVelocity(1,j)
 		self%data2(j) = activePanelsVelocity(2,j)
@@ -356,6 +358,8 @@ subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, activePa
 		self%data3(nActive + j) = particlesVelocity(3,j)
 	enddo
 	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'...velocity data copied. estimating gradients.')
+	
 	do j=1, delTri%n
 		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
 				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
@@ -365,19 +369,21 @@ subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, activePa
 				   delTri%list,delTri%lptr,delTri%lend,self%grad3(:,j),errCode)
 	enddo
 	
-	! Determine smoothing factors at each Delaunay node
-	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
-				delTri%list,delTri%lptr,delTri%lend,&
-			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
-	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig u = ',self%dSig1)
-	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data2,&
-				delTri%list,delTri%lptr,delTri%lend,&
-			    self%grad2,self%sigmaTol,self%sigma2,self%dSig2,errCode)
-	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig v = ',self%dSig2)
-	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data3,&
-				delTri%list,delTri%lptr,delTri%lend,&
-			    self%grad3,self%sigmaTol,self%sigma3,self%dSig3,errCode)
-	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig w = ',self%dSig3)
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'...gradients done.')
+	
+! Determine smoothing factors at each Delaunay node
+!	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
+!				delTri%list,delTri%lptr,delTri%lend,&
+!			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
+!	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig u = ',self%dSig1)
+!	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data2,&
+!				delTri%list,delTri%lptr,delTri%lend,&
+!			    self%grad2,self%sigmaTol,self%sigma2,self%dSig2,errCode)
+!	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig v = ',self%dSig2)
+!	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data3,&
+!				delTri%list,delTri%lptr,delTri%lend,&
+!			    self%grad3,self%sigmaTol,self%sigma3,self%dSig3,errCode)
+!	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig w = ',self%dSig3)
 end subroutine
 
 subroutine SetSourceHFromArrays(self, delTri, particlesH, activePanelsH)
@@ -389,6 +395,7 @@ subroutine SetSourceHFromArrays(self, delTri, particlesH, activePanelsH)
 	
 	nActive = delTri%activePanels%N_Active
 	nParticles = delTri%particles%N
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering SetSourceHFromArrays.')
 	
 	do j=1, nActive
 		self%data1(j) = activePanelsH(j)
@@ -397,12 +404,12 @@ subroutine SetSourceHFromArrays(self, delTri, particlesH, activePanelsH)
 	do j=1, nParticles
 		self%data1(nActive + j) = particlesH(j)
 	enddo
-	
+		call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'...h data copied. estimating gradients.')
 	do j=1, delTri%n
 		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
 				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
 	enddo
-	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'...gradients done. finding smoothing factors.')
 	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
 				delTri%list,delTri%lptr,delTri%lend,&
 			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)

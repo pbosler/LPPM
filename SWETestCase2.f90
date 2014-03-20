@@ -93,7 +93,7 @@ real(kreal) :: wallClock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 call MPI_INIT(errCode)
 call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcs,errCode)
-call MPI_COMM_RANK(MPI_COMM_WORLD,procRank,erCode)
+call MPI_COMM_RANK(MPI_COMM_WORLD,procRank,errCode)
 
 call InitLogger(exeLog,procRank)
 
@@ -102,7 +102,7 @@ wallClock = MPI_WTIME()
 !
 !	read user input from namelist file, set starting state
 !
-call ReadNamelistFile(procRank)
+call ReadNamelistInputFile(procRank)
 call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logkey,' initial broadcast done.')
 
 !
@@ -171,7 +171,7 @@ do timeJ = 0, timesteps-1
 	! output timestep data
 	!
 	if ( procRank == 0 .AND. mod(timeJ+1,frameOut) == 0 ) then
-		call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONEDAY)
+		call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONE_DAY)
 		
 		write(vtkFile,'(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
 		call UpdateFileName(vtkOut,vtkFile)
@@ -189,7 +189,7 @@ if (procRank == 0 ) call Delete(vtkOut)
 call Delete(sphere)
 call Delete(testCase2)
 call Delete(exeLog)
-call MPI_FINALIZE(mpiErrCode)
+call MPI_FINALIZE(ErrCode)
 
 contains
 
