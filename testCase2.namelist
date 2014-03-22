@@ -11,8 +11,8 @@
 /
 
 & timeStepping
-	tfinal = 0.10		! days 
-	dt = 0.01			! days 
+	tfinal = 1.0		! days 
+	dt = 0.001			! days 
 /
 
 & fileIO

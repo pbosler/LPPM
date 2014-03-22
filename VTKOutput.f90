@@ -32,8 +32,8 @@ type VTKSource
 	character(len = 256) :: filename
 	character(len = 128) :: title
 	integer(kint) :: nScalars, &
-				     nPoints, & 
-				     nCells, & 
+				     nPoints, &
+				     nCells, &
 				     cellListSize
 end type
 !
@@ -84,7 +84,7 @@ subroutine NewPrivate(self,aMesh,filename,title)
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j, panelKind
 	integer(kint) :: edgeList(8), vertList(8), nVerts
-	
+
 	aParticles=>aMesh%particles
 	anEdges=>aMesh%edges
 	aPanels=>aMesh%panels
@@ -93,9 +93,9 @@ subroutine NewPrivate(self,aMesh,filename,title)
 	self%nPoints = aParticles%N + aPanels%N_Active
 	self%nCells = 0
 	self%cellListSize = 0
-	
+
 	panelKind = GetPanelKind(aPanels)
-	
+
 	! Count number of subtriangles
 	do j=1,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
@@ -104,7 +104,7 @@ subroutine NewPrivate(self,aMesh,filename,title)
 			self%cellListSize = self%cellListSize + 4*nVerts
 		endif
 	enddo
-	
+
 	self%filename = filename
 	if ( present(title) ) then
 		self%title = title
@@ -150,6 +150,7 @@ subroutine vtkOutput(self,aMesh)
 	type(Panels), pointer :: aPanels
 	integer(kint) :: edgeList(8), vertList(8), nVerts, panelKind, panelK, nTracer
 	character(len=28) :: dataString
+	real(kreal), allocatable :: tempArea(:)
 
 	open(unit = WRITE_UNIT_1,file=self%filename,status='REPLACE',action='WRITE',iostat=writeStat)
 	if ( writeStat /= 0 ) then
@@ -239,7 +240,7 @@ subroutine vtkOutput(self,aMesh)
 				endif
 			enddo
 		endif
-		
+
 		if ( associated(aPanels%potVort)) then
 			dataString = 'SCALARS  PotVort  double 1'
 			write(WRITE_UNIT_1,'(A)') dataString
@@ -252,8 +253,30 @@ subroutine vtkOutput(self,aMesh)
 					write(WRITE_UNIT_1,'(F24.15)') aPanels%potVort(j)
 				endif
 			enddo
+			allocate(tempArea(aParticles%N))
+			tempArea = 0.0_kreal
+			do j=1,aPanels%N
+				if (.NOT. aPanels%hasChildren(j) ) then
+					call CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,aMesh,j)
+					do k=1,nVerts
+						tempArea(vertList(k)) = aPanels%area(j)
+					enddo
+				endif
+			enddo
+			dataString = 'SCALARS Area double 1'
+			write(WRITE_UNIT_1,'(A)') dataString
+			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+			do j=1,aParticles%N
+				write(WRITE_UNIT_1,'(F24.5)') tempArea(j)
+			enddo
+			do j=1,aPanels%N
+				if ( .NOT. aPanels%hasChildren(j)) then
+					write(WRITE_UNIT_1,'(F24.5)') aPanels%area(j)
+				endif
+			enddo
+			deallocate(tempArea)
 		endif
-		
+
 		if ( associated(aPanels%h)) then
 			dataString = 'SCALARS  h  double 1'
 			write(WRITE_UNIT_1,'(A)') dataString
@@ -267,7 +290,7 @@ subroutine vtkOutput(self,aMesh)
 				endif
 			enddo
 		endif
-		
+
 		if ( associated(aPanels%div)) then
 			dataString = 'SCALARS  div  double 1'
 			write(WRITE_UNIT_1,'(A)') dataString
@@ -281,7 +304,7 @@ subroutine vtkOutput(self,aMesh)
 				endif
 			enddo
 		endif
-		
+
 		if ( associated(aPanels%ke)) then
 			dataString = 'SCALARS KE double 1'
 			write(WRITE_UNIT_1,'(A)') datastring

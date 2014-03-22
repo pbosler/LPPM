@@ -11,7 +11,7 @@ program NonlinearSteadySWE
 !
 !	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!	Williamson, D.L. et al, "A standard test set for numerical approximations to the shallow water equations in 
+!	Williamson, D.L. et al, "A standard test set for numerical approximations to the shallow water equations in
 !		spherical geometry." J. Comp. Phys., 102:211-224, 1992.
 !
 !----------------
@@ -114,7 +114,7 @@ call InitNonlinearSteadyStateTC2(testCase2, u0, rotAlpha, h0)
 !
 ! initialize sphere
 !
-nTracer = 1
+nTracer = 4
 problemKind = SWE_SOLVER
 call New(sphere,panelKind,initNest,AMR,nTracer,problemKind)
 call SetFlowMapLatitudeTracerOnMesh(sphere,1)
@@ -127,7 +127,7 @@ else
 	if ( procRank == 0 .AND. panelKind == QUAD_PANEL ) then
 		write(amrString, '(A,I1,A)') 'quadUnif',initNest,'_'
 	endif
-endif	
+endif
 
 !
 ! initialize output, output t=0 data
@@ -137,7 +137,7 @@ if ( procRank == 0 ) then
 	call LogStats(sphere,exeLog,'initial mesh :')
 	write(vtkRoot,'(A,A,A,A)') trim(outputDir),'/vtkOut/',trim(jobPrefix),trim(amrString)
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),frameCounter,'.vtk'
-	
+
 	call New(vtkOut,sphere,vtkFile,'SWE test case 2')
 	call VTKOutput(vtkOut,sphere)
 	frameCounter = frameCounter + 1
@@ -155,28 +155,28 @@ t = 0.0_kreal
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 do timeJ = 0, timesteps-1
 	! TO DO : remeshing for SWE
-	
+
 	!
 	! increment time
 	!
 	call SWERK4Timestep(sweRK4, sphere, dt, procRank, numProcs)
-	
+
 	!
 	! TO DO : error calculation
 	!
-	
+
 	t = real(timeJ+1,kreal)*dt
-	
+
 	!
 	! output timestep data
 	!
 	if ( procRank == 0 .AND. mod(timeJ+1,frameOut) == 0 ) then
 		call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'day = ',t/ONE_DAY)
-		
+
 		write(vtkFile,'(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
 		call UpdateFileName(vtkOut,vtkFile)
 		call VTKOutput(vtkOut,sphere)
-		
+
 		frameCounter = frameCounter + 1
 	endif
 enddo
@@ -184,6 +184,10 @@ enddo
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	Clear memory and Finalize
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
+call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
+
 call Delete(sweRK4)
 if (procRank == 0 ) call Delete(vtkOut)
 call Delete(sphere)
@@ -207,23 +211,23 @@ subroutine ReadNamelistInputFile(rank)
 		read(READ_UNIT,nml=timestepping)
 		rewind(READ_UNIT)
 		read(READ_UNIT,nml=fileIO)
-		
+
 		broadcastIntegers(1) = panelKind
 		broadcastIntegers(2) = initNest
 		broadcastIntegers(3) = AMR
-		
+
 		broadcastReals(1) = u0
 		broadcastReals(2) = rotAlpha
 		broadcastReals(3) = h0
 		broadcastReals(4) = tfinal
 		broadcastReals(5) = dt
 	endif
-	
+
 	call MPI_BCAST(broadcastIntegers, BROADCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, errCode)
 	panelKind = broadcastIntegers(1)
 	initNest = broadcastIntegers(2)
 	AMR = broadcastIntegers(3)
-	
+
 	call MPI_BCAST(broadcastReals, BROADCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, errCode)
 	u0 = broadcastReals(1)
 	rotAlpha = broadcastReals(2)

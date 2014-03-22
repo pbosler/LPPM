@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-MACHINE='FERRARI'
-#MACHINE='TANK'
+#MACHINE='FERRARI'
+MACHINE='TANK'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -31,7 +31,7 @@ else ifeq ($(MACHINE),'TANK')
 #--------------#
 # TANK DESKTOP #
   FF=ifort
-  #FF_FLAGS=-g -traceback -warn all -debug extended
+  #FF_FLAGS=-g -traceback -warn all -debug extended -check bounds -check pointers -check uninit -traceback
   FF_FLAGS=-O2 -warn all -opt-report 1
   VTK_INCLUDE=/usr/local/include/vtk-5.10
   VTK_LIB_DIR=/usr/local/lib/vtk-5.10

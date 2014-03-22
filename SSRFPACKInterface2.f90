@@ -81,7 +81,7 @@ end interface
 logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
 character(len=28) :: logKey = 'SSRFPACK'
-integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
+integer(kint), parameter :: logLevel = TRACE_LOGGING_LEVEL
 character(len=28) :: formatString
 character(len=128) :: logString
 !
@@ -318,7 +318,7 @@ subroutine SetSourceVelocityFromMeshData(self,delTri)
 		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data3,&
 				   delTri%list,delTri%lptr,delTri%lend,self%grad3(:,j),errCode)
 	enddo
-	
+
 	! Determine smoothing factors at each Delaunay node
 	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
 				delTri%list,delTri%lptr,delTri%lend,&
@@ -334,32 +334,30 @@ subroutine SetSourceVelocityFromMeshData(self,delTri)
 	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig w = ',self%dSig3)
 end subroutine
 
-subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, activePanelsVelocity)
+subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, nParticles, activePanelsVelocity, nActive)
 	type(SSRFPACKData), intent(inout) :: self
 	type(STRIPACKData), intent(in) :: delTri
 	real(kreal), intent(in) :: particlesVelocity(:,:), activePanelsVelocity(:,:)
+	integer(kint), intent(in) :: nParticles, nActive
 	!
-	integer(kint) :: j, nActive, nParticles, errCode
-	
-	nActive = delTri%activePanels%N_Active
-	nParticles = delTri%particles%N
-	
+	integer(kint) :: j, errCode
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering SetSourceVelocityFromArrays...')
-	
+
 	do j=1, nActive
 		self%data1(j) = activePanelsVelocity(1,j)
 		self%data2(j) = activePanelsVelocity(2,j)
 		self%data3(j) = activePanelsVelocity(3,j)
 	enddo
-	
+
 	do j=1, nParticles
 		self%data1(nActive + j) = particlesVelocity(1,j)
 		self%data2(nActive + j) = particlesVelocity(2,j)
 		self%data3(nActive + j) = particlesVelocity(3,j)
 	enddo
-	
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'...velocity data copied. estimating gradients.')
-	
+
 	do j=1, delTri%n
 		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
 				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
@@ -368,9 +366,9 @@ subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, activePa
 		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data3,&
 				   delTri%list,delTri%lptr,delTri%lend,self%grad3(:,j),errCode)
 	enddo
-	
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'...gradients done.')
-	
+
 ! Determine smoothing factors at each Delaunay node
 !	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
 !				delTri%list,delTri%lptr,delTri%lend,&
@@ -386,21 +384,20 @@ subroutine SetSourceVelocityFromArrays(self, delTri, particlesVelocity, activePa
 !	if ( procRank == 0 ) call LogMessage(log,DEBUG_LOGGING_LEVEL,'SSRFPACK : dSig w = ',self%dSig3)
 end subroutine
 
-subroutine SetSourceHFromArrays(self, delTri, particlesH, activePanelsH)
+subroutine SetSourceHFromArrays(self, delTri, particlesH, nParticles, activePanelsH, nActive)
 	type(SSRFPACKData), intent(inout) :: self
 	type(STRIPACKData), intent(in) :: delTri
 	real(kreal), intent(in) :: particlesH(:), activePanelsH(:)
+	integer(kint), intent(in) :: nParticles, nActive
 	!
-	integer(kint) :: j, nActive, nParticles, errCode
-	
-	nActive = delTri%activePanels%N_Active
-	nParticles = delTri%particles%N
+	integer(kint) :: j, errCode
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering SetSourceHFromArrays.')
-	
+
 	do j=1, nActive
 		self%data1(j) = activePanelsH(j)
 	enddo
-	
+
 	do j=1, nParticles
 		self%data1(nActive + j) = particlesH(j)
 	enddo

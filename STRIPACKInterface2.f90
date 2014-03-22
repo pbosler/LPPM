@@ -70,6 +70,7 @@ character(len=128) :: logString
 !
 interface New
 	module procedure NewPrivate
+	module procedure NewFromArrays
 end interface
 
 interface Delete
@@ -162,6 +163,49 @@ subroutine NewPrivate(self,aMesh)
 	nullify(aPanels)
 end subroutine
 
+subroutine NewFromArrays(self,particlesX, nParticles, activePanelsX, nActive)
+	type(STRIPACKData), intent(out) :: self
+	real(kreal), intent(in) :: particlesX(:,:), activePanelsX(:,:)
+	integer(kint), intent(in) :: nParticles, nActive
+	!
+	integer(kint) :: j, n
+	real(kreal) :: norm
+	n = nParticles + nActive
+	self%n = n
+
+	! Allocate Delaunay triangulation data arrays
+	allocate(self%x(n))
+	self%x = 0.0_kreal
+	allocate(self%y(n))
+	self%y = 0.0_kreal
+	allocate(self%z(n))
+	self%z = 0.0_kreal
+	allocate(self%lend(n))
+	self%lend = 0
+	allocate(self%list(6*n-12))
+	self%list = 0
+	allocate(self%lptr(6*n-12))
+	self%lptr = 0
+	self%memoryReady = .TRUE.
+
+	!	Renormalize input to unit sphere for STRIPACK
+	do j=1,nActive
+		norm = sqrt(sum( activePanelsX(:,j)*activePanelsX(:,j)))
+		self%x(j) = activePanelsX(1,j) / norm
+		self%y(j) = activePanelsX(2,j) / norm
+		self%z(j) = activePanelsX(3,j) / norm
+	enddo
+	do j=1,nParticles
+		norm = sqrt(sum( particlesX(:,j)*particlesX(:,j)))
+		self%x(nActive + j) = particlesX(1,j)/norm
+		self%y(nActive + j) = particlesX(2,j)/norm
+		self%z(nActive + j) = particlesX(3,j)/norm
+	enddo
+
+	call DelaunayTriangulation(self)
+
+end subroutine
+
 subroutine DeletePrivate(self)
 !	Free memory associated with an instance of STRIPACKData
 	type(STRIPACKData), intent(inout) :: self
@@ -171,8 +215,8 @@ subroutine DeletePrivate(self)
 	deallocate(self%list)
 	deallocate(self%lptr)
 	deallocate(self%lend)
-	deallocate(self%activeMap)
-	call Delete(self%activePanels)
+	if ( associated(self%activeMap)) deallocate(self%activeMap)
+	if ( associated(self%activePanels)) call Delete(self%activePanels)
 	nullify(self%activePanels)
 	nullify(self%particles)
 	self%memoryReady = .FALSE.
@@ -198,7 +242,7 @@ subroutine DelaunayTriangulation(self)
 		return
 	endif
 
-	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,' Entering DelaunayTriangulation.')
+	!call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,' Entering DelaunayTriangulation.')
 
 	! Allocate STRIPACK TRMESH working arrays
 	allocate(near(self%n))
@@ -224,7 +268,7 @@ subroutine DelaunayTriangulation(self)
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'TRMESH ERROR :',logString)
 	endif
 
-	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,' TRMESH complete.')
+	!call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,' TRMESH complete.')
 
 	! delete working arrays
 	deallocate(near)
@@ -232,28 +276,29 @@ subroutine DelaunayTriangulation(self)
 	deallocate(dist)
 end subroutine
 
-subroutine UpdateNodePositions(self, newParticlesX, newactivePanelsX)
+subroutine UpdateNodePositions(self, newParticlesX, nParticles, newactivePanelsX, nActive)
 	type(STRIPACKData), intent(inout) :: self
 	real(kreal), intent(in) :: newParticlesX(:,:), newActivePanelsX(:,:)
+	integer(kint), intent(in) :: nParticles, nActive
 	!
-	integer(kint) :: j, nActive
+	integer(kint) :: j
 	real(kreal) :: norm
-	
-	!  Get STRIPACK Delauanay source data from SphereMesh
+
 	!	Renormalize input to unit sphere for STRIPACK
-	nActive = self%activePanels%N_active
 	do j=1,nActive
 		norm = sqrt(sum(newactivePanelsx(:,j)*newActivePanelsX(:,j)))
 		self%x(j) = newActivePanelsX(1,j)/norm
 		self%y(j) = newActivePanelsX(2,j)/norm
 		self%z(j) = newActivePanelsX(3,j)/norm
 	enddo
-	do j=1,self%particles%N
+	do j=1,nParticles
 		norm = sqrt(sum(newParticlesX(:,j)*newParticlesX(:,j)))
 		self%x(nActive+j) = newParticlesX(1,j)/norm
 		self%y(nActive+j) = newParticlesX(2,j)/norm
 		self%z(nActive+j) = newParticlesX(3,j)/norm
 	enddo
+
+	call DelaunayTriangulation(self)
 end subroutine
 
 
@@ -266,7 +311,11 @@ subroutine InitLogger(aLog,rank)
 	type(Logger), intent(inout) :: aLog
 	integer(kint), intent(in) :: rank
 	write(logKey,'(A,A,I0.2,A)') trim(logKey),'_',rank,' : '
-	call New(aLog,logLevel)
+	if ( rank == 0 ) then
+		call New(aLog,logLevel)
+	else
+		call New(aLog,WARNING_LOGGING_LEVEL)
+	endif
 	logInit = .TRUE.
 end subroutine
 
