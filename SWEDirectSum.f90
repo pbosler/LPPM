@@ -1171,28 +1171,6 @@ subroutine ZeroRK4(self)
 	self%newPassivePanelsX = 0.0_kreal
 end subroutine
 
-!subroutine ComputeDoubleDotU(ddU, delTri, velocitySource1, indexStart, indexEnd)
-!	real(kreal), intent(out) :: ddU(:)
-!	type(STRIPACKData), intent(in) :: delTri
-!	type(SSRFPACKData), intent(in) :: velocitySource1
-!	integer(kint), intent(in) :: indexStart, indexEnd
-!	!
-!	integer(kint) :: j, errCode
-!
-!	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering ComputeDoubleDotU.')
-!
-!	do j=indexStart, indexEnd
-!		ddU(j) = velocitySource1%grad1(1,j)*velocitySource1%grad1(1,j) + &
-!				 velocitySource1%grad2(2,j)*velocitySource1%grad2(2,j) + &
-!				 velocitySource1%grad3(3,j)*velocitySource1%grad3(3,j) + &
-!				 2.0_kreal*velocitySource1%grad1(2,j)*velocitySource1%grad2(1,j) + &
-!				 2.0_kreal*velocitySource1%grad1(3,j)*velocitySource1%grad3(1,j) + &
-!				 2.0_kreal*velocitySource1%grad2(3,j)*velocitySource1%grad3(2,j)
-!	enddo
-!	call LogMessage(log,DEBUG_LOGGING_LEVEL,'max(ddotU) = ',maxval(ddu))
-!	call LogMessage(log,DEBUG_LOGGING_LEVEL,'min(ddotU) = ',minval(ddu))
-!end subroutine
-
 subroutine ComputeDoubleDotU(particlesDDU, nParticles, activePanelsDDU, nActive, velocitySource)
 	real(kreal), intent(out) :: particlesDDU(:), activePanelsDDU(:)
 	integer(kint), intent(in) :: nParticles, nActive
@@ -1219,6 +1197,106 @@ subroutine ComputeDoubleDotU(particlesDDU, nParticles, activePanelsDDU, nActive,
 	enddo
 	particlesDDU = particlesDDU/EARTH_RADIUS/EARTH_RADIUS
 end subroutine
+
+subroutine ComputeUDotVecLapU(particlesUdotLapU, nParticles, activePanelsUDotLapU, nActive, delTri, velocitySource)
+	real(kreal), intent(out) :: particlesUDotLapU(:), activePanelsUDotLapU(:)
+	integer(kint), intent(in) :: nParticles, nActive
+	type(STRIPACKData), intent(in) :: delTri
+	type(SSRFPACKData), intent(in) :: velocitySource
+	!
+	integer(kint) :: j, errCode
+	real(kreal) :: grad1grad1(3), grad1grad2(3), grad1grad3(3), &
+				   grad2grad1(3), grad2grad2(3), grad2grad3(3), &
+				   grad3grad1(3), grad3grad2(3), grad3grad3(3), &
+				   lapU, lapV, lapW
+
+	do j=1, nActive
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad1(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad1, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad1(2,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad2, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad1(3,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad3, errCode)
+		lapU = grad1grad1(1) + grad1grad2(2) + grad1grad3(3)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad2(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad1, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad2(2,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad2, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad2(3,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad3, errCode)
+		lapV = grad2grad1(1) + grad2grad2(2) + grad2grad3(3)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad3(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad1, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad3(2,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad2, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, velocitySource%grad3(3,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad3, errCode)
+		lapW = grad3grad1(1) + grad3grad2(2) + grad3grad3(3)
+
+		activePanelsUDotLapU(j) = velocitySource%data1(j)*lapU + velocitySource%data2(j)*lapV + velocitySource%data3(j)*lapW
+	enddo
+
+	do j=1,nParticles
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad1(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad1, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad1(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad2, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad1(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad3, errCode)
+		lapU = grad1grad1(1) + grad1grad2(2) + grad1grad3(3)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad2(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad1, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad2(2,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad2, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad2(3,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad3, errCode)
+		lapV = grad2grad1(1) + grad2grad2(2) + grad2grad3(3)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad3(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad1, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad3(2,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad2, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, velocitySource%grad3(3,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad3, errCode)
+		lapW = grad3grad1(1) + grad3grad2(2) + grad3grad3(3)
+
+		particlesUDotLapU(j) = velocitySource%data1(nActive+j)*lapU + velocitySource%data2(nActive+j)*lapV + velocitySource%data3(nActive+j)*lapW
+	enddo
+
+	activePanelsUDotLapU = activePanelsUDotLapU/EARTH_RADIUS/EARTH_RADIUS
+	particlesUDotLapU = particlesUDotLapU/EARTH_RADIUS/EARTH_RADIUS
+end subroutine
+
+subroutine ComputelLaplacianEnergy(particlesLapE, nParticles, activePanelsLapE, nActive, delTri, eSource)
+	real(kreal), intent(out) :: particlesLapE(:), activePanelsLapE(:)
+	integer(kint), intent(in) :: nParticles, nActive
+	type(STRIPACKData), intent(in) :: delTri
+	type(SSRFPACKData), intent(in) :: eSource
+	!
+	real(kreal) :: grad1grad(3), grad2grad(3), grad3grad(3)
+	integer(kint) :: j, errCode
+
+	do j=1,nActive
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, eSource%grad1(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, eSource%grad1(2,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad, errCode)
+		call GRADL(delTri%n, j, delTri%x, delTri%y, delTri%z, eSource%grad1(3,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad, errCode)
+		activePanelsLapE(j) = grad1grad(1) + grad2grad(2) + grad3grad(3)
+	enddo
+	do j=1, nParticles
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, eSource%grad1(1,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad1grad, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, eSource%grad1(2,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad2grad, errCode)
+		call GRADL(delTri%n, nActive + j, delTri%x, delTri%y, delTri%z, eSource%grad1(3,:), &
+			delTri%list, delTri%lptr, delTri%lend, grad3grad, errCode)
+		particlesLapE(j) = grad1grad(1) + grad2grad(2) + grad3grad(3)
+	enddo
+	activePanelsLapE = activePanelsLapE/EARTH_RADIUS/EARTH_RADIUS
+	particlesLapE = particlesLapE/EARTH_RADIUS/EARTH_RADIUS
+end subroutine
+
 
 subroutine ComputeLaplacianH(particlesLapH, nParticles, activePanelsLapH, nActive, delTri, hSource)
 	real(kreal), intent(out) :: particlesLapH(:), activePanelsLapH(:)
