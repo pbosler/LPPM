@@ -1,6 +1,6 @@
 & sphereDefine
 	panelKind = 4
-	initNest = 5
+	initNest = 6
 	AMR = 0	
 /
 
@@ -11,7 +11,7 @@
 /
 
 & timeStepping
-	tfinal = 1.0		! days 
+	tfinal = 0.1		! days 
 	dt = 0.001			! days 
 /
 

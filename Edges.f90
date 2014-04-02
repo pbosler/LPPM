@@ -217,30 +217,30 @@ subroutine LogEdgesStats(self,aLog,message)
 	else
 		call StartSection(aLog,'Edges Stats : ')
 	endif
-	
-	
-	
+
+
+
 	key = 'N = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N)
 	key = 'N_Max = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N_Max)
-	
+
 	lmax = maxval(self%length(1:self%N))
 	lmin = lmax
 	do j=1,self%N
-		if ( self%length(j) > 0.0_kreal .AND. self%length(j) < lmin ) lmin = self%length(j)
+		if ( .NOT. self%hasChildren(j) .AND. self%length(j) < lmin ) lmin = self%length(j)
 	enddo
 	key = 'Max Edge length = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmax)
 	key = 'Min Edge Length = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmin)
-	
+
 	lmax = maxval(self%length0(1:self%N))
 	lmin = lmax
 	do j=1,self%N
-		if ( self%length0(j) > 0.0_kreal .AND. self%length(j) < lmin) lmin = self%length0(j)
+		if ( .NOT. self%hasChildren(j)l .AND. self%length(j) < lmin) lmin = self%length0(j)
 	enddo
-	
+
 	key = 'Max init length = '
 	call LogMessage(alog,TRACE_LOGGING_LEVEL,key, lmax)
 	key = 'Min init length = '
