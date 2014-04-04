@@ -1,11 +1,11 @@
 & sphereDefine
 	panelKind = 4
 	initNest = 5
-	AMR = 0	
+	AMR = 2	
 	refinementLimit = 4
-	circMaxTol = 0.08
-	vortVarTol = 0.4
-	lagVarTol = 1.0
+	circMaxTol = 1.2
+	vortVarTol = 1.2
+	lagVarTol = 1.2
 /
 
 & vorticityDefine
@@ -14,15 +14,15 @@
 /
 
 & timeStepping
-	tfinal = 14.0		! days (test case 6 tfinal = 14)
-	dt = 0.01			! days 
+	tfinal = 4.0		! days (test case 6 tfinal = 14)
+	dt = 0.002			! days 
 	remeshInterval = 10	! timesteps
 	resetAlpha = 4		! remeshings
 /
 
 & fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'rhWave_1dayTest_'
+	jobPrefix = 'rhWave_resetAlphaTest_'
 	frameOut = 4
 	nLon = 360
 	outputContours = 0

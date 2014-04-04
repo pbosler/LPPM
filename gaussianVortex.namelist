@@ -1,6 +1,6 @@
 & sphereDefine
 	panelKind = 4
-	AMR = 0
+	AMR = 3
 	initNest = 5
 	tracerMaxTol = 100000.0
 	tracerVarTol = 100000.0
@@ -19,8 +19,8 @@
 
 & timeStepping
 	tfinal = 1.0		! days
-	dt = 0.01		! days
-	remeshInterval = 20	! timesteps
+	dt = 0.002		! days
+	remeshInterval = 5	! timesteps
 	resetAlpha = 2		! remeshings
 /
 

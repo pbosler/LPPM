@@ -238,7 +238,7 @@ subroutine LogEdgesStats(self,aLog,message)
 	lmax = maxval(self%length0(1:self%N))
 	lmin = lmax
 	do j=1,self%N
-		if ( .NOT. self%hasChildren(j)l .AND. self%length(j) < lmin) lmin = self%length0(j)
+		if ( .NOT. self%hasChildren(j) .AND. self%length(j) < lmin) lmin = self%length0(j)
 	enddo
 
 	key = 'Max init length = '

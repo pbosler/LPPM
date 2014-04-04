@@ -258,7 +258,7 @@ do timeJ = 0, timesteps - 1
 		!
 		! build new mesh
 		!
-		if (remeshCounter <= 1 ) then
+		if (remeshCounter < resetAlpha ) then
 			call LagrangianRemesh(sphere, SetSingleGaussianVortexOnMesh, gaussVort, vortRefine, &
 										  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
 										  flowMapRefine)
@@ -317,9 +317,9 @@ do timeJ = 0, timesteps - 1
 	!	advance timestep
 	!
 	call BVERK4Timestep(bveRK4, sphere, dt, procRank, numProcs)
-	
-	if ( timeJ == 0 ) totalKE(0) = sphere%totalKE
-	totalKE(timeJ+1) = sphere%totalKE
+
+	if ( timeJ == 0 ) totalKE(0) = sphere%totalE
+	totalKE(timeJ+1) = sphere%totalE
 	totalEns(timeJ+1) = TotalEnstrophy(sphere)
 	massIntegral(timeJ+1) = TotalMass(sphere,1)
 
@@ -350,10 +350,10 @@ if ( procRank == 0 ) then
 		write(WRITE_UNIT_1,'(3A24)') 'totalMass', 'totalKE', 'totalEns'
 		do j = 0, timesteps
 			write(WRITE_UNIT_1,'(E24.8,E24.8, E24.8)') massIntegral(j), totalKE(j), totalEns(j)
-		enddo		
+		enddo
 	endif
 	close(WRITE_UNIT_1)
-	
+
 	call New(writer,WRITE_UNIT_2,summaryFile)
 	call StartSection(writer,'JOB SUMMARY :',' SINGLE GAUSSIAN VORTEX')
 	call Write(writer,'tfinal = ',tfinal)
@@ -372,7 +372,7 @@ if ( procRank == 0 ) then
 	else
 		call Write(writer,'uniformMesh, initNest = ', initNest)
 	endif
-	
+
 	call Delete(writer)
 endif
 ! TO DO : output final data
