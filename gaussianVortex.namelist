@@ -26,6 +26,6 @@
 
 & fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'resetAlpha_1dayTest_'
+	jobPrefix = 'resetAlpha_halfdayTest_'
 	frameOut = 1
 /

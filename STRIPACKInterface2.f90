@@ -106,8 +106,9 @@ subroutine NewPrivate(self,aMesh)
 	nTracer = GetNTracer(aPanels)
 	panelKind = GetPanelKind(aPanels)
 	problemKind = GetProblemKind(aPanels)
-
+	!
 	! Allocate Delaunay triangulation data arrays
+	!
 	allocate(self%x(n))
 	self%x = 0.0_kreal
 	allocate(self%y(n))
@@ -136,9 +137,10 @@ subroutine NewPrivate(self,aMesh)
 	passiveMap = 0
 
 	call GatherPanels(aPanels,self%activePanels,self%activeMap,passivePanels,passiveMap)
-
+	!
 	!  Get STRIPACK Delauanay source data from SphereMesh
 	!	Renormalize input to unit sphere for STRIPACK
+	!
 	do j=1,nActive
 		norm = sqrt(sum(self%activePanels%x(:,j)*self%activePanels%x(:,j)))
 		self%x(j) = self%activePanels%x(1,j)/norm
@@ -156,6 +158,9 @@ subroutine NewPrivate(self,aMesh)
 
 	self%memoryReady = .TRUE.
 
+	!
+	! create Delaunay triangulation to use in SSRFPACK interpolation
+	!
 	call DelaunayTriangulation(self)
 
 	call Delete(passivePanels)
