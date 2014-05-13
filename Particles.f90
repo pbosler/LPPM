@@ -119,11 +119,17 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 	!
 	! Allocate data structure, set to zero/null
 	!
-	allocate(self%x(3,nMax))
+	if ( problemKind == PLANE_SOLVER) then
+		allocate(self%x(2,nMax))
+		allocate(self%x0(2,nMax))
+		allocate(self%u(2,nMax))
+	else
+		allocate(self%x(3,nMax))
+		allocate(self%x0(3,nMax))
+		allocate(self%u(3,nMax))
+	endif
 	self%x = 0.0_kreal
-	allocate(self%x0(3,nMax))
 	self%x0 = 0.0_kreal
-	allocate(self%u(3,nMax))
 	self%u = 0.0_kreal
 
 	if ( nTracer > 0 ) then
@@ -140,7 +146,7 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		nullify(self%h)
 		nullify(self%div)
 		nullify(self%ke)
-	elseif (problemKind == BVE_SOLVER) then
+	elseif (problemKind == BVE_SOLVER .OR. problemKind == PLANE_SOLVER ) then
 		! allocate bve variables
 		allocate(self%absVort(nMax))
 		self%absVort = 0.0_kreal

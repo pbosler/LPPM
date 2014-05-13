@@ -43,7 +43,9 @@ module NumberKindsModule
 								ADVECTION_SOLVER = 90, &
 								BVE_SOLVER = 91, &
 								SWE_SOLVER = 92, &
+								PLANE_SOLVER = 99, &
 								MAX_POLYGON_SIDES = 20
+
 
 	! MPI variables
 	integer(KINT), save :: numProcs = 1, &

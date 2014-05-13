@@ -39,9 +39,9 @@ type Edges
 	logical(klog), pointer :: hasChildren(:)! hasChildren(j) is .TRUE. if edge(j) has been divided
 	integer(kint) :: N						! current number of edges in memory
 	integer(kint) :: N_Max					! maximum number of edges allowed in memory
-	! Physical variables
-	real(kreal), pointer :: length(:)		! length(j) is the length of edge j in physical space
-	real(kreal), pointer :: length0(:)		! length0(j) is the length of edge j in Lagrangian parameter space
+! 	! Physical variables
+!	real(kreal), pointer :: length(:)		! length(j) is the length of edge j in physical space
+!	real(kreal), pointer :: length0(:)		! length0(j) is the length of edge j in Lagrangian parameter space
 end type
 
 !
@@ -106,10 +106,10 @@ subroutine NewPrivate(self,nMax)
 	self%children = 0
 	allocate(self%hasChildren(nMax))
 	self%hasChildren = .False.
-	allocate(self%length(nMax))
-	self%length = 0.0_kreal
-	allocate(self%length0(nMax))
-	self%length0 = 0.0_kreal
+!	allocate(self%length(nMax))
+!	self%length = 0.0_kreal
+!	allocate(self%length0(nMax))
+!	self%length0 = 0.0_kreal
 	self%N = 0
 	self%N_Max = nMax
 end subroutine
@@ -123,8 +123,8 @@ subroutine DeletePrivate(self)
 	deallocate(self%rightPanel)
 	deallocate(self%children)
 	deallocate(self%hasChildren)
-	deallocate(self%length)
-	deallocate(self%length0)
+!	deallocate(self%length)
+!	deallocate(self%length0)
 	self%N = 0
 	self%N_Max = 0
 end subroutine
@@ -148,8 +148,8 @@ subroutine CopyEdges(newEdges,oldEdges)
 		newEdges%rightPanel(j) = oldEdges%rightPanel(j)
 		newEdges%children(:,j) = oldEdges%children(:,j)
 		newEdges%hasChildren(j) = oldEdges%hasChildren(j)
-		newEdges%length(j) = oldEdges%length(j)
-		newEdges%length0(j) = oldEdges%length0(j)
+!		newEdges%length(j) = oldEdges%length(j)
+!		newEdges%length0(j) = oldEdges%length0(j)
 	enddo
 	newEdges%N = oldEdges%N
 end subroutine
@@ -177,8 +177,8 @@ subroutine CopyEdgeByIndex(newEdges,newIndex,oldEdges,oldIndex)
 	newEdges%rightPanel(newIndex) = oldEdges%rightPanel(oldIndex)
 	newEdges%children(:,newIndex) = oldEdges%children(:,oldIndex)
 	newEdges%hasChildren(newIndex) = oldEdges%hasChildren(oldIndex)
-	newEdges%length(newIndex) = oldEdges%length(oldIndex)
-	newEdges%length0(newIndex) = oldEdges%length0(oldIndex)
+!	newEdges%length(newIndex) = oldEdges%length(oldIndex)
+!	newEdges%length0(newIndex) = oldEdges%length0(oldIndex)
 end subroutine
 
 function EdgeMax(panelKind,maxNest)
@@ -225,26 +225,27 @@ subroutine LogEdgesStats(self,aLog,message)
 	key = 'N_Max = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N_Max)
 
-	lmax = maxval(self%length(1:self%N))
-	lmin = lmax
-	do j=1,self%N
-		if ( .NOT. self%hasChildren(j) .AND. self%length(j) < lmin ) lmin = self%length(j)
-	enddo
-	key = 'Max Edge length = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmax)
-	key = 'Min Edge Length = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmin)
+!	lmax = maxval(self%length(1:self%N))
+!	lmin = lmax
+!	do j=1,self%N
+!		if ( .NOT. self%hasChildren(j) .AND. self%length(j) < lmin ) lmin = self%length(j)
+!	enddo
+!	key = 'Max Edge length = '
+!	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmax)
+!	key = 'Min Edge Length = '
+!	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmin)
 
-	lmax = maxval(self%length0(1:self%N))
-	lmin = lmax
-	do j=1,self%N
-		if ( .NOT. self%hasChildren(j) .AND. self%length(j) < lmin) lmin = self%length0(j)
-	enddo
+!	lmax = maxval(self%length0(1:self%N))
+!	lmin = lmax
+!	do j=1,self%N
+!		if ( .NOT. self%hasChildren(j) .AND. self%length(j) < lmin) lmin = self%length0(j)
+!	enddo
+!
+!	key = 'Max init length = '
+!	call LogMessage(alog,TRACE_LOGGING_LEVEL,key, lmax)
+!	key = 'Min init length = '
+!	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmin)
 
-	key = 'Max init length = '
-	call LogMessage(alog,TRACE_LOGGING_LEVEL,key, lmax)
-	key = 'Min init length = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,lmin)
 	call EndSection(aLog)
 end subroutine
 
