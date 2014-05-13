@@ -131,11 +131,19 @@ subroutine DeletePrivate(self)
 	self%nTracer = 0
 end subroutine
 
-subroutine CopyPrivate(self, other)
-	type(PlaneMesh), intent(inout) :: self
-	type(PlaneMesh), intent(in) :: other
+subroutine CopyPrivate(newMesh, oldMesh)
+	type(PlaneMesh), intent(inout) :: newMesh
+	type(PlaneMesh), intent(in) :: oldMesh
 
-	! TO DO
+	newMesh%initNest = oldMesh%initNest
+	newMesh%AMR = oldMesh%AMR
+	newMesh%nTracer = oldMesh%nTracer
+	newMesh%nRootPanels = oldMesh%nRootPanels
+
+	call Copy(newMesh%particles, oldMesh%particles)
+	call Copy(newMesh%edges, oldMesh%edges)
+	call Copy(newMesh%panels, oldMesh%panels)
+
 end subroutine
 
 !
@@ -250,7 +258,7 @@ subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)
 	!
 	if ( self%initNest > 0 ) then
 		startIndex = 1
-		do k=1, initNest
+		do k=1, self%initNest
 			nOldPanels = aPanels%N
 			do j=startIndex, nOldPanels
 				call DividePanel(self, j)
@@ -322,7 +330,7 @@ subroutine FindAdjacentPanels(adjPanels, nAdj, self, panelIndex)
 	type(PlaneMesh), intent(in) :: self
 	integer(kint), intent(in) :: panelindex
 	!
-	integer(kint) :: edgeList(8), vertList(8), nVerts, j, k
+	integer(kint) :: edgeList(8), vertList(8), nVerts, j
 	type(Edges), pointer :: anEdges
 
 	call CCWEdgesAndParticlesAroundPanel(edgelist,vertlist, nverts, self, panelindex)
@@ -395,7 +403,7 @@ subroutine DividePanel(self, panelIndex)
 	!
 	! get current mesh state
 	!
-	vertexIndices = aPanels%vertices(:,panelIndex)
+	vertIndices = aPanels%vertices(:,panelIndex)
 	edgeIndices = aPanels%edges(:,panelIndex)
 	nestLevel = aPanels%nest(panelIndex)
 	nParticles = aParticles%N
@@ -499,7 +507,7 @@ subroutine DividePanel(self, panelIndex)
 		! divide parent edge 2
 		!
 		anEdges%hasChildren(childEdges(2)) = .TRUE.
-		anEdges%childen(:,edgeIndices(2)) = [nEdges+1,nEdges+2]
+		anEdges%children(:,edgeIndices(2)) = [nEdges+1,nEdges+2]
 		if ( edgeOrientation(2) ) then
 			aPanels%edges(2,nPanels+2) = nEdges+1
 			aPanels%edges(2,nPanels+3) = nEdges+2
@@ -816,7 +824,7 @@ recursive subroutine LocatePointWalkSearch(inPanel, self, xy, startPanel)
 	integer(kint), intent(in) :: startPanel
 	!
 	real(kreal) :: currentMin, testDist, centroid(2)
-	integer(kint) :: adjacentPanels(8), nAdj, currentPanel, j
+	integer(kint) :: adjPanels(8), nAdj, currentPanel, j
 	type(Particles), pointer :: aparticles
 	type(Panels), pointer :: apanels
 
@@ -862,9 +870,6 @@ recursive subroutine LocatePointWalkSearch(inPanel, self, xy, startPanel)
 		call LocatePointWalkSearch(inPanel, self, xy, currentPanel)
 	endif
 end subroutine
-
-
-
 
 subroutine InitLogger(aLog, rank)
 	type(Logger), intent(inout) :: aLog
