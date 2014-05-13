@@ -125,14 +125,16 @@ CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS
 #############################################################
 
 NumberKinds3.o: NumberKinds3.f90
-IntegerList2.o: NumberKinds3.o IntegerList2.f90
-OutputWriter2.o: NumberKinds3.o OutputWriter2.f90
-SphereGeom3.o: NumberKinds3.o SphereGeom3.f90
-Logger2.o: NumberKinds3.o OutputWriter2.o Logger2.f90
+IntegerList2.o: IntegerList2.f90 NumberKinds3.o 
+OutputWriter2.o: OutputWriter2.f90 NumberKinds3.o 
+SphereGeom3.o: SphereGeom3.f90 NumberKinds3.o 
+PlaneGeometry.o: PlaneGeometry.f90 NumberKinds3.o
+Logger2.o: Logger2.f90 NumberKinds3.o OutputWriter2.o 
 Particles.o: Particles.f90 $(BASE_OBJS)
 Edges.o: Edges.f90 $(BASE_OBJS)
 Panels.o: Panels.f90 $(BASE_OBJS)
 SphereMesh2.o: SphereMesh2.f90 Particles.o Edges.o Panels.o $(BASE_OBJS)
+PlaneMesh.o: PlaneMesh.f90 Particles.o Edges.o Panels.o $(BASE_OBJS)
 ssrfpack.o: ssrfpack.f
 stripack.o: stripack.f
 STRIPACKInterface2.o: STRIPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) stripack.o 

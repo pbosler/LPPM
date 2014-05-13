@@ -209,8 +209,8 @@ subroutine LogEdgesStats(self,aLog,message)
 	type(Logger), intent(inout) :: aLog
 	character(len=*), intent(in), optional :: message
 	character(len=24) :: key
-	real(kreal) :: lmax, lmin
-	integer(kint) :: j
+!	real(kreal) :: lmax, lmin
+!	integer(kint) :: j
 
 	if ( present(message)) then
 		call StartSection(aLog,'Edges Stats : ',message)

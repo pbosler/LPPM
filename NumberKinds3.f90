@@ -44,7 +44,9 @@ module NumberKindsModule
 								BVE_SOLVER = 91, &
 								SWE_SOLVER = 92, &
 								PLANE_SOLVER = 99, &
-								MAX_POLYGON_SIDES = 20
+								MAX_POLYGON_SIDES = 20, &
+								FREE_BOUNDARIES = 101, &
+								PERIODIC_BOUNDARIES = 102
 
 
 	! MPI variables
