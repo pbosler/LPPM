@@ -183,8 +183,6 @@ subroutine vtkOutput(self,aMesh)
 		endif
 	enddo
 
-! TO DO : AMR / Variable size polygons
-
 	write(WRITE_UNIT_1,'(A,I8,I8)') 'POLYGONS ',self%nCells, self%cellListSize
 	! Draw subtriangles
 	panelK = 0

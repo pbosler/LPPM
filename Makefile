@@ -68,7 +68,7 @@ mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o PlaneMesh.o
 INTERP_OBJS = $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 
-OUTPUT_OBJS = VTKOutput.o LatLonOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
+OUTPUT_OBJS = VTKOutput.o LatLonOutput.o PlaneOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 
 TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o
 
@@ -80,7 +80,6 @@ PLOTTING = ModelLookupTables.o ModelLookupTables.h
 
 SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o RefineRemesh2.o $(TEST_CASE_OBJS)
 
-PLANE_OBJS=
 
 #############################################################
 ## LPPM MODEL RUNS
@@ -135,6 +134,7 @@ Edges.o: Edges.f90 $(BASE_OBJS)
 Panels.o: Panels.f90 $(BASE_OBJS)
 SphereMesh2.o: SphereMesh2.f90 Particles.o Edges.o Panels.o $(BASE_OBJS)
 PlaneMesh.o: PlaneMesh.f90 Particles.o Edges.o Panels.o $(BASE_OBJS)
+PlaneOutput.o: PlaneOutput.f90 PlaneMesh.o Particles.o Edges.o Panels.o $(BASE_OBJS)
 ssrfpack.o: ssrfpack.f
 stripack.o: stripack.f
 STRIPACKInterface2.o: STRIPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) stripack.o 
