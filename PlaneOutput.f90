@@ -1,4 +1,4 @@
-module PlaneMeshOutputModule
+module PlaneOutputModule
 !******************************************************************************
 !	Peter A. Bosler
 !	Department of Mathematics
@@ -263,11 +263,11 @@ subroutine OutputForMatlab(self, aMesh)
 	type(PlaneOutput), intent(in) :: self
 	type(PlaneMesh), intent(in) :: aMesh
 	!
-	integer(kint) :: writeStat, j, k
+	integer(kint) :: writeStat, j
 	type(Particles), pointer :: aparticles
 	type(Edges), pointer :: anedges
 	type(Panels), pointer :: apanels
-	character(len=28) :: datastring
+
 	open(unit = WRITE_UNIT_1,file=self%filename,status='REPLACE',action='WRITE',iostat=writeStat)
 	if ( writeStat /= 0 ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,'Matlab Output ERROR opening output file.')

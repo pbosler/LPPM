@@ -112,12 +112,15 @@ SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 
 cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) Advection2.o
 	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)	
+planeTestSerial.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
+	$(FF) $(FF_FLAGS) -o $@ $^ 
 
 #############################################################
 ## UNIT TEST OBJECT FILES
 #############################################################
 
 CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
+planeTester.o: planeTester.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
 
 #############################################################
 ## MODULES

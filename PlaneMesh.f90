@@ -30,6 +30,7 @@ public New, Delete, Copy
 public InitializeRectangle
 public CCWEdgesAndParticlesAroundPanel, FindAdjacentPanels
 public LocatePoint
+public LogStats
 
 !
 !----------------
@@ -76,6 +77,11 @@ interface Copy
 	module procedure CopyPrivate
 end interface
 
+interface LogStats
+	module procedure LogStatsPrivate
+end interface
+
+
 contains
 !
 !----------------
@@ -102,11 +108,15 @@ subroutine NewPrivate(self, initNest, AMR, nTracer)
 	self%nTracer = nTracer
 
 	!
-	! compute the array sizes
+	! TO DO : compute the array sizes
 	!
-	nPanels = PanelMax(panelKind,initNest + AMR)
-	nParticles = ParticleMax(panelKind,initNest + AMR)
-	nEdges = EdgeMax(panelKind,initNest+AMR)
+	!nPanels = PanelMax(panelKind,initNest + AMR)
+!	nParticles = ParticleMax(panelKind,initNest + AMR)
+!	nEdges = EdgeMax(panelKind,initNest+AMR)
+
+	nPanels = 1000
+	nEdges = 1000
+	nParticles = 1000
 
 	call New(self%particles,nParticles,panelKind,nTracer,problemKind)
 	call New(self%edges, nEdges)
@@ -151,6 +161,21 @@ end subroutine
 ! Public functions
 !----------------
 !
+subroutine LogStatsPrivate(self, aLog, msg)
+	type(PlaneMesh), intent(in) :: self
+	type(Logger), intent(inout) :: aLog
+	character(len=*), intent(in), optional :: msg
+	if ( present(msg) ) then
+		call LogStats(self%particles,aLog,msg)
+		call LogStats(self%edges,aLog,msg)
+		call LogStats(self%panels,aLog,msg)
+	else
+		call LogStats(self%particles,aLog)
+		call LogStats(self%edges,aLog)
+		call LogStats(self%panels,aLog)
+	endif
+end subroutine
+
 subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)
 	type(PlaneMesh), intent(inout) :: self
 	real(kreal), intent(in) :: xmin, xmax, ymin, ymax
@@ -162,10 +187,16 @@ subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)
 	integer(kint) :: j, k, startIndex, nOldPanels
 	real(kreal) :: area0
 
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' initializing rectangular mesh.')
+
 	if ( boundaryType /= FREE_BOUNDARIES .AND. boundaryType /= PERIODIC_BOUNDARIES ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL,logkey,'ERROR : invalid boundary condition.')
 		return
 	endif
+
+	aParticles => self%particles
+	anEdges => self%edges
+	aPanels => self%panels
 
 	!
 	! initialize mesh with 4 quadrilateral panels
@@ -258,6 +289,7 @@ subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)
 	!
 	if ( self%initNest > 0 ) then
 		startIndex = 1
+		call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,' dividing rectangular mesh ...')
 		do k=1, self%initNest
 			nOldPanels = aPanels%N
 			do j=startIndex, nOldPanels
@@ -294,7 +326,10 @@ subroutine CCWEdgesAndParticlesAroundPanel(edgeList, vertlist, nVerts, self, pan
 		call LogMessage(log,WARNING_LOGGING_LEVEL,logkey//'CCWEdgesAndParticlesAroundPanel ERROR : ','panel is divided.')
 		return
 	endif
-
+	edgelist = 0
+	vertlist = 0
+	edgek = 0
+	vertk = 0
 	do k=1,panelKind
 		if ( anEdges%hasChildren(aPanels%edges(k,panelIndex)) ) then
 			if ( anEdges%leftPanel(aPanels%edges(k,panelIndex)) == panelIndex) then
@@ -381,6 +416,11 @@ subroutine DividePanel(self, panelIndex)
 	integer(kint) :: nParticles, nPanels, nEdges
 	integer(kint) :: j, childEdges(2)
 	logical(klog) :: edgeOrientation(4), alreadyDivided(4)
+
+	aParticles => self%particles
+	anEdges => self%edges
+	aPanels => self%Panels
+
 	!
 	! Error checking
 	!
@@ -397,9 +437,10 @@ subroutine DividePanel(self, panelIndex)
 		return
 	endif
 
-	aParticles => self%particles
-	anEdges => self%edges
-	aPanels => self%Panels
+	write(logstring,'(A,I4)') 'dividing panel ',panelIndex
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,logstring)
+	call LogStats(self,log,logstring)
+
 	!
 	! get current mesh state
 	!
@@ -733,17 +774,17 @@ function QuadPanelArea(self, panelIndex)
 	type(Edges), pointer :: anEdges
 	type(Panels), pointer :: aPanels
 	integer(kint) :: vertList(8), edgeList(8), j, nVerts
-	real(kreal) :: centerX(3)
+	real(kreal) :: centerX(2)
 
 	aParticles => self%particles
 	anEdges => self%edges
 	aPanels => self%panels
 
-	! Error checking
-	if ( panelIndex > aPanels%N) then
-		call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,'QuadPanelArea ERROR : out of bounds.')
-		return
-	endif
+! 	! Error checking
+!	if ( panelIndex > aPanels%N) then
+!		call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,'QuadPanelArea ERROR : out of bounds.')
+!		return
+!	endif
 
 	if ( aPanels%hasChildren(panelIndex)) then
 		write(logString,'(A,I4,A)') 'panel ',panelIndex,' has children; area = 0.'
