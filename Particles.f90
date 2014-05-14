@@ -42,6 +42,7 @@ type Particles
 	real(kreal), pointer :: tracer(:,:)	=> null() ! passive tracers
 	real(kreal), pointer :: absVort(:)	=> null() ! absolute vorticity
 	real(kreal), pointer :: relVort(:)	=> null() ! relative vorticity
+	real(kreal), pointer :: stream(:) => null()	  ! stream function
 	real(kreal), pointer :: potVort(:) => null()  ! potential vorticity
 	real(kreal), pointer :: h(:) => null()  ! fluid thickness
 	real(kreal), pointer :: div(:) => null() ! divergence
@@ -142,6 +143,7 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		! nullify bve/swe variables
 		nullify(self%absVort)
 		nullify(self%relVort)
+		nullify(self%stream)
 		nullify(self%potVort)
 		nullify(self%h)
 		nullify(self%div)
@@ -152,6 +154,8 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		self%absVort = 0.0_kreal
 		allocate(self%relVort(nMax))
 		self%relVort = 0.0_kreal
+		allocate(self%stream(nMax))
+		self%stream = 0.0_kreal
 		allocate(self%ke(nMax))
 		self%ke = 0.0_kreal
 		! nullify swe variables
@@ -161,6 +165,7 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 	elseif (problemKind == SWE_SOLVER ) then
 		! nullify bve variables
 		nullify(self%absVort)
+		nullify(self%stream)
 		! allocate swe variables
 		allocate(self%relVort(nMax))
 		self%relVort = 0.0_kreal
@@ -187,6 +192,7 @@ subroutine DeletePrivate(self)
 	if ( associated(self%tracer)) deallocate(self%tracer)
 	if ( associated(self%absVort)) deallocate(self%absVort)
 	if ( associated(self%relVort)) deallocate(self%relVort)
+	if ( associated(self%stream)) deallocate(self%stream)
 	if ( associated(self%potVort)) deallocate(self%potVort)
 	if ( associated(self%h)) deallocate(self%h)
 	if ( associated(self%div)) deallocate(self%div)
@@ -223,6 +229,12 @@ subroutine CopyParticles(newParticles,oldParticles)
 	if ( associated(oldParticles%relVort) ) then
 		if (.NOT. associated(newParticles%relVort)) then
 			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign relVort.')
+			return
+		endif
+	endif
+	if ( associated(oldParticles%stream) ) then
+		if (.NOT. associated(newParticles%stream)) then
+			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign stream.')
 			return
 		endif
 	endif
@@ -277,6 +289,11 @@ subroutine CopyParticles(newParticles,oldParticles)
 	if ( associated(oldParticles%relVort)) then
 		do j=1,oldParticles%N
 			newParticles%relVort(j) = oldParticles%relVort(j)
+		enddo
+	endif
+	if ( associated(oldParticles%stream)) then
+		do j=1,oldParticles%N
+			newParticles%stream(j) = oldParticles%stream(j)
 		enddo
 	endif
 	if ( associated(oldParticles%absVort) ) then
@@ -346,6 +363,14 @@ subroutine CopyParticleByIndex(newParticles,newIndex,oldParticles,oldIndex)
 			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign relVort.')
 		endif
 	endif
+	if ( associated(oldParticles%stream)) then
+		if ( associated(newParticles%stream)) then
+			newParticles%stream(newIndex) = oldParticles%stream(oldIndex)
+		else
+			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign stream.')
+		endif
+	endif
+
 	if ( associated(oldParticles%absVort)) then
 		if ( associated(newParticles%absVort)) then
 			newParticles%absVort(newIndex) = oldParticles%absVort(oldIndex)

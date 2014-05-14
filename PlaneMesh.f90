@@ -31,6 +31,7 @@ public InitializeRectangle
 public CCWEdgesAndParticlesAroundPanel, FindAdjacentPanels
 public LocatePoint
 public LogStats
+public TotalArea
 
 !
 !----------------
@@ -110,13 +111,13 @@ subroutine NewPrivate(self, initNest, AMR, nTracer)
 	!
 	! TO DO : compute the array sizes
 	!
-	!nPanels = PanelMax(panelKind,initNest + AMR)
-!	nParticles = ParticleMax(panelKind,initNest + AMR)
+!	nPanels = PanelMax(panelKind,initNest + AMR)
+!	nParticles = PlaneParticleMax(panelKind,initNest + AMR)
 !	nEdges = EdgeMax(panelKind,initNest+AMR)
 
-	nPanels = 1000
-	nEdges = 1000
-	nParticles = 1000
+	nPanels = 10000
+	nEdges = 10000
+	nParticles = 10000
 
 	call New(self%particles,nParticles,panelKind,nTracer,problemKind)
 	call New(self%edges, nEdges)
@@ -281,7 +282,7 @@ subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)
 		aPanels%x(:,j) = QuadCentroid( aParticles%x(:,aPanels%vertices(1,j)), aParticles%x(:,aPanels%vertices(2,j)), &
 									      aParticles%x(:,aPanels%vertices(3,j)), aParticles%x(:,aPanels%vertices(4,j)) )
 		aPanels%x0(:,j) = aPanels%x(:,j)
-		aPanels%area(j) = area0
+		aPanels%area(j) = area0/4.0_kreal
 	enddo
 
 	!
@@ -295,7 +296,7 @@ subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)
 			do j=startIndex, nOldPanels
 				call DividePanel(self, j)
 			enddo
-			startIndex = nOldPanels
+			startIndex = nOldPanels+1
 		enddo
 	endif
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'... rectangular quadrilateral mesh ready.')
@@ -318,6 +319,9 @@ subroutine CCWEdgesAndParticlesAroundPanel(edgeList, vertlist, nVerts, self, pan
 	anEdges=>self%edges
 	aPanels=>self%panels
 
+	!DEBUG
+	!call StartSection(log,'entering CCWEdgesAndParticlesAroundPanel')
+
 	if ( size(edgeList) < 8 .OR. size(vertList) < 8 ) then
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'CCWEdgesAndParticlesAroundPanel ERROR : ',' output array too small.')
 		return
@@ -330,7 +334,7 @@ subroutine CCWEdgesAndParticlesAroundPanel(edgeList, vertlist, nVerts, self, pan
 	vertlist = 0
 	edgek = 0
 	vertk = 0
-	do k=1,panelKind
+	do k=1,4
 		if ( anEdges%hasChildren(aPanels%edges(k,panelIndex)) ) then
 			if ( anEdges%leftPanel(aPanels%edges(k,panelIndex)) == panelIndex) then
 				edgeList(edgeK+1) = anEdges%children(1,aPanels%edges(k,panelIndex))
@@ -357,6 +361,9 @@ subroutine CCWEdgesAndParticlesAroundPanel(edgeList, vertlist, nVerts, self, pan
 		endif
 	enddo
 	nVerts = vertK
+
+	!DEBUG
+	!call EndSection(log)
 end subroutine
 
 
@@ -399,6 +406,15 @@ function LocatePoint(self, xy)
 	call LocatePointWalkSearch(LocatePoint, self, xy, startWalk)
 end function
 
+function TotalArea(self)
+	real(kreal) :: TotalArea
+	type(PlaneMesh), intent(in) :: self
+	!
+	type(Panels), pointer :: apanels
+	apanels => self%panels
+	TotalArea = sum(apanels%area)
+end function
+
 !
 !----------------
 ! Module methods : module- or type-specific private functions
@@ -414,7 +430,7 @@ subroutine DividePanel(self, panelIndex)
 	type(Panels), pointer :: aPanels
 	integer(kint) :: vertIndices(4), edgeIndices(4), nestlevel
 	integer(kint) :: nParticles, nPanels, nEdges
-	integer(kint) :: j, childEdges(2)
+	integer(kint) :: j, k, childEdges(2)
 	logical(klog) :: edgeOrientation(4), alreadyDivided(4)
 
 	aParticles => self%particles
@@ -437,10 +453,6 @@ subroutine DividePanel(self, panelIndex)
 		return
 	endif
 
-	write(logstring,'(A,I4)') 'dividing panel ',panelIndex
-	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,logstring)
-	call LogStats(self,log,logstring)
-
 	!
 	! get current mesh state
 	!
@@ -450,6 +462,15 @@ subroutine DividePanel(self, panelIndex)
 	nParticles = aParticles%N
 	nPanels = aPanels%N
 	nEdges = anEdges%N
+!DEBUG
+!	write(logstring,'(A,I4)') 'dividing panel ',panelIndex
+!	call StartSection(log,logstring)
+!	write(logstring,'(A,4I8)') 'vertices = ', vertIndices
+!	call LogMessage(log, DEBUG_LOGGING_LEVEL, '  ', logstring)
+!	write(logstring,'(A,4I8)') 'edges    = ', edgeIndices
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,'  ',logstring)
+
+
 
 	edgeOrientation = .FALSE.
 	alreadyDivided = .FALSE.
@@ -547,7 +568,7 @@ subroutine DividePanel(self, panelIndex)
 		!
 		! divide parent edge 2
 		!
-		anEdges%hasChildren(childEdges(2)) = .TRUE.
+		anEdges%hasChildren(edgeIndices(2)) = .TRUE.
 		anEdges%children(:,edgeIndices(2)) = [nEdges+1,nEdges+2]
 		if ( edgeOrientation(2) ) then
 			aPanels%edges(2,nPanels+2) = nEdges+1
@@ -557,7 +578,7 @@ subroutine DividePanel(self, panelIndex)
 			anEdges%leftPanel(nEdges+1) = nPanels+2
 			anEdges%rightPanel(nEdges+1) = anEdges%rightPanel(edgeIndices(2))
 
-			anEdges%verts(:,nEdges+2) = [nParticles+1,vertIndices(2)]
+			anEdges%verts(:,nEdges+2) = [nParticles+1,vertIndices(3)]
 			anEdges%leftPanel(nEdges+2) = nPanels+3
 			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(edgeIndices(2))
 		else
@@ -732,6 +753,22 @@ subroutine DividePanel(self, panelIndex)
 
 	nParticles = nParticles+1
 	nEdges = nEdges+4
+! DEBUG
+!	do j=1,4
+!		vertIndices = aPanels%vertices(:,nPanels+j)
+!		edgeIndices = apanels%edges(:,nPanels+j)
+!		write(logstring,'(A,I2)') 'child panel ', j
+!		call LogMessage(log,DEBUG_LOGGING_LEVEL,'  ',logstring)
+!		write(logstring,'(A,4I8)') 'vertices = ', vertIndices
+!		call LogMessage(log, DEBUG_LOGGING_LEVEL, '  ', logstring)
+!		write(logstring,'(A,4I8)') 'edges    = ', edgeIndices
+!		call LogMessage(log, DEBUG_LOGGING_LEVEL, '  ', logstring)
+!		do k=1,4
+!			write(logString,'(A,I1,A,2I8)') 'edge ',k, ' verts = ', anedges%verts(:,edgeIndices(k))
+!			call LogMessage(log,DEBUG_LOGGING_LEVEL,'  ',logstring)
+!		enddo
+!	enddo
+
 
 	!
 	! subpanel centers, nest, and area
@@ -745,9 +782,15 @@ subroutine DividePanel(self, panelIndex)
 											    aParticles%x0(:,aPanels%vertices(2,nPanels+j)), &
 											    aParticles%x0(:,aPanels%vertices(3,nPanels+j)), &
 											    aParticles%x0(:,aPanels%vertices(4,nPanels+j)) )
+	enddo
+	!DEBUG
+	!call LogMessage(log,DEBUG_LOGGING_LEVEL,' ','panel center set')
+	do j=1,4
 		aPanels%area(nPanels+j) = QuadPanelArea(self,nPanels+j)
 		aPanels%nest(nPanels+j) = nestLevel+1
 	enddo
+	! DEBUG
+	!call EndSection(log)
 
 	!
 	! update parent panel
@@ -786,6 +829,8 @@ function QuadPanelArea(self, panelIndex)
 !		return
 !	endif
 
+!	call StartSection(log,'entering QuadPanelArea')
+
 	if ( aPanels%hasChildren(panelIndex)) then
 		write(logString,'(A,I4,A)') 'panel ',panelIndex,' has children; area = 0.'
 		call LogMessage(log,WARNING_LOGGING_LEVEL,'AREA WARNING : ',trim(logString))
@@ -801,6 +846,8 @@ function QuadPanelArea(self, panelIndex)
 		enddo
 		QuadPanelArea = QuadPanelArea + TriArea(aParticles%x(:,vertList(nVerts)), centerX, aParticles%x(:,vertList(1)) )
 	endif
+
+!	call EndSection(log)
 end function
 
 function NearestRootPanel(self, xy)
@@ -911,6 +958,19 @@ recursive subroutine LocatePointWalkSearch(inPanel, self, xy, startPanel)
 		call LocatePointWalkSearch(inPanel, self, xy, currentPanel)
 	endif
 end subroutine
+
+function PlaneParticleMax(maxnest)
+	integer(kint) :: PlaneParticleMax
+	integer(kint), intent(in) :: maxnest
+	!
+	integer(kint) :: j
+
+	PlaneParticleMax = 3
+	do j=1,maxnest
+		PlaneParticleMax = PlaneParticleMax + 2**j
+	enddo
+	PlaneParticleMax = PlaneParticleMax*PlaneParticleMax
+end function
 
 subroutine InitLogger(aLog, rank)
 	type(Logger), intent(inout) :: aLog

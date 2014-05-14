@@ -70,7 +70,7 @@ interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.
 
 OUTPUT_OBJS = VTKOutput.o LatLonOutput.o PlaneOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 
-TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o
+TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o PlaneVorticity.o
 
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 
@@ -112,7 +112,7 @@ SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 
 cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) Advection2.o
 	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)	
-planeTestSerial.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
+planeTestSerial.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ 
 
 #############################################################
@@ -120,7 +120,7 @@ planeTestSerial.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
 #############################################################
 
 CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
-planeTester.o: planeTester.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
+planeTester.o: planeTester.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS)
 
 #############################################################
 ## MODULES
@@ -146,6 +146,7 @@ VTKOutput.o: VTKOutput.f90 $(BASE_OBJS) $(MESH_OBJS)
 RefineRemesh2.o: RefineRemesh2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) Tracers.o BVEVorticity.o
 Tracers.o: Tracers.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
+PlaneVorticity.o: PlaneVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
 Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
 ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o

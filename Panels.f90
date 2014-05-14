@@ -46,6 +46,7 @@ type Panels
 	real(kreal), pointer :: tracer(:,:) => null()	! passive tracers
 	real(kreal), pointer :: absVort(:) => null()	! absolute vorticity
 	real(kreal), pointer :: relVort(:) => null()	! relative vorticity
+	real(kreal), pointer :: stream(:) => null() 	! stream function
 	real(kreal), pointer :: potVort(:) => null()	! potential vorticity
 	real(kreal), pointer :: h(:) => null()			! fluid thickness
 	real(kreal), pointer :: div(:) => null()		! divergence
@@ -167,6 +168,7 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		nullify(self%h)
 		nullify(self%div)
 		nullify(self%ke)
+		nullify(self%stream)
 	elseif (problemKind == BVE_SOLVER .OR. problemKind == PLANE_SOLVER ) then
 		! allocate bve variables
 		allocate(self%relVort(nMax))
@@ -175,6 +177,8 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		self%absVort = 0.0_kreal
 		allocate(self%ke(nMax))
 		self%ke = 0.0_kreal
+		allocate(self%stream(nMax))
+		self%stream = 0.0_kreal
 		! nullify swe variables
 		nullify(self%h)
 		nullify(self%div)
@@ -193,6 +197,7 @@ subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
 		self%ke = 0.0_kreal
 		! nullify bve variables
 		nullify(self%absVort)
+		nullify(self%stream)
 	endif
 	self%N = 0
 	self%N_Active = 0
@@ -214,6 +219,7 @@ subroutine DeletePrivate(self)
 	if ( associated(self%tracer)) deallocate(self%tracer)
 	if ( associated(self%absVort)) deallocate(self%absVort)
 	if ( associated(self%relVort)) deallocate(self%relVort)
+	if ( associated(self%stream)) deallocate(self%stream)
 	if ( associated(self%potVort)) deallocate(self%potVort)
 	if ( associated(self%h)) deallocate(self%h)
 	if ( associated(self%div)) deallocate(self%div)
@@ -249,6 +255,12 @@ subroutine CopyPanels(newPanels,oldPanels)
 	if ( associated(oldPanels%relVort)) then
 		if ( .NOT. associated(oldPanels%relVort)) then
 			call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,'Copy ERROR : cannot assign relVort.')
+			return
+		endif
+	endif
+	if ( associated(oldPanels%stream)) then
+		if ( .NOT. associated(oldPanels%stream)) then
+			call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,'Copy ERROR : cannot assign stream.')
 			return
 		endif
 	endif
@@ -309,6 +321,11 @@ subroutine CopyPanels(newPanels,oldPanels)
 	if ( associated(oldPanels%relVort)) then
 		do j=1,oldPanels%N
 			newPanels%relVort(j) = oldPanels%relVort(j)
+		enddo
+	endif
+	if ( associated(oldPanels%stream)) then
+		do j=1,oldPanels%N
+			newPanels%stream(j) = oldPanels%stream(j)
 		enddo
 	endif
 	if ( associated(oldPanels%absVort)) then
@@ -382,6 +399,13 @@ subroutine CopyPanelByIndex(newPanels,newIndex,oldPanels,oldIndex)
 			newPanels%relVort(newIndex) = oldPanels%relVort(oldIndex)
 		else
 			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyPanelByIndex WARNING: cannot assign relVort.')
+		endif
+	endif
+	if ( associated(oldPanels%stream)) then
+		if ( associated(newPanels%stream)) then
+			newPanels%stream(newIndex) = oldPanels%stream(oldIndex)
+		else
+			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyPanelByIndex WARNING: cannot assign stream.')
 		endif
 	endif
 	if ( associated(oldPanels%absVort)) then
