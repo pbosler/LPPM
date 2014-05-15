@@ -52,10 +52,10 @@ str = 1.0_kreal
 !!call Delete(mesh)
 !call Delete(meshout)
 
-initNest = 4
+initNest = 1
 AMR  = 0
 nTracer = 2
-filename = '~/Desktop/meshNest.vtk'
+filename = '~/Desktop/meshExample.vtk'
 
 call New(mesh,initNest,AMR,nTracer)
 call InitializeRectangle(mesh,xmin,xmax,ymin,ymax,boundaryType)
