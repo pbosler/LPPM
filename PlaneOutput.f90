@@ -55,11 +55,7 @@ character(len=28), save :: logKey = 'PlaneOutput'
 integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
 character(len=28) :: formatString
 character(len=128) :: logString
-!
-!----------------
-! Interfaces
-!----------------
-!
+
 !
 !----------------
 ! Interfaces
