@@ -114,6 +114,8 @@ cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP
 	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)	
 planeTestSerial.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ 
+sweDivergenceTerms.exe: SWEDivergenceEqnTerms.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) 
+	$(FF) $(FF_FLAGS) -o $@ $^ $(MKL_LINK) `mpif90 -showme:link`
 
 #############################################################
 ## UNIT TEST OBJECT FILES
@@ -121,6 +123,8 @@ planeTestSerial.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TE
 
 CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
 planeTester.o: planeTester.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS)
+SWEDivergenceEqnTerms.o: SWEDivergenceEqnTerms.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
+	$(FF) $(FF_FLAGS) -c $< $(MKL_COMPILE) `mpif90 -showme:compile`
 
 #############################################################
 ## MODULES

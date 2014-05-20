@@ -2,6 +2,7 @@ program SWEDivergenceEquationTerms
 
 use NumberKindsModule
 use LoggerModule
+use SphereGeomModule
 use ParticlesModule
 use EdgesModule
 use PanelsModule
@@ -124,7 +125,7 @@ call StartSection(exeLog,'Test function 1')
 	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 1, method 1 : ', trim(logString) )
 
-	call CalculateError(amesh, test1method1(1), test1method1(2), test1method1(3), test1method1(4) )
+	call CalculateError(sphere, test1method1Error(1), test1method1Error(2), test1method1Error(3), test1method1Error(4) )
 	if ( procRank == 0 ) then
 		call VTKOutput(vtkOut, sphere)
 	endif
@@ -185,12 +186,13 @@ call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring)
 
 call Delete(sphere)
 
-call MPI_FINALIZE(mpiErrCode)
+call MPI_FINALIZE(errCode)
 
 contains
 
 subroutine ReadNamelistInputFile(rank)
 	integer(kint), intent(in) :: rank
+	integer(kint) :: readWriteStat
 	if ( rank == 0 ) then
 		open(unit = READ_UNIT, file=namelistInputFile, status = 'OLD', action = 'READ', iostat = readWriteStat)
 		if ( readWriteStat /= 0 ) then
@@ -224,16 +226,23 @@ subroutine InitLogger(aLog, rank)
 end subroutine
 
 function LegendreP10_3(z)
-	real(kreal) :: LegendreP103
+	real(kreal) :: LegendreP10_3
 	real(kreal), intent(in) :: z
-	LegendreP103 = sqrt(1.0_kreal-z*z)*(-1.0_kreal+z*z)*(-7.0_kreal*z+105.0_kreal*z**3-357.0_kreal*z**5+323.0_kreal*z**7)
+	LegendreP10_3 = sqrt(1.0_kreal-z*z)*(-1.0_kreal+z*z)*(-7.0_kreal*z+105.0_kreal*z**3-357.0_kreal*z**5+323.0_kreal*z**7)
 end function
 
 function LegendreP54(z)
 ! Legendre polynomial P_5^4(z)
-	real(kreal) :: Legendre54
+	real(kreal) :: LegendreP54
 	real(kreal), intent(in) :: z
-	Legendre54 = z*(-1.0_kreal + z*z)*(-1.0_kreal + z*z)
+	LegendreP54 = z*(-1.0_kreal + z*z)*(-1.0_kreal + z*z)
+end function
+
+function LegendreP52(z)
+! Legendre polynomial P_5^2(z)
+	real(kreal) :: LegendreP52
+	real(kreal), intent(in) :: z
+	LegendreP52 = -(-1.0_kreal + z*z)*(-z + 3.0_kreal*z*z*z)
 end function
 
 subroutine TestLinearFunction(aMesh)
@@ -256,7 +265,7 @@ subroutine TestLinearFunction(aMesh)
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			aPanels%relVort(j) = apanels%x(1,j)
 			aPanels%x0(:,j) = [1.0_kreal - aPanels%x(1,j)/EARTH_RADIUS/EARTH_RADIUS, &
-							   - aPanels%x(2,j) * aPanels%x(1,j) / EARTH_RADIUS / EARTH_RADIUS
+							   - aPanels%x(2,j) * aPanels%x(1,j) / EARTH_RADIUS / EARTH_RADIUS, &
 							   - aPanels%x(3,j) * aPanels%x(1,j) /EARTH_RADIUS/EARTH_RADIUS]
 			aPanels%potVort(j) = -2.0_kreal * cos( Longitude(aPanels%x(:,j)) ) * cos( Latitude( aPanels%x(:,j) ) ) / EARTH_RADIUS
 		else
@@ -277,13 +286,13 @@ subroutine TestSphericalHarmonic52(amesh)
 	aPanels => aMesh%panels
 
 	do j = 1, aParticles%N
-		aParticles%relVort(j) = Legendre52( Latitude(aParticles%x(:,j)) ) * cos( 2.0_kreal * Longitude( aParticles%x(:,j) ))
+		aParticles%relVort(j) = LegendreP52( Latitude(aParticles%x(:,j)) ) * cos( 2.0_kreal * Longitude( aParticles%x(:,j) ))
 
 		aParticles%potVort(j) = -30.0_kreal * aParticles%relVort(j)
 	enddo
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			aPanels%relVort(j) = Legendre52( Latitude(aPanels%x(:,j) ) * cos( 2.0_kreal * Longitude( aPanels%x(:,j) ) )
+			aPanels%relVort(j) = LegendreP52( Latitude(aPanels%x(:,j) )) * cos( 2.0_kreal * Longitude( aPanels%x(:,j) ) )
 			aPanels%potVort(j) = -30.0_kreal * aPanels%relVort(j)
 		else
 			aPanels%relVort(j) = 0.0_kreal
@@ -309,7 +318,7 @@ subroutine TestSphericalHarmonic54(amesh)
 	enddo
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			aPanels%relVort(j) = LegendreP54( Latitude(aPanels%x(:,j) ) * cos( 4.0_kreal * Longitude( aPanels%x(:,j) ) )
+			aPanels%relVort(j) = LegendreP54( Latitude(aPanels%x(:,j) ) )* cos( 4.0_kreal * Longitude( aPanels%x(:,j) ) )
 			aPanels%potVort(j) = -30.0_kreal * aPanels%relVort(j)
 		else
 			aPanels%relVort(j) = 0.0_kreal
@@ -335,7 +344,7 @@ subroutine TestSphericalHarmonic10_3(amesh)
 	enddo
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			aPanels%relVort(j) = LegendreP10_3( Latitude(aPanels%x(:,j) ) * cos( 3.0_kreal * Longitude( aPanels%x(:,j) ) )
+			aPanels%relVort(j) = LegendreP10_3( Latitude(aPanels%x(:,j) ) )* cos( 3.0_kreal * Longitude( aPanels%x(:,j) ) )
 			aPanels%potVort(j) = -110.0_kreal * aPanels%relVort(j)
 		else
 			aPanels%relVort(j) = 0.0_kreal
@@ -343,13 +352,6 @@ subroutine TestSphericalHarmonic10_3(amesh)
 		endif
 	enddo
 end subroutine
-
-function LegendreP52(z)
-! Legendre polynomial P_5^2(z)
-	real(kreal) :: Legendre52
-	real(kreal), intent(in) :: z
-	Legendre52 = -(-1.0_kreal + z*z)*(-z + 3.0_kreal*z*z*z)
-end function
 
 subroutine TrivariateQuadraticApproximations( aMesh )
 	type(SphereMesh), intent(inout) :: aMesh
@@ -460,11 +462,11 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 
 			call dpotri( 'U', 10, ATA, 10, errCode)
 			if ( errCode < 0 ) then
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logkey)//' potri ERROR : found illegal value at position ',errCode)
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
+				call LogMessage(exelog,ERROR_LOGGING_LEVEL,trim(logkey)//' potri ERROR : found illegal value at position ',errCode)
+				call LogMessage(exelog,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
 			elseif (errCode > 0 ) then
-				call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'potri ERROR : found zero on diagonal of Cholesky matrix')
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
+				call LogMessage(exelog,ERROR_LOGGING_LEVEL,logKey,'potri ERROR : found zero on diagonal of Cholesky matrix')
+				call LogMessage(exelog,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
 			endif
 			! Unpack LAPACK's symmetric storage
 			do m=1,10
@@ -475,7 +477,7 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 
 			ATAInvAT = matmul(ATA,AT)
 
-			coeffs = matmul(ATAInvAT(:,1:mm),scalarData(1:mm))
+			coeffs = matmul(ATAInvAT(:,1:n),scalarData(1:n))
 
 			!
 			! compute approximations
@@ -576,7 +578,7 @@ subroutine CalculateError(amesh, gradLinf, gradL2, lapLinf, lapL2)
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			aPanels%tracer(j,1) = sqrt(sum( (aPanels%x0(:,j) - aPanels%u(:,j)) * (aPanels%x0(:,j) - aPanels%u(:,j))))
 			aPanels%tracer(j,2) = abs( aPanels%h(j) - aPanels%potVort(j))
-			if ( sqrt(sum( aPanels%x0(:,j)*aPanels%x0(:,j))) ) then
+			if ( sqrt(sum( aPanels%x0(:,j)*aPanels%x0(:,j))) > denomGradAinf ) then
 				denomGradAinf = sqrt(sum( aPanels%x0(:,j) * aPanels%x0(:,j) ))
 			endif
 			if ( abs( aPanels%potVort(j) ) > denomLapAinf ) then
@@ -584,7 +586,7 @@ subroutine CalculateError(amesh, gradLinf, gradL2, lapLinf, lapL2)
 			endif
 
 			denomGradA2 = denomGradA2 + sum(aPanels%x0(:,j) * aPanels%x0(:,j) ) * aPanels%area(j)
-			denomLapA2 = denomLapA2 + aPanels%potVort * aPanels%potVort(j) * aPanels%area(j)
+			denomLapA2 = denomLapA2 + aPanels%potVort(j) * aPanels%potVort(j) * aPanels%area(j)
 		endif
 	enddo
 	denomGradA2 = sqrt(denomGradA2)
