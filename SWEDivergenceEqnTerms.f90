@@ -304,5 +304,89 @@ function LegendreP52(z)
 	Legendre52 = -(-1.0_kreal + z*z)*(-z + 3.0_kreal*z*z*z)
 end function
 
+subroutine TrivariateQuadraticApproximations( aMesh )
+	type(SphereMesh), intent(inout) :: aMesh
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: i, j, k, n, m, errCode
+	real(kreal) :: A(31,10), AT(10,31), ATA(10,10), ATAInvAT(10,31), coeffs(10), scalarData(31), datalocs(3,31)
+	integer(kint) :: adjPanels(8), nAdj, edgeList(8), vertList(8), nVerts, nearbyParticles(20), nNear
+	logical(klog) :: isNewPoint
+
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			! start fresh
+			A = 0.0_kreal
+			AT = 0.0_kreal
+			ATA = 0.0_kreal
+			ATAInvAT = 0.0_kreal
+			datalocs = 0.0_kreal
+			scalardata = 0.0_kreal
+
+			nearbyParticles = 0
+			nNear = 0
+			adjPanels = 0
+			nAdj = 0
+
+			!
+			!	get list of nearby passive particles using adjacent panels
+			!
+			!	start with panel j
+			call CCWEdgesAndParticlesAroundPanel(edgeList, vertList, nVerts, aMesh, j)
+			nearbyParticles(1:nverts) = vertList
+			nNear = nVerts
+			! 	continue with panels adjacent to panel j
+			call FindAdjacentPanels(adjPanels, nAdj, aMesh, j)
+			do k = 1, nAdj
+				call CCWEdgesAndParticlesAroundPanel(edgeList, vertList, nVerts, amesh, adjPanels(k) )
+				do i = 1, nVerts
+					isNewPoint = .TRUE.
+					do m = 1, nNear
+						if ( nearbyParticles(m) == vertList(i) ) isNewPoint = .FALSE. ! skip duplicates
+					enddo
+					if ( isNewPoint ) then
+						nearbyParticles( nNear + 1 ) = vertList(i)
+						nNear = nNear + 1
+					endif
+				enddo
+			enddo
+
+			!
+			! gather data and locations for interpolation matrix
+			!
+			! start with panel j
+			dataLocs(:,1) = aPanels%x(:,j)
+			scalarData(1) = aPanels%relVort(j)
+			! continue with adjacent panels
+			do k = 1, nAdj
+				dataLocs(:,k+1) = aPanels%x(:, adjPanels(k))
+				scalarData(k+1) = aPanels%relVort(adjPanels(k))
+			enddo
+			! continue with passive particles
+			do k = 1, nNear
+				dataLocs(:, 1 + nAdj + k) = aParticles%x(:, nearbyParticles(k))
+				scalarData(1 + nAdj + k) = aParticles%relVort(nearbyParticles(k))
+			enddo
+			!	add two points off the sphere to improve the condition number of the interpolation matrix
+			dataLocs(:, 1 + nAdj + nNear + 1) = 2.0_kreal * aPanels%x(:, j)
+			scalarData(1 + nAdj + nNear + 1) = aPanels%relVort(j)
+			dataLocs(:, 1 + nAdj + nNear + 2) = 0.0_kreal
+			scalarData(1 + nAdj + nNear + 2) = apanels%relVort(j)
+
+			n = 1 + nAdj + nNear + 2
+
+			!
+			!	data collected. ready for least squares
+			!
+
+
+		endif
+	enddo
+end subroutine
+
 
 end program
