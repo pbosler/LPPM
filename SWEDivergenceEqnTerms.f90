@@ -58,7 +58,7 @@ real(kreal) :: wallClock, testClock
 !
 ! program-specific variables
 !
-
+real(kreal) :: test1method1Error(4), test1method2Error(4), test1method3Error(4)
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	PROGRAM START
@@ -88,11 +88,12 @@ sphereEdges => sphere%edges
 spherePanels => sphere%panels
 
 !	TO DO : AMR
+write(amrString,'(A,I1)') 'quadNest', initNest
 
 if ( procRank == 0 ) then
 	write(vtkRoot, '(5A)') trim(outputDir), '/vtkOut/', trim(jobPrefix), trim(amrString), '_'
-	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot), 0, '.vtk'
-	call New(vtkOut, sphere, vtkFile, 'spherical harmonic 5 2')
+	write(vtkFile,'(A,A,I0.4,A)') trim(vtkRoot),'test1', 0, '.vtk'
+	call New(vtkOut, sphere, vtkFile, 'quadratic polynomials in r3')
 endif
 
 !
@@ -113,24 +114,34 @@ endif
 !	test function 1
 !
 call StartSection(exeLog,'Test function 1')
-call TestSphericalHarmonic52(sphere)
+
 	!
 	!	method 1 : trivariate quadratic polynomials, least squares
 	!
 	testClock = MPI_WTIME()
-
-
+	call TrivariateQuadraticApproximations(sphere)
 
 	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 1, method 1 : ', trim(logString) )
+
+	call CalculateError(amesh, test1method1(1), test1method1(2), test1method1(3), test1method1(4) )
+	if ( procRank == 0 ) then
+		call VTKOutput(vtkOut, sphere)
+	endif
+
 	!
 	!	method 2 : SSRFPACK
 	!
+	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 1, method 2 : ', trim(logString) )
 	testClock = MPI_WTIME()
 
-
 	write(logstring,'(A,F15.4,A)') 'SSRFPACK elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
-	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 1, method 2 : ', trim(logString) )
+	if ( procRank == 0 ) then
+		write(vtkFile,'(A,A,I0.4,A)') trim(vtkRoot), 'test1', 1, '.vtk'
+		call UpdateFilename(vtkOut, vtkFile)
+		call UpdateTitle(vtkOut, 'ssrfpack')
+		call VTKOutput(vtkOut, sphere)
+	endif
 	!
 	!	method 3 : singular kernels
 	!
@@ -139,14 +150,20 @@ call TestSphericalHarmonic52(sphere)
 	write(logstring,'(A,F15.4,A)') 'singular kernel elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 1, method 3 : ', trim(logString) )
 
-	call VTKOutput(vtkOut, sphere)
+	if ( procRank == 0 ) then
+		write(vtkFile,'(A,A,I0.4,A)') trim(vtkRoot), 'test1', 2, '.vtk'
+		call UpdateFilename(vtkOut, vtkFile)
+		call UpdateTitle(vtkOut, 'singular kernels')
+		call VTKOutput(vtkOut, sphere)
+	endif
 call EndSection(exeLog)
 
 !
 !	test function 2
 !
-call TestSphericalHarmonic54(sphere)
-call UpdateTitle(vtkOut, 'spherical harmonic 5 4')
+!call TestSphericalHarmonic54(sphere)
+call TestSphericalHarmonic52(sphere)
+call UpdateTitle(vtkOut, 'spherical harmonic 5 2')
 
 
 !
@@ -218,6 +235,36 @@ function LegendreP54(z)
 	real(kreal), intent(in) :: z
 	Legendre54 = z*(-1.0_kreal + z*z)*(-1.0_kreal + z*z)
 end function
+
+subroutine TestLinearFunction(aMesh)
+	type(SphereMesh), intent(inout) :: aMesh
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+
+	do j = 1, aParticles%N
+		aParticles%relVort(j) = aParticles%x(1,j)
+		aParticles%x0(:,j) = [1.0_kreal - aParticles%x(1,j)/EARTH_RADIUS/EARTH_RADIUS, &
+							  -aparticles%x(2,j)*aParticles%x(1,j)/EARTH_RADIUS/EARTH_RADIUS, &
+							  -aParticles%x(3,j)*aparticles%x(1,j)/EARTH_RADIUS/EARTH_RADIUS]
+		aParticles%potVort(j) = -2.0_kreal * cos( Longitude(aParticles%x(:,j)) ) * cos( Latitude( aparticles%x(:,j) ) ) / EARTH_RADIUS
+	enddo
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			aPanels%relVort(j) = apanels%x(1,j)
+			aPanels%x0(:,j) = [1.0_kreal - aPanels%x(1,j)/EARTH_RADIUS/EARTH_RADIUS, &
+							   - aPanels%x(2,j) * aPanels%x(1,j) / EARTH_RADIUS / EARTH_RADIUS
+							   - aPanels%x(3,j) * aPanels%x(1,j) /EARTH_RADIUS/EARTH_RADIUS]
+			aPanels%potVort(j) = -2.0_kreal * cos( Longitude(aPanels%x(:,j)) ) * cos( Latitude( aPanels%x(:,j) ) ) / EARTH_RADIUS
+		else
+			aPanels%relVort(j) = 0.0_kreal
+			aPanels%potVort(j) = 0.0_kreal
+		endif
+	enddo
+end subroutine
 
 subroutine TestSphericalHarmonic52(amesh)
 	type(SphereMesh), intent(inout) :: aMesh
@@ -313,9 +360,12 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 	real(kreal) :: A(31,10), AT(10,31), ATA(10,10), ATAInvAT(10,31), coeffs(10), scalarData(31), datalocs(3,31)
 	integer(kint) :: adjPanels(8), nAdj, edgeList(8), vertList(8), nVerts, nearbyParticles(20), nNear
 	logical(klog) :: isNewPoint
+	integer(kint), allocatable :: particleChecked(:)
 
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
+	allocate(particleChecked(aParticles%N))
+	particleChecked = 0
 
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
@@ -383,10 +433,170 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 			!	data collected. ready for least squares
 			!
 
+			! setup normal equations
+			A(1:n,1) = 1.0_kreal
+			A(1:n,2) = dataLocs(1,1:n)
+			A(1:n,3) = dataLocs(2,1:n)
+			A(1:n,4) = dataLocs(3,1:n)
+			A(1:n,5) = dataLocs(1,1:n) * dataLocs(2,1:n)
+			A(1:n,6) = dataLocs(1,1:n) * dataLocs(3,1:n)
+			A(1:n,7) = dataLocs(2,1:n) * dataLocs(3,1:n)
+			A(1:n,8) = dataLocs(1,1:n) * dataLocs(1,1:n)
+			A(1:n,9) = dataLocs(2,1:n) * dataLocs(2,1:n)
+			A(1:n,10) = dataLocs(3,1:n) * dataLocs(3,1:n)
 
+			AT = transpose(A)
+			ATA = matmul(AT,A)
+
+			!
+			!	find Cholesky factorization and invert ATA using LAPACK
+			!
+			call dpotrf('U', 10, ATA, 10, errCode)
+			if ( errCode < 0 ) then
+				call LogMessage(exeLog, ERROR_LOGGING_LEVEL, 'potrf ERROR : found illegal value at position ',errCode)
+			elseif ( errCode > 0 ) then
+				call LogMessage(exeLog, ERROR_LOGGING_LEVEL, 'potrf ERROR : ', 'non symmetric positive definite matrix.')
+			endif
+
+			call dpotri( 'U', 10, ATA, 10, errCode)
+			if ( errCode < 0 ) then
+				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logkey)//' potri ERROR : found illegal value at position ',errCode)
+				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
+			elseif (errCode > 0 ) then
+				call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'potri ERROR : found zero on diagonal of Cholesky matrix')
+				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
+			endif
+			! Unpack LAPACK's symmetric storage
+			do m=1,10
+				do k=m+1,10
+					ata(k,m) = ata(m,k)
+				enddo
+			enddo
+
+			ATAInvAT = matmul(ATA,AT)
+
+			coeffs = matmul(ATAInvAT(:,1:mm),scalarData(1:mm))
+
+			!
+			! compute approximations
+			!
+			call CCWEdgesAndParticlesAroundPanel(edgeList, vertList, nVerts, aMesh, j)
+	! store computed laplacian in h variable
+	! store computed gradient in u variable
+			aPanels%u(:,j) = QuadraticGradAppx( coeffs, aPanels%x(:,j), aPanels%x(:,j))
+			aPanels%h(j) = QuadraticLaplacianAppx(coeffs, aPanels%x(:,j))
+			do k = 1, nVerts
+				aParticles%u(:,vertList(k)) = aParticles%u(:,vertList(k)) + &
+						QuadraticGradAppx( coeffs, aParticles%x(:,vertList(k)), aPanels%x(:,j))
+				aParticles%h(j) = aParticles%h(j) + QuadraticLaplacianAppx(coeffs, aParticles%x(:,vertList(k)))
+				particleChecked(vertList(k)) = particleChecked(vertList(k)) + 1
+			enddo
 		endif
 	enddo
+	do j = 1, aParticles%N
+		aParticles%u(:,j) = aParticles%u(:,j)/real(particleChecked(j), kreal)
+		aParticles%h(j) = aParticles%h(j)/real(particleChecked(j), kreal)
+	enddo
+	deallocate(particleChecked)
 end subroutine
 
+function QuadraticGradAppx( coeffs, xyz, xyzCent)
+	real(kreal) :: QuadraticGradAppx(3)
+	real(kreal), intent(in) :: coeffs(10), xyz(3), xyzCent(3)
+	!
+	real(kreal) ::  proj(3,3), xU(3)
+
+	xU = xyzCent / sum( xyzCent * xyzCent)
+	proj = 0.0_kreal
+	proj(1,1) = 1.0_kreal - xU(1) * xU(1)
+	proj(1,2) = - xU(1) * xU(2)
+	proj(1,3) = - xU(1) * xU(3)
+	proj(2,1) = - xU(1) * xU(2)
+	proj(2,2) = 1.0_kreal - xU(2) * xU(2)
+	proj(2,3) = - xU(2) * xU(3)
+	proj(3,1) = - xU(1) * xU(3)
+	proj(3,2) = - xU(2) * xU(3)
+	proj(3,3) = 1.0_kreal - xU(3) * xU(3)
+
+	QuadraticGradAppx = [ coeffs(2) + coeffs(5)*xyz(2) + coeffs(6)*xyz(3) + 2.0_kreal * coeffs(8) * xyz(1), &
+						  coeffs(3) + coeffs(5)*xyz(1) + coeffs(7)*xyz(3) + 2.0_kreal * coeffs(9) * xyz(2), &
+						  coeffs(4) + coeffs(6)*xyz(1) + coeffs(7)*xyz(2) + 2.0_kreal * coeffs(10)* xyz(3) ]
+	QuadraticGradAppx = MatMul( proj, quadraticGradAppx)
+end function
+
+function QuadraticLaplacianAppx( coeffs, xyz )
+	real(kreal)  :: QuadraticLaplacianAppx
+	real(kreal), intent(in) :: coeffs(10), xyz(3)
+	!
+	QuadraticLaplacianAppx = 2.0_kreal * coeffs(8) * ( 1.0_kreal - xyz(1) * xyz(1) / EARTH_RADIUS / EARTH_RADIUS ) + &
+							 2.0_kreal * coeffs(9) * ( 1.0_kreal - xyz(2) * xyz(2) / EARTH_RADIUS / EARTH_RADIUS ) + &
+							 2.0_kreal * coeffs(10)* ( 1.0_kreal - xyz(3) * xyz(3) / EARTH_RADIUS / EARTH_RADIUS ) - &
+							 2.0_kreal * coeffs(5) * xyz(1) * xyz(2) / EARTH_RADIUS / EARTH_RADIUS - &
+							 2.0_kreal * coeffs(6) * xyz(1) * xyz(3) / EARTH_RADIUS / EARTH_RADIUS - &
+							 2.0_kreal * coeffs(7) * xyz(2) * xyz(3) / EARTH_RADIUS / EARTH_RADIUS
+end function
+
+
+subroutine CalculateError(amesh, gradLinf, gradL2, lapLinf, lapL2)
+	type(SphereMesh), intent(inout) :: amesh
+	real(kreal), intent(out) :: gradLinf, gradL2, lapLinf, lapL2
+	! store spherical harmonic in relvort variable
+	! store exact value of laplacian in potvort variable
+	! store computed laplacian in h variable
+	! store exact value of gradient in x0 variable
+	! store computed gradient in u variable
+	! store gradient linf error in tracer
+	! store laplacian linf error in tracer
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+	real(kreal) :: denomGradPinf, denomLapPinf, denomGradAinf, denomGradA2, denomLapAinf, denomLapA2
+
+	aParticles => amesh%particles
+	aPanels => amesh%panels
+
+	denomGradPinf = 0.0_kreal
+	denomLapPinf = 0.0_kreal
+	do j = 1, aParticles%N
+		aParticles%tracer(j,1) = sqrt(sum( (aParticles%x0(:,j) - aParticles%u(:,j)) * ( aParticles%x0(:,j) - aParticles%u(:,j) ) ))
+		aParticles%tracer(j,2) = abs( aParticles%h(j) - aParticles%potVort(j) )
+		if ( sqrt( sum( aParticles%x0(:,j)*aParticles%x0(:,j))) > denomGradPinf ) then
+			denomGradPInf = sqrt(sum( aParticles%x0(:,j)*aParticles%x0(:,j)))
+		endif
+		if ( abs( aParticles%potVort(j)) > denomLapPinf  ) then
+			denomLapPinf = abs( aParticles%potVort(j) )
+		endif
+	enddo
+
+	denomGradAinf = 0.0_kreal
+	denomGradA2 = 0.0_kreal
+	denomLapAinf = 0.0_kreal
+	denomLapA2 = 0.0_kreal
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			aPanels%tracer(j,1) = sqrt(sum( (aPanels%x0(:,j) - aPanels%u(:,j)) * (aPanels%x0(:,j) - aPanels%u(:,j))))
+			aPanels%tracer(j,2) = abs( aPanels%h(j) - aPanels%potVort(j))
+			if ( sqrt(sum( aPanels%x0(:,j)*aPanels%x0(:,j))) ) then
+				denomGradAinf = sqrt(sum( aPanels%x0(:,j) * aPanels%x0(:,j) ))
+			endif
+			if ( abs( aPanels%potVort(j) ) > denomLapAinf ) then
+				denomLapAinf = abs( aPanels%potVort(j) )
+			endif
+
+			denomGradA2 = denomGradA2 + sum(aPanels%x0(:,j) * aPanels%x0(:,j) ) * aPanels%area(j)
+			denomLapA2 = denomLapA2 + aPanels%potVort * aPanels%potVort(j) * aPanels%area(j)
+		endif
+	enddo
+	denomGradA2 = sqrt(denomGradA2)
+	denomLapA2 = sqrt(denomLapA2)
+
+	gradLinf = max( maxval(aParticles%tracer(1:aParticles%N,1)), maxval(aPanels%tracer(1:aPanels%N,1))) / &
+			   min( denomGradPinf, denomGradAinf)
+	lapLinf = max( maxval(aParticles%tracer(1:aParticles%N, 2)), maxval(aPanels%tracer(1:aPanels%N,2))) / &
+			 min( denomLapPinf, denomLapAInf)
+
+	gradL2 = sqrt( sum( aPanels%tracer(1:aPanels%N,1) * aPanels%tracer(1:aPanels%N,1) * aPanels%area(1:aPanels%N) ) )/denomGradA2
+	lapL2 = sqrt( sum( aPanels%tracer(1:aPanels%N,2) * aPanels%tracer(1:aPanels%N,2) * aPanels%area(1:aPanels%N) ) ) / denomLapA2
+end subroutine
 
 end program
