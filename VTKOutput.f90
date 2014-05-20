@@ -26,7 +26,7 @@ implicit none
 private
 public VTKSource
 public New, Delete
-public VTKOutput, UpdateFilename
+public VTKOutput, UpdateFilename, UpdateTitle
 
 type VTKSource
 	character(len = 256) :: filename
@@ -139,6 +139,12 @@ subroutine UpdateFilenameVTK(self,newfilename)
 	type(VTKSource), intent(inout) :: self
 	character(len=*), intent(in) :: newFilename
 	self%filename = trim(newFilename)
+end subroutine
+
+subroutine UpdateTitle(self, newtitle)
+	type(VTKSource), intent(inout) :: self
+	character(len=*), intent(in) :: newTitle
+	self%title = newtitle
 end subroutine
 
 subroutine vtkOutput(self,aMesh)
