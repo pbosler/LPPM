@@ -1335,7 +1335,7 @@ subroutine SWEVelocityActive(u, x, relVort, div, area, indexStart, indexEnd)
 	integer(kint), intent(in) :: indexStart, indexEnd
 	!
 	integer(kint) :: j, k, nn
-	real(kreal) :: denom
+	real(kreal) :: denomZeta, denomDelta, dotProd
 
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering SWEVelocityActive.')
 
@@ -1343,25 +1343,41 @@ subroutine SWEVelocityActive(u, x, relVort, div, area, indexStart, indexEnd)
 	nn = size(x,2)
 	do j=indexStart, indexEnd
 		do k=1,j-1
-			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k))
-			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
-							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/(denom)
-			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
-							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/(denom)
-			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + &
-					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/(denom)
+			dotProd = sum( x(:,j) * x(:,k) )
+			denomZeta = 4.0_kreal * PI * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd)
+			denomDelta = 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd)
+			u(1,j) = u(1,j) + ( x(2,j) * x(3,k) - x(3,j) * x(2,k) ) * relVort(k) * area(k) / denomZeta  + &
+			   ( x(1,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * x(1,k) ) * div(k) * area(k) / denomDelta
+			u(2,j) = u(2,j) + ( x(3,j) * x(1,k) - x(1,j) * x(3,k) ) * relVort(k) * area(k) / denomZeta + &
+			   ( x(2,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * x(2,k) ) * div(k) * area(k) / denomDelta
+			u(3,j) = u(3,j) + ( x(1,j) * x(2,k) - x(2,j) * x(1,k) ) * relVort(k) * area(k) / denomZeta + &
+			   ( x(3,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * x(3,k) ) * div(k) * area(k) / denomDelta
+!			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
+!							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/(denom)
+!			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
+!							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/(denom)
+!			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + &
+!					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/(denom)
 		enddo
 		do k=j+1,nn
-			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k))
-			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
-							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/(denom)
-			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
-							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/(denom)
-			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + &
-					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/(denom)
+			dotProd = sum( x(:,j) * x(:,k) )
+			denomZeta = 4.0_kreal * PI * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd)
+			denomDelta = 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd)
+			u(1,j) = u(1,j) + ( x(2,j) * x(3,k) - x(3,j) * x(2,k) ) * relVort(k) * area(k) / denomZeta  + &
+			   ( x(1,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * x(1,k) ) * div(k) * area(k) / denomDelta
+			u(2,j) = u(2,j) + ( x(3,j) * x(1,k) - x(1,j) * x(3,k) ) * relVort(k) * area(k) / denomZeta + &
+			   ( x(2,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * x(2,k) ) * div(k) * area(k) / denomDelta
+			u(3,j) = u(3,j) + ( x(1,j) * x(2,k) - x(2,j) * x(1,k) ) * relVort(k) * area(k) /denomZeta + &
+			   ( x(3,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * x(3,k) ) * div(k) * area(k) / denomDelta
+!			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*x(:,k))
+!			u(1,j) = u(1,j) + ( x(2,j)*x(3,k) - x(3,j)*x(2,k) )*relVort(k)*area(k)/denom + &
+!							  ( x(1,j)*x(1,k)/EARTH_RADIUS/EARTH_RADIUS - x(1,k) )*div(k)*area(k)/(denom)
+!			u(2,j) = u(2,j) + ( x(3,j)*x(1,k) - x(1,j)*x(3,k) )*relVort(k)*area(k)/denom + &
+!							  ( x(2,j)*x(2,k)/EARTH_RADIUS/EARTH_RADIUS - x(2,k) )*div(k)*area(k)/(denom)
+!			u(3,j) = u(3,j) + ( x(1,j)*x(2,k) - x(2,j)*x(1,k) )*relVort(k)*area(k)/denom + &
+!					 		  ( x(3,j)*x(3,k)/EARTH_RADIUS/EARTH_RADIUS - x(3,k) )*div(k)*area(k)/(denom)
 		enddo
 	enddo
-	u(:,indexStart:indexEnd) = u(:,indexStart:indexEnd)/(-4.0_kreal*PI*EARTH_RADIUS)
 end subroutine
 
 subroutine SWEVelocityPassive(u, x, xActive, relVort, div, area, indexStart, indexEnd)
@@ -1371,23 +1387,32 @@ subroutine SWEVelocityPassive(u, x, xActive, relVort, div, area, indexStart, ind
 	integer(kint), intent(in) :: indexStart, indexEnd
 	!
 	integer(kint) :: j, k, nn
-	real(kreal) :: denom
+	real(kreal) :: denomZeta, denomDelta, dotProd
 
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logkey,'entering SWEVelocityPassive.')
 	u = 0.0_kreal
 	nn = size(xActive,2)
 	do j=indexStart, indexEnd
 		do k=1,nn
-			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*xActive(:,k))
-			u(1,j) = u(1,j) + ( x(2,j)*xActive(3,k) - x(3,j)*xActive(2,k) )*relVort(k)*area(k)/denom + &
-							  ( x(1,j)*xActive(1,k)/EARTH_RADIUS/EARTH_RADIUS - xActive(1,k) )*div(k)*area(k)/(denom)
-			u(2,j) = u(2,j) + ( x(3,j)*xActive(1,k) - x(1,j)*xActive(3,k) )*relVort(k)*area(k)/denom + &
-							  ( x(2,j)*xActive(2,k)/EARTH_RADIUS/EARTH_RADIUS - xActive(2,k) )*div(k)*area(k)/(denom)
-			u(3,j) = u(3,j) + ( x(1,j)*xActive(2,k) - x(2,j)*xActive(1,k) )*relVort(k)*area(k)/denom + &
-					 		  ( x(3,j)*xActive(3,k)/EARTH_RADIUS/EARTH_RADIUS - xActive(3,k) )*div(k)*area(k)/(denom )
+			dotProd = sum( x(:,j) * xActive(:,k) )
+			denomZeta = 4.0_kreal * PI * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd )
+			denomDelta = 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd)
+			u(1,j) = u(1,j) + ( x(2,j) * xActive(3,k) - x(3,j) * xActive(2,k) ) * relVort(k) * area(k) / denomZeta + &	
+			   ( x(1,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * xActive(1,k) ) * div(k) * area(k) / denomDelta 
+			u(2,j) = u(2,j) + ( x(3,j) * xActive(1,k) - x(1,j) * xActive(3,k) ) * relVort(k) * area(k) / denomZeta + &
+			   ( x(2,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * xActive(2,k) ) * div(k) * area(k) / denomDelta
+			u(3,j) = u(3,j) + ( x(1,j) * xActive(2,k) - x(2,j) * xActive(1,k) ) * relVort(k) * area(k) / denomZeta + &
+			   ( x(3,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * xActive(3,k) ) * div(k) * area(k) / denomDelta
+!			denom = EARTH_RADIUS*EARTH_RADIUS- sum(x(:,j)*xActive(:,k))
+!			u(1,j) = u(1,j) + ( x(2,j)*xActive(3,k) - x(3,j)*xActive(2,k) )*relVort(k)*area(k)/denom + &
+!							  ( x(1,j)*xActive(1,k)/EARTH_RADIUS/EARTH_RADIUS - xActive(1,k) )*div(k)*area(k)/(denom)
+!			u(2,j) = u(2,j) + ( x(3,j)*xActive(1,k) - x(1,j)*xActive(3,k) )*relVort(k)*area(k)/denom + &
+!							  ( x(2,j)*xActive(2,k)/EARTH_RADIUS/EARTH_RADIUS - xActive(2,k) )*div(k)*area(k)/(denom)
+!			u(3,j) = u(3,j) + ( x(1,j)*xActive(2,k) - x(2,j)*xActive(1,k) )*relVort(k)*area(k)/denom + &
+!					 		  ( x(3,j)*xActive(3,k)/EARTH_RADIUS/EARTH_RADIUS - xActive(3,k) )*div(k)*area(k)/(denom )
 		enddo
 	enddo
-	u(:,indexStart:indexEnd) = u(:,indexStart:indexEnd)/(-4.0_kreal*PI*EARTH_RADIUS)
+
 end subroutine
 
 subroutine SWEVelocitySmooth(u, x, xActive, relVort, div, area, indexStart, indexEnd)
