@@ -467,7 +467,7 @@ subroutine SetSourceRelVort(self,delTri)
 	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
 				delTri%list,delTri%lptr,delTri%lend,&
 			    self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
-	call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig relVort = ',self%dSig1)
+	!call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig relVort = ',self%dSig1)
 end subroutine
 
 
