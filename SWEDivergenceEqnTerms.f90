@@ -77,7 +77,7 @@ wallClock = MPI_WTIME()
 !	read user input from namelist file, set starting state
 !
 call ReadNamelistInputFile(procRank)
-call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logkey,' initial broadcast done.')
+call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logkey,'PROGRAM START')
 
 
 !
