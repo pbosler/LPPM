@@ -52,15 +52,15 @@ str = 1.0_kreal
 !!call Delete(mesh)
 !call Delete(meshout)
 
-initNest = 1
+initNest = 8
 AMR  = 0
 nTracer = 2
 filename = '~/Desktop/meshExample.vtk'
 
 call New(mesh,initNest,AMR,nTracer)
 call InitializeRectangle(mesh,xmin,xmax,ymin,ymax,boundaryType)
-write(logstring,'(A,F16.12)') 'total area = ', TotalArea(mesh)
-call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'nest = 2 ', logstring)
+write(logstring,'(A,I1,A,F16.12)') 'nest = ', initNest, ' , total area = ',  TotalArea(mesh)
+call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'mesh info ', logstring)
 
 call New(rankine, RANKINE_N_INT, RANKINE_N_REAL)
 call InitRankineVortex(rankine, xc, yc, rad, str)

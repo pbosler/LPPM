@@ -135,7 +135,6 @@ subroutine NewPrivate(self,aMesh,nProcs)
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'Creating New BVERK4Data.')
 
 	self%rk4isReady = .FALSE.
-	self%rk4isReady = .FALSE.
 
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels

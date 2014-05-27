@@ -639,8 +639,11 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 	type(Panels), pointer :: aPanels
 	integer(kint) :: i, j, k, n, m, errCode
 	real(kreal) :: A(31,10), AT(10,31), ATA(10,10), ATAInvAT(10,31), coeffs(10), scalarData(31), datalocs(3,31)
+	real(kreal) :: work(41), coeffs2(10), scalarData2(31), rwork(20), tau(10)
+	integer(kint) :: lsqM, lsqN, nrhs, info, jpivot(10)
+	integer(kint), save :: lWork = -1
 	integer(kint) :: adjPanels(8), nAdj, edgeList(8), vertList(8), nVerts, nearbyParticles(20), nNear
-	logical(klog) :: isNewPoint
+	logical(klog) :: isNewPoint, lworkLogged
 	integer(kint), allocatable :: particleChecked(:)
 
 	aParticles => aMesh%particles
@@ -662,6 +665,10 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 			nNear = 0
 			adjPanels = 0
 			nAdj = 0
+
+			work = 0.0_kreal
+			rwork = 0.0_kreal
+			jpivot = 0
 
 			!
 			!	get list of nearby passive particles using adjacent panels
@@ -710,12 +717,14 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 
 			n = 1 + nAdj + nNear + 2
 
+			scalarData2 = scalarData
+
 			!
 			!	data collected. ready for least squares
 			!
-
-			! setup normal equations
-			A(1:n,1) = 1.0_kreal
+			!		setup interpolation matrix A
+			!		A is an n x 10 matrix with n > 10
+			A(1:n,1) = 1.0_kreal !* EARTH_RADIUS
 			A(1:n,2) = dataLocs(1,1:n)
 			A(1:n,3) = dataLocs(2,1:n)
 			A(1:n,4) = dataLocs(3,1:n)
@@ -726,9 +735,44 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 			A(1:n,9) = dataLocs(2,1:n) * dataLocs(2,1:n)
 			A(1:n,10) = dataLocs(3,1:n) * dataLocs(3,1:n)
 
+			!
+			!	solve least squares problem with QR factorization using MKL Lapack
+			!
+			lsqM = n
+			lsqN = 10
+!			nRHS = 1
+!			call dgels( 'N', lsqM, lsqN, nRHS, A(1:lsqM,10), lsqM, scalarData(1:lsqM), lsqM, work, lWork, info)
+!			if ( info < 0 ) then
+!				call LogMessage(exelog,ERROR_LOGGING_LEVEL,trim(logkey)//' dgels ERROR : found illegal value at position ',info)
+!				call LogMessage(exelog,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
+!			elseif ( info > 0 ) then
+!				call LogMessage(exelog,ERROR_LOGGING_LEVEL,logKey,'dgels ERROR : found zero on diagonal of interpolation matrix')
+!				call LogMessage(exelog,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
+!			endif
+!			coeffs = scalarData(1:10)
+
+			call dgeqpf(lsqM, lsqN, A(1:lsqM,lsqN), lsqM, jpivot, tau, work, info)
+			k = 0
+			call dormqr('L', 'T', k, A(1:lsqM,lsqN), lsqM, tau, scalarData(1:lsqM), lsqM, work, lwork, info)
+
+
+!
+!			! setup normal equations
+!
+			!		setup interpolation matrix A
+			!		A is an n x 10 matrix with n > 10
+			A(1:n,1) = 1.0_kreal ! * EARTH_RADIUS
+			A(1:n,2) = dataLocs(1,1:n)
+			A(1:n,3) = dataLocs(2,1:n)
+			A(1:n,4) = dataLocs(3,1:n)
+			A(1:n,5) = dataLocs(1,1:n) * dataLocs(2,1:n)
+			A(1:n,6) = dataLocs(1,1:n) * dataLocs(3,1:n)
+			A(1:n,7) = dataLocs(2,1:n) * dataLocs(3,1:n)
+			A(1:n,8) = dataLocs(1,1:n) * dataLocs(1,1:n)
+			A(1:n,9) = dataLocs(2,1:n) * dataLocs(2,1:n)
+			A(1:n,10) = dataLocs(3,1:n) * dataLocs(3,1:n)
 			AT = transpose(A)
 			ATA = matmul(AT,A)
-
 			!
 			!	find Cholesky factorization and invert ATA using LAPACK
 			!
@@ -755,7 +799,22 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 
 			ATAInvAT = matmul(ATA,AT)
 			! find coefficients of quadratic approximating polynomial
-			coeffs = matmul(ATAInvAT(:,1:n),scalarData(1:n))
+			coeffs2 = matmul(ATAInvAT(:,1:n),scalarData2(1:n))
+
+			!DEBUG
+			if ( sum( ( coeffs2 - coeffs) * (coeffs2 - coeffs) ) > 1.0e-6 ) then
+				call LogMessage(exeLog,ERROR_LOGGING_LEVEL,'LSQ Error : different coefficients at panel ', j)
+				write(logstring,'(10(F16.8,A))') coeffs(1), ' ', coeffs(2), ' ', coeffs(3), ' ', coeffs(4), ' ', coeffs(5), ' ', &
+												 coeffs(6), ' ', coeffs(7), ' ', coeffs(8), ' ', coeffs(9), ' ', coeffs(10)
+				call LogMessage(exeLog, ERROR_LOGGING_LEVEL, 'QRFactor output : ', logstring)
+				write(logstring,'(10(F16.8,A))') coeffs2(1), ' ', coeffs2(2), ' ', coeffs2(3), ' ', coeffs2(4), ' ', coeffs2(5), ' ', &
+												 coeffs2(6), ' ', coeffs2(7), ' ', coeffs2(8), ' ', coeffs2(9), ' ', coeffs2(10)
+				call LogMessage(exeLog, ERROR_LOGGING_LEVEL, 'Cholesky output : ', logstring)
+				!coeffs = coeffs2
+			endif
+
+
+
 
 			!
 			! compute approximations

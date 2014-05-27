@@ -111,13 +111,13 @@ subroutine NewPrivate(self, initNest, AMR, nTracer)
 	!
 	! TO DO : compute the array sizes
 	!
-!	nPanels = PanelMax(panelKind,initNest + AMR)
-!	nParticles = PlaneParticleMax(panelKind,initNest + AMR)
-!	nEdges = EdgeMax(panelKind,initNest+AMR)
+	nPanels = PlanePanelMax(initNest + AMR)
+	nParticles = PlaneParticleMax(initNest + AMR)
+	nEdges = PlaneEdgeMax(initNest+AMR)
 
-	nPanels = 10000
-	nEdges = 10000
-	nParticles = 10000
+!	nPanels = 10000
+!	nEdges = 10000
+!	nParticles = 10000
 
 	call New(self%particles,nParticles,panelKind,nTracer,problemKind)
 	call New(self%edges, nEdges)
@@ -970,6 +970,27 @@ function PlaneParticleMax(maxnest)
 		PlaneParticleMax = PlaneParticleMax + 2**j
 	enddo
 	PlaneParticleMax = PlaneParticleMax*PlaneParticleMax
+end function
+
+function PlanePanelMax(maxNest)
+	integer(kint) :: PlanePanelMax
+	integer(kint), intent(in) :: maxNest
+	!
+	integer(kint) :: j
+	PlanePanelMax = 4
+	do j=1,maxNest
+		PlanePanelMax = PlanePanelMax + 4**(j+1)
+	enddo
+end function
+
+function PlaneEdgeMax(maxNest)
+	integer(kint) :: PlaneEdgeMax
+	integer(kint), intent(in) ::maxNest
+	!
+	PlaneEdgeMax = 4**(maxNest+2) - 4**maxnest
+	! TO DO : this function is inexact.  It should match the following sequence:
+	!	nest   : 0		1		2		3		4		5		...
+	!	nEdges : 12		52		196		740		2852	11172	...
 end function
 
 subroutine InitLogger(aLog, rank)
