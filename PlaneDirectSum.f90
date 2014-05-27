@@ -139,6 +139,33 @@ subroutine NewPrivate(self, aMesh, nProcs)
 	nActive = aPanels%N_Active
 	nPassive = aPanels%N - aPanels%N_Active
 
+	nTracer = aMesh%nTracer
+
+	panelkind = QUAD_PANEL
+	problemKind = PLANE_SOLVER
+
+	!
+	!	Allocate MPI variables
+	!
+	allocate(self%particlesIndexStart(0:nProcs-1))
+	allocate(self%particlesIndexEnd(0:nProcs-1))
+	allocate(self%particlesMessageSize(0:nProcs-1))
+	self%particlesIndexStart = -1
+	self%particlesIndexEnd = -1
+	self%particlesMessageSize = -1
+	allocate(self%activePanelsIndexStart(0:nProcs-1))
+	allocate(self%activePanelsIndexEnd(0:nProcs-1))
+	allocate(self%activePanelsMessageSize(0:nProcs-1))
+	self%activePanelsIndexStart = -1
+	self%activePanelsIndexEnd = -1
+	self%activePanelsMessageSize = -1
+	allocate(self%passivePanelsIndexStart(0:nProcs-1))
+	allocate(self%passivePanelsIndexEnd(0:nProcs-1))
+	allocate(self%passivePanelsMessageSize(0:nProcs-1))
+	self%passivePanelsIndexStart = -1
+	self%passivePanelsIndexEnd = -1
+	self%passivePanelsMessageSize = -1
+
 
 end subroutine
 
