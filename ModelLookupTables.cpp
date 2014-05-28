@@ -10,10 +10,6 @@
 */
 #include <iostream>
 #include <cmath>
-#include <string.h>
-#include <sstream>
-
-using namespace std;
 
 
 /*
@@ -628,6 +624,47 @@ void GetColorForValue_BlueWhiteRed(double val, double &r, double &g, double &b, 
 			}
 		}
 	}
+};
+
+void GetColorForValue_RainbowDesaturated(double val, double &r, double &g, double &b, double &min, double &max)
+{
+	const int numColors = 9;
+	const double range = max - min;
+	const double colors[numColors][3] = { 0.278431, 0.278431, 0.858824,
+										  0.0, 0.0, 0.360784,
+										  0.0, 1.0, 1.0, 
+										  0.0, 0.501961, 0.0,
+										  1.0, 1.0, 0.0, 
+										  1.0, 0.380392, 0.0, 
+										  0.419608, 0.0, 0.0, 
+										  0.878431, 0.301961, 0.301961,
+										  1.0, 1.0, 0.0 };
+	if ( val <= min )
+	{
+		r = colors[0][0];
+		g = colors[0][1];
+		b = colors[0][2];
+	}
+	else if ( val > max)
+	{
+		r = colors[numColors-1][0];
+		g = colors[numColors-1][1];
+		b = colors[numColors-1][2];
+	}
+	else
+	{							
+		for (int j=0;j<numColors;j++)
+		{
+			double floorj = min + ((double)j/(numColors-1))*range;
+			double ceilj = min + ((double)(j+1)/(numColors-1))*range;
+			if ( (val > floorj) && (val <= ceilj) ){
+				double frac = ( val - floorj)/(ceilj-floorj);
+				r = colors[j][0]*(1.0-frac) + colors[j+1][0]*frac;
+				g = colors[j][1]*(1.0-frac) + colors[j+1][1]*frac;
+				b = colors[j][2]*(1.0-frac) + colors[j+1][2]*frac;
+			}
+		}
+	}										  
 };
 
 void GetColorForValue_JetLat(double val, double &r, double &g, double &b, double &min, double &max)

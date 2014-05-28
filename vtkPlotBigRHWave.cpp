@@ -34,6 +34,7 @@ int main(){
 	double ONE_DAY = 86140.0;
 	double GRAVITY = 9.80616;
 	double OMEGA = 2.0*3.141592653589793/ONE_DAY;
+	double bounds[6];
 	
 	//
 	// USER PARAMETERS 
@@ -42,11 +43,11 @@ int main(){
 	double dt = 0.01;
 	int frameOut = 1;
 	int finalFrame = 35;
-	double relVortMin = -0.0000735;
-	double relVortMax = 0.0000735;
+	double relVortMin = -6.71E-05;
+	double relVortMax = 6.71E05;
 	bool showEdges = true;
-	char vtkFileRoot[128] = "/Users/pbosler/Desktop/modelData/vtkOut/rhWave_1dayTest_quadUnif5__";
-	char imgFileRoot[128] = "/Users/pbosler/Desktop/modelData/imgOut/rhWave_14day_run1_";
+	char vtkFileRoot[128] = "/Users/pbosler/Desktop/modelData/vtkOut/rhWave_noRemesh_quadUnif5__";
+	char imgFileRoot[128] = "/Users/pbosler/Desktop/modelData/imgOut/rhWave_noRemesh_2day_";
 	/* END USER PARAMETERS */
 	
 	//
@@ -97,7 +98,7 @@ int main(){
 			//
 			// choose colormap for vorticity
 			//
-			GetColorForValue_BlueYellowRed(val,r,g,b,relVortMin,relVortMax);
+			GetColorForValue_BlueWhiteRed(val,r,g,b,relVortMin,relVortMax);
 			
 			vortScale -> SetTableValue(i,r,g,b);
 		}
@@ -114,7 +115,7 @@ int main(){
 			//
 			// choose colormap for latitude tracers
 			//
-			GetColorForValue_ColdToHot(val,r,g,b,latMin,latMax);
+			GetColorForValue_NCLDetail(val,r,g,b,latMin,latMax);
 			
 			latScale -> SetTableValue(i,r,g,b);
 		}	
@@ -204,7 +205,7 @@ int main(){
 		// cameras
 		//
 		vtkCamera* camera1 = vtkCamera::New();
-			camera1 -> SetPosition(2.0,2.0,2.0);
+			camera1 -> SetPosition(8000,2.0,2.0);
 			camera1 -> SetFocalPoint(0.0,0.0,0.0);
 		vtkCamera* camera2 = vtkCamera::New();
 			camera2 -> SetPosition(2.0*EARTH_RADIUS,2.0*EARTH_RADIUS,2.0*EARTH_RADIUS);

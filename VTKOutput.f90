@@ -27,6 +27,7 @@ private
 public VTKSource
 public New, Delete
 public VTKOutput, UpdateFilename, UpdateTitle
+public VTKOutputMidpointRule
 
 type VTKSource
 	character(len = 256) :: filename
@@ -355,6 +356,204 @@ subroutine vtkOutput(self,aMesh)
 	endif
 	close(WRITE_UNIT_1)
 end subroutine
+
+subroutine VTKOutputMidpointRule(self,aMesh)
+	type(VTKSource), intent(in) :: self
+	type(SphereMesh), intent(in) :: aMesh
+	!
+	integer(kint) :: writeStat, j, k
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: nVerts
+
+	open(unit=WRITE_UNIT_1, file=self%filename, status='REPLACE', action='WRITE', iostat=writeStat)
+	if ( writeStat /= 0 ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, 'vtkOutput ERROR : ', 'cannot open vtk output file.')
+		return
+	endif
+
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+
+	!
+	! VTK File header
+	!
+	write(WRITE_UNIT_1,'(A)') '# vtk DataFile Version 2.0'
+	write(WRITE_UNIT_1,'(A)') self%title
+	write(WRITE_UNIT_1,'(A)') 'ASCII'
+	write(WRITE_UNIT_1,'(A)') 'DATASET POLYDATA'
+
+	!
+	! VTK points
+	!
+	write(WRITE_UNIT_1,'(A,I8,A)') 'POINTS ', aParticles%N, ' double'
+	do j = 1, aParticles%N
+		write(WRITE_UNIT_1,'(3F24.8)') aParticles%x(1,j)/EARTH_RADIUS, aParticles%x(2,j)/EARTH_RADIUS, aParticles%x(3,j)/EARTH_RADIUS
+	enddo
+
+	!
+	! VTK Cells
+	!
+	if ( aMesh%panelKind == TRI_PANEL ) then
+		nVerts = 3
+	elseif ( aMesh%panelKind == QUAD_PANEL ) then
+		nVerts = 4
+	endif
+
+	write(WRITE_UNIT_1,'(A, I8, I8)') 'POLYGONS ', aPanels%N_Active, aPanels%N_Active*(nVerts+1)
+	if ( aMesh%panelKind == TRI_PANEL ) then
+		do j = 1, aPanels%N
+			if ( .NOT. aPanels%hasChildren(j) ) then
+				write(WRITE_UNIT_1,'(4I8)') 3, aPanels%vertices(:,j) - 1
+			endif
+		enddo
+	elseif ( aMesh%panelKind == QUAD_PANEL ) then
+		do j = 1, aPanels%N
+			if ( .NOT. aPanels%hasChildren(j) ) then
+				write(WRITE_UNIT_1,'(5I8)') 4, aPanels%vertices(:,j) - 1
+			endif
+		enddo
+	endif
+
+
+	!
+	! VTK Scalar Data
+	!
+	write(WRITE_UNIT_1,'(A, I8)') 'POINT_DATA ', aParticles%N
+	write(WRITE_UNIT_1,'(A)') 'SCALARS lagParam double 3'
+	write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+	do j = 1, aparticles%N
+		write(WRITE_UNIT_1,'(3F24.8)') aParticles%x0(:,j)/EARTH_RADIUS
+	enddo
+	write(WRITE_UNIT_1,'(A)') 'SCALARS velocity double 3'
+	write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aparticles%N
+		write(WRITE_UNIT_1,'(3F24.8)') aParticles%u(:,j)
+	enddo
+	if ( associated(aParticles%absVort) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS absVort double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aParticles%N
+			write(WRITE_UNIT_1, '(F24.8)') aParticles%absVort(j)
+		enddo
+	endif
+	if ( associated(aParticles%relVort) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS relVort double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aParticles%N
+			write(WRITE_UNIT_1, '(F24.8)') aParticles%relVort(j)
+		enddo
+	endif
+	if ( associated(aParticles%potVort) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS potVort double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aParticles%N
+			write(WRITE_UNIT_1, '(F24.8)') aParticles%potVort(j)
+		enddo
+	endif
+	if ( associated(aPanels%h)) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS  h  double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j=1,aParticles%N
+			write(WRITE_UNIT_1,'(F24.15)') aParticles%h(j)
+		enddo
+	endif
+	if ( associated(aPanels%div)) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS  div  double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j=1,aParticles%N
+			write(WRITE_UNIT_1,'(F24.8)') aParticles%div(j)
+		enddo
+	endif
+	if ( aMesh%nTracer > 0 ) then
+		do k = 1, aMesh%nTracer
+			write(WRITE_UNIT_1,'(A,I1,A)') 'SCALARS Tracer', k, '  double 1'
+			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+			do j = 1, aParticles%N
+				write(WRITE_UNIT_1,'(F24.8)') aParticles%tracer(j,k)
+			enddo
+		enddo
+	endif
+
+
+	!
+	! VTK Cell data
+	!
+	write(WRITE_UNIT_1,'(A,I8)') 'CELL_DATA ', aPanels%N_Active
+	write(WRITE_UNIT_1,'(A)') 'SCALARS lagParamPanel double 3'
+	write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			write(WRITE_UNIT_1,'(3F24.8)') aPanels%x0(:,j)/EARTH_RADIUS
+		endif
+	enddo
+	write(WRITE_UNIT_1,'(A)') 'SCALARS velocityPanel double 3'
+	write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			write(WRITE_UNIT_1,'(3F24.8)') aPanels%u(:,j)
+		endif
+	enddo
+	if ( associated(aPanels%absVort) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS absVortPanel double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aPanels%N
+			if ( .NOT. aPanels%hasChildren(j) ) then
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%absVort(j)
+			endif
+		enddo
+	endif
+	if ( associated(aPanels%relVort) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS relVortPanel double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aPanels%N
+			if ( .NOT. aPanels%hasChildren(j) ) then
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%relVort(j)
+			endif
+		enddo
+	endif
+	if ( associated(aPanels%potVort) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS potVortPanel double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aPanels%N
+			if ( .NOT. aPanels%hasChildren(j) ) then
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%potVort(j)
+			endif
+		enddo
+	endif
+	if ( associated(aPanels%h) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS hPanel double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aPanels%N
+			if ( .NOT. aPanels%hasChildren(j) ) then
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%h(j)
+			endif
+		enddo
+	endif
+	if ( associated(aPanels%div) ) then
+		write(WRITE_UNIT_1,'(A)') 'SCALARS divPanel double 1'
+		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+		do j = 1, aPanels%N
+			if ( .NOT. aPanels%hasChildren(j) ) then
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%div(j)
+			endif
+		enddo
+	endif
+	if ( aMesh%nTracer > 0 ) then
+		do k = 1, aMesh%nTracer
+			write(WRITE_UNIT_1,'(A,I1,A)') 'SCALARS tracerPanel', k, ' double 1'
+			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+			do j = 1, aPanels%N
+				if ( .NOT. aPanels%hasChildren(j) ) then
+					write(WRITE_UNIT_1,'(F24.8)') aPanels%tracer(j,k)
+				endif
+			enddo
+		enddo
+	endif
+
+	close(WRITE_UNIT_1)
+end subroutine
+
 
 !
 !----------------

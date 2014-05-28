@@ -30,8 +30,8 @@ else ifeq ($(MACHINE),'VORTEX')
 else ifeq ($(MACHINE),'TANK')
 # TANK DESKTOP #
   FF = ifort
-  FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-  #FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
+  #FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
   VTK_INCLUDE=/usr/local/include/vtk-5.10
   VTK_LIB_DIR=/usr/local/lib/vtk-5.10
   VTK_LIBS=-lvtkCommon -lvtkGraphics -lvtkRendering -lvtkViews -lvtkWidgets -lvtkImaging -lvtkHybrid -lvtkIO -lvtkFiltering
@@ -76,8 +76,6 @@ TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o PlaneVorti
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 
 BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o RefineRemesh2.o
-
-PLOTTING = ModelLookupTables.o ModelLookupTables.h
 
 SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o RefineRemesh2.o $(TEST_CASE_OBJS)
 
@@ -165,9 +163,10 @@ SWEVorticityAndDivergence.o: SWEVorticityAndDivergence.f90 $(BASE_OBJS) $(MESH_O
 
 plotNewRemeshingFrames.exe: vtkPlotNewRemeshingFrames.o
 	g++ -O2 -Wno-deprecated -o $@ $< -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
-plotRH4WaveFrames.exe: vtkPlotBigRHWave.o $(PLOTTING)
+plotRH4WaveFrames.exe: vtkPlotRHWaveFrames.o ModelLookupTables.o
 	g++ -O2 -Wno-deprecated -o $@ $^ -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
-
+plotRH4WaveWithScalar.exe: vtkPlotRHWaveWithLatScalar.o ModelLookupTables.o	
+	g++ -O2 -Wno-deprecated -o $@ $^ -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
 #############################################################
 ## VTK OBJECTS
 #############################################################
@@ -176,5 +175,9 @@ ModelLookupTables.o: ModelLookupTables.cpp ModelLookupTables.h
 	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
 vtkPlotNewRemeshingFrames.o: vtkPlotNewRemeshingFrames.cpp
 	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
-vtkPlotBigRHWave.o: vtkPlotBigRHWave.cpp $(PLOTTING)
+vtkPlotBigRHWave.o: vtkPlotBigRHWave.cpp 
 	g++ -c -Wno-deprecated -O2 $^ -I$(VTK_INCLUDE)	
+vtkPlotRHWaveFrames.o: vtkPlotRHWaveFrames.cpp
+	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
+vtkPlotRHWaveWithLatScalar.o: vtkPlotRHWaveWithLatScalar.cpp
+	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)

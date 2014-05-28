@@ -1,7 +1,7 @@
 & sphereDefine
 	panelKind = 4
 	initNest = 5
-	AMR = 2	
+	AMR = 0	
 	refinementLimit = 4
 	circMaxTol = 1.2
 	vortVarTol = 1.2
@@ -14,15 +14,15 @@
 /
 
 & timeStepping
-	tfinal = 4.0		! days (test case 6 tfinal = 14)
-	dt = 0.002			! days 
-	remeshInterval = 10	! timesteps
-	resetAlpha = 4		! remeshings
+	tfinal = 14.0		! days (test case 6 tfinal = 14)
+	dt = 0.01			! days 
+	remeshInterval = 20	! timesteps
+	resetAlpha = 40000		! remeshings
 /
 
 & fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'rhWave_resetAlphaTest_'
+	jobPrefix = 'rhWave_remesh20_noReinit_'
 	frameOut = 4
 	nLon = 360
 	outputContours = 0

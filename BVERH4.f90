@@ -188,7 +188,7 @@ if ( procRank == 0 ) then
 
 
 	call New(vtkOut,sphere,vtkFile,'RH4Wave')
-	call VTKOutput(vtkOut,sphere)
+	call VTKOutputMidpointRule(vtkOut,sphere)
 
 	if ( outputContours > 0 ) then
 		write(LLRoot,'(A,A,A,A,A)') trim(outputDir), '/LLOut/',trim(jobPrefix),trim(amrString),'_'
@@ -343,7 +343,7 @@ do timeJ = 0, timesteps - 1
 
 		write(vtkFile,'(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
 		call UpdateFileName(vtkOut,vtkFile)
-		call VTKOutput(vtkOut,sphere)
+		call VTKOutputMidpointRule(vtkOut,sphere)
 
 		if ( outputContours > 0 ) then
 			write(LLFile,'(A,I0.4,A)') trim(LLRoot), frameCounter, '.m'
@@ -358,6 +358,8 @@ enddo
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if ( procRank == 0 ) then
+
+
 	write(dataFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_finalData','.txt'
 	write(summaryFile,'(6A)') trim(outputDir),'/', trim(jobPrefix), trim(amrString),'_summary','.txt'
 
@@ -366,11 +368,11 @@ if ( procRank == 0 ) then
 		call LogMessage(exeLog,ERROR_LOGGING_LEVEL,trim(logKey),' ERROR writing final data.')
 	else
 		write(WRITE_UNIT_1,'(4A24)') 'totalE', 'totalEns', 'vortL2', 'vortLinf'
-		write(WRITE_UNIT_1,'()') 'finalData = ['
+		write(WRITE_UNIT_1,'(A)') 'finalData = ['
 		do j=0, timesteps
 			write(WRITE_UNIT_1,'(4E24.8, A)') totalE(j), totalEns(j), vortErrorL2(j), vortErrorLinf(j), ' ; ...'
 		enddo
-		write(WRITE_UNIT_1,'()') '];'
+		write(WRITE_UNIT_1,'(A)') '];'
 	endif
 	close(WRITE_UNIT_1)
 
@@ -400,6 +402,8 @@ endif
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if ( procRank == 0 ) then
+	write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
+	call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
 	call Delete(vtkOut)
 	if (outputContours > 0 ) call Delete(LLOut)
 endif
@@ -471,7 +475,7 @@ subroutine InitLogger(alog,rank)
 	if ( rank == 0 ) then
 		call New(aLog,DEBUG_LOGGING_LEVEL)
 	else
-		call New(aLog,DEBUG_LOGGING_LEVEL)
+		call New(aLog,WARNING_LOGGING_LEVEL)
 	endif
         write(logKey,'(A,I0.2,A)') 'EXE_LOG',rank,' : '
 end subroutine
