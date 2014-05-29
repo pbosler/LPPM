@@ -71,7 +71,7 @@ interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.
 
 OUTPUT_OBJS = VTKOutput.o LatLonOutput.o PlaneOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 
-TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o PlaneVorticity.o
+TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o PlaneVorticity.o PlaneTracer.o
 
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 
@@ -152,9 +152,11 @@ RefineRemesh2.o: RefineRemesh2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) Trac
 Tracers.o: Tracers.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
 PlaneVorticity.o: PlaneVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
+PlaneTracer.o: PlaneTracer.f90 $(BASE_OBJS) $(MESH_OBJS)
 Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
 PlaneDirectSum.o: PlaneDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
+PlaneRemesh.o: PlaneRemesh.f90 $(BASE_OBJS) $(MESH_OBJS) $(TEST_CASE_OBJS)
 ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
 LatLonOutput.o: LatLonOutput.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 SWEDirectSum.o: SWEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)

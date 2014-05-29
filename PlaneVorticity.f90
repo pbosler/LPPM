@@ -28,6 +28,7 @@ private
 public VorticitySetup
 public New, Delete
 public InitRankineVortex, SetRankineVortexOnMesh, RankineVortex, RANKINE_N_INT, RANKINE_N_REAL
+public NullVorticity
 
 !
 !----------------
@@ -111,6 +112,11 @@ end subroutine
 ! Public functions
 !----------------
 !
+subroutine NullVorticity(aMesh, self)
+	type(PlaneMesh), intent(inout) :: aMesh
+	type(VorticitySetup), intent(in) :: self
+end subroutine
+
 
 subroutine InitRankineVortex(self, xCent, yCent, radius, strength)
 	type(VorticitySetup), intent(inout) :: self
