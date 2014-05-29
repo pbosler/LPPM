@@ -430,7 +430,7 @@ subroutine DividePanel(self, panelIndex)
 	type(Panels), pointer :: aPanels
 	integer(kint) :: vertIndices(4), edgeIndices(4), nestlevel
 	integer(kint) :: nParticles, nPanels, nEdges
-	integer(kint) :: j, k, childEdges(2)
+	integer(kint) :: j, childEdges(2)
 	logical(klog) :: edgeOrientation(4), alreadyDivided(4)
 
 	aParticles => self%particles
