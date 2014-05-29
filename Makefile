@@ -167,6 +167,8 @@ plotRH4WaveFrames.exe: vtkPlotRHWaveFrames.o ModelLookupTables.o
 	g++ -O2 -Wno-deprecated -o $@ $^ -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
 plotRH4WaveWithScalar.exe: vtkPlotRHWaveWithLatScalar.o ModelLookupTables.o	
 	g++ -O2 -Wno-deprecated -o $@ $^ -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS)
+plotPolarVortex.exe: vtkPlotPolarVortexFrames.o ModelLookupTables.o
+	g++ -O2 -Wno-deprecated -o $@ $^ -I$(VTK_INCLUDE) -L$(VTK_LIB_DIR) $(VTK_LIBS) -fopenmp
 #############################################################
 ## VTK OBJECTS
 #############################################################
@@ -181,3 +183,5 @@ vtkPlotRHWaveFrames.o: vtkPlotRHWaveFrames.cpp
 	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
 vtkPlotRHWaveWithLatScalar.o: vtkPlotRHWaveWithLatScalar.cpp
 	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE)
+vtkPlotPolarVortexFrames.o: vtkPlotPolarVortexFrames.cpp
+	g++ -c -Wno-deprecated -O2 $< -I$(VTK_INCLUDE) -fopenmp
