@@ -45,7 +45,7 @@ integer(kint) :: timeJ, timesteps
 ! input / output variables
 !
 type(PlaneOutput) :: meshOut
-character(len=MAX_STRING_LENGTH) :: filename, fileroot
+character(len=MAX_STRING_LENGTH) :: filename, fileroot, outputDir, jobPrefix, meshstring
 character(len=128) :: namelistInputFile = 'planeTest.namelist'
 !
 ! computing environment variables
@@ -88,7 +88,7 @@ yc = 0.0_kreal
 rad = 0.25_kreal
 str = 1.0_kreal
 
-call ReadNamelistInputFile(procRank)
+call ReadNamelistFile(procRank)
 
 ! i/o variables
 if ( procRank == 0 ) write(filename,'(A,I0.4,A)') trim(fileroot), 0, '.vtk'
@@ -130,7 +130,7 @@ do timeJ = 0, timesteps - 1
 	call RK4TimestepNoRotation( timekeeper, mesh, dt, procRank, numProcs)
 	if ( procRank == 0 ) then
 		call LogMessage(exeLog, TRACE_LOGGING_LEVEL, ' t = ', real(timeJ+1,kreal) * dt)
-		write(filename,'(A,A,I0.4,A)') trim(fileroot),'planeTest', timeJ+1, '.vtk'
+		write(filename,'(A,I0.4,A)') trim(fileroot), timeJ+1, '.vtk'
 		call UpdateFilename(meshOut, filename)
 		call OutputForVTK(meshout,mesh)
 	endif
@@ -178,13 +178,13 @@ subroutine ReadNamelistFile(rank)
 		broadcastReals(4) = vortVarTol
 		broadcastReals(5) = lagVarTol
 		
-		write(fileRoot,'(4A)') trim(outputDir), 'vtkOut/', trim(jobPrefix), trim(meshstring), '_'
+		write(fileRoot,'(4A)') trim(outputDir), 'vtkOut/', trim(jobPrefix), '_'
 	endif
 	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, mpiErrCode)
 	initNest = broadcastIntegers(1)
 	AMR = broadcastIntegers(2)
 	amrLimit = broadcastIntegers(3)
-	call MPI_BCAST(broadcastReals< BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpiErrCode)
+	call MPI_BCAST(broadcastReals, BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpiErrCode)
 	dt = broadcastReals(1)
 	tfinal = broadcastReals(2)
 	maxCircTol = broadcastReals(3)
