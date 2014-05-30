@@ -145,6 +145,7 @@ PlaneMesh.o: PlaneMesh.f90 Particles.o Edges.o Panels.o $(BASE_OBJS)
 PlaneOutput.o: PlaneOutput.f90 PlaneMesh.o Particles.o Edges.o Panels.o $(BASE_OBJS)
 ssrfpack.o: ssrfpack.f
 stripack.o: stripack.f
+bivar.o: bivar.f90
 STRIPACKInterface2.o: STRIPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) stripack.o 
 SSRFPACKInterface2.o: SSRFPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) STRIPACKInterface2.o ssrfpack.o
 VTKOutput.o: VTKOutput.f90 $(BASE_OBJS) $(MESH_OBJS)
