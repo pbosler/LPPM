@@ -6,31 +6,65 @@ use PlaneMeshModule
 use PlaneOutputModule
 use PlaneVorticityModule
 use PlaneDirectSumModule
+use PlaneTracerModule
+use PlaneRemeshModule
 
 implicit none
 
 include 'mpif.h'
 
+!
+! mesh variables
+!
 type(PlaneMesh) :: mesh
 integer(kint) :: initNest, AMR, nTracer
 real(kreal) :: xmin, xmax, ymin, ymax
 integer(kint) :: boundaryType = FREE_BOUNDARIES
-
+!
+! vorticity variables
+!
 type(VorticitySetup) :: rankine
 real(kreal) :: xc, yc, rad, str
-
-type(PlaneOutput) :: meshOut
-character(len=MAX_STRING_LENGTH) :: filename, fileroot
-
+!
+! tracer variables
+!
+type(TracerSetup) :: noTracer
+!
+! remeshing / refinement variables
+!
+type(RemeshSetup) :: remesh
+real(kreal) :: maxCircTol, vortVarTol, lagVarTol
+integer(kint) :: amrlimit
+!
+! timestepping variables
+!
 type(PlaneRK4DirectSum) :: timekeeper
 real(kreal) :: dt, tfinal
 integer(kint) :: timeJ, timesteps
-
+!
+! input / output variables
+!
+type(PlaneOutput) :: meshOut
+character(len=MAX_STRING_LENGTH) :: filename, fileroot
+character(len=128) :: namelistInputFile = 'planeTest.namelist'
+!
+! computing environment variables
+!
 type(Logger) :: exeLog
 character(len=MAX_STRING_LENGTH) :: logstring
-
 integer(kint) :: mpiErrCode
 real(kreal) :: wallclock
+integer(kint), parameter :: BCAST_INT_SIZE = 3, BCAST_REAL_SIZE = 5
+integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
+real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
+!
+! namelists
+!
+namelist /meshDefine/ initNest, AMR, amrLimit
+!namelist /vorticityDefine/ str, amp
+namelist /timestepping/ dt, tfinal
+namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol
+namelist /fileIO/ outputDir, jobPrefix
 
 call MPI_INIT(mpiErrCode)
 call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcs,mpiErrCode)
@@ -41,12 +75,11 @@ call New(exeLog,DEBUG_LOGGING_LEVEL)
 wallclock = MPI_WTIME()
 
 ! mesh definition variables
-xmin = -1.0_kreal
-xmax = 1.0_kreal
-ymin = -1.0_kreal
-ymax = 1.0_kreal
-initNest = 4
-AMR  = 0
+xmin = -2.0_kreal
+xmax = 2.0_kreal
+ymin = -2.0_kreal
+ymax = 2.0_kreal
+
 nTracer = 2
 
 ! vorticity definition variables
@@ -55,13 +88,10 @@ yc = 0.0_kreal
 rad = 0.25_kreal
 str = 1.0_kreal
 
-! time definition variables
-dt = 0.01
-tfinal = 0.25
+call ReadNamelistInputFile(procRank)
 
 ! i/o variables
-fileroot = '~/Desktop/modelData/vtkOut/'
-write(filename,'(A,A,I0.4,A)') trim(fileroot),'planeTest', 0, '.vtk'
+if ( procRank == 0 ) write(filename,'(A,I0.4,A)') trim(fileroot), 0, '.vtk'
 !
 ! build the initial mesh
 !
@@ -75,12 +105,22 @@ call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'mesh info ', logstring)
 call New(rankine, RANKINE_N_INT, RANKINE_N_REAL)
 call InitRankineVortex(rankine, xc, yc, rad, str)
 call SetRankineVortexOnMesh(mesh, rankine)
+
+!
+! initialize remesher
+!
+call New(remesh, maxCircTol, vortVarTol, lagVarTol, amrlimit)
+if ( AMR > 0 ) then
+	call InitialRefinement(mesh, remesh, nullTracer, noTracer, SetRankineVortexOnMesh, rankine)
+endif
 !
 ! initialize output
 !
-call New(meshOut,mesh,filename)
-call LogStats(mesh,exeLog)
-if ( procRank == 0 ) call OutputForVTK(meshOut,mesh)
+if ( procRank == 0 ) then
+	call New(meshOut,mesh,filename)
+	call LogStats(mesh,exeLog)
+	call OutputForVTK(meshOut,mesh)
+endif
 !
 ! initialize timestepping
 !
@@ -103,10 +143,54 @@ endif
 
 call Delete(rankine)
 call Delete(mesh)
+call Delete(remesh)
 call Delete(meshOut)
 call Delete(exelog)
 
 call MPI_FINALIZE(mpiErrCode)
+
+contains
+
+subroutine ReadNamelistFile(rank)
+	integer(kint), intent(in) :: rank
+	!
+	integer(kint) :: readStat
+	if ( rank == 0 ) then
+		open(unit = READ_UNIT, file=namelistInputFile, status='OLD', action='READ', iostat=readStat )
+		if ( readstat /= 0 ) then
+			stop 'cannot read namelist file.'
+		endif
+		read(READ_UNIT,nml=meshDefine)
+		rewind(READ_UNIT)
+		read(READ_UNIT,nml=timestepping)
+		rewind(READ_UNIT)
+		read(READ_UNIT,nml=remeshing)
+		rewind(READ_UNIT)
+		read(READ_UNIT,nml=fileIO)
+		
+		broadcastIntegers(1) = initNest
+		broadcastIntegers(2) = AMR
+		broadcastIntegers(3) = amrLimit
+		
+		broadcastReals(1) = dt
+		broadcastReals(2) = tfinal
+		broadcastReals(3) = maxCircTol
+		broadcastReals(4) = vortVarTol
+		broadcastReals(5) = lagVarTol
+		
+		write(fileRoot,'(4A)') trim(outputDir), 'vtkOut/', trim(jobPrefix), trim(meshstring), '_'
+	endif
+	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, mpiErrCode)
+	initNest = broadcastIntegers(1)
+	AMR = broadcastIntegers(2)
+	amrLimit = broadcastIntegers(3)
+	call MPI_BCAST(broadcastReals< BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpiErrCode)
+	dt = broadcastReals(1)
+	tfinal = broadcastReals(2)
+	maxCircTol = broadcastReals(3)
+	vortVarTol = broadcastReals(4)
+	lagVarTol = broadcastReals(5)
+end subroutine
 
 
 end program

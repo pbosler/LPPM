@@ -32,6 +32,7 @@ public CCWEdgesAndParticlesAroundPanel, FindAdjacentPanels
 public LocatePoint
 public LogStats
 public TotalArea
+public DividePanel
 
 !
 !----------------
@@ -175,6 +176,8 @@ subroutine LogStatsPrivate(self, aLog, msg)
 		call LogStats(self%edges,aLog)
 		call LogStats(self%panels,aLog)
 	endif
+	write(logstring,'(A, F12.6)') 'total area = ', sum(self%panels%area)
+	call LogMessage(log, TRACE_LOGGING_LEVEL, 'PlaneMesh : ', trim(logstring))
 end subroutine
 
 subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)

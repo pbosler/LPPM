@@ -113,7 +113,7 @@ SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 
 cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) Advection2.o
 	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)	
-planeTestMPI.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o
+planeTestMPI.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
 sweDivergenceTerms.exe: SWEDivergenceEqnTerms.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) 
 	$(FF) $(FF_FLAGS) -o $@ $^ $(MKL_LINK) `mpif90 -showme:link`
@@ -123,7 +123,7 @@ sweDivergenceTerms.exe: SWEDivergenceEqnTerms.o $(BASE_OBJS) $(MESH_OBJS) $(OUTP
 #############################################################
 
 CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
-planeTester.o: planeTester.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o
+planeTester.o: planeTester.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o
 SWEDivergenceEqnTerms.o: SWEDivergenceEqnTerms.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
 	$(FF) $(FF_FLAGS) -c $< $(MKL_COMPILE) `mpif90 -showme:compile`
 
