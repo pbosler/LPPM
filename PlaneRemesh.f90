@@ -86,11 +86,13 @@ interface
 		type(TracerSetup), intent(in) :: genTracer
 	end subroutine
 end interface
+
 !
 !----------------
 ! Logging
 !----------------
 !
+
 logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
 character(len=28), save :: logKey = 'PlaneRemesh'
@@ -513,6 +515,19 @@ subroutine FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remeshData,
 		endif
 	enddo
 end subroutine
+
+subroutine InitLogger(aLog, rank)
+	type(Logger), intent(inout) :: aLog
+	integer(kint), intent(in) :: rank
+	write(logKey,'(A,A,I0.2,A)') trim(logKey),'_',rank,' : '
+	if ( rank == 0 ) then
+		call New(aLog,logLevel)
+	else
+		call New(aLog,WARNING_LOGGING_LEVEL)
+	endif
+	logInit = .TRUE.
+end subroutine
+
 
 end module
 

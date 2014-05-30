@@ -338,7 +338,7 @@ subroutine idbvip ( md, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
   end do
  
   return
-end
+end subroutine
 
 subroutine idgrid ( xd, yd, nt, ipt, nl, ipl, nxi, nyi, xi, yi, ngp, igp )
 !
@@ -781,7 +781,7 @@ subroutine idgrid ( xd, yd, nt, ipt, nl, ipl, nxi, nyi, xi, yi, ngp, igp )
   end do
  
   return
-end
+end subroutine
 
 subroutine idlctn ( ndp, xd, yd, nt, ipt, nl, ipl, xii, yii, iti, iwk, wk )
 !
@@ -1162,7 +1162,7 @@ subroutine idlctn ( ndp, xd, yd, nt, ipt, nl, ipl, xii, yii, iti, iwk, wk )
   itipv = it0
 
   return
-end
+end subroutine
 
 subroutine idpdrv ( ndp, xd, yd, zd, nt, ipt, pd, wk )
 !
@@ -1377,7 +1377,7 @@ subroutine idpdrv ( ndp, xd, yd, zd, nt, ipt, pd, wk )
   end do
  
   return
-end
+end subroutine
 
 subroutine idptip ( ndp,xd, yd, zd, nt, ipt, nl, ipl, pdd, iti, xii, yii, zii )
 !
@@ -1843,7 +1843,7 @@ subroutine idptip ( ndp,xd, yd, zd, nt, ipt, nl, ipl, pdd, iti, xii, yii, zii )
   zii = p0+u*(p1+u*p20)
  
   return
-end
+end subroutine
 
 subroutine idsfft ( md, ndp, xd, yd, zd, nxi, nyi, nzi, xi, yi, zi, iwk, wk )
 !
@@ -2165,7 +2165,7 @@ subroutine idsfft ( md, ndp, xd, yd, zd, nxi, nyi, nzi, xi, yi, zi, iwk, wk )
   end do
  
   return
-end
+end subroutine
 
 subroutine idtang ( ndp, xd, yd, nt, ipt, nl, ipl, iwl, iwp, wk )
 !
@@ -2767,7 +2767,7 @@ subroutine idtang ( ndp, xd, yd, nt, ipt, nl, ipl, iwl, iwp, wk )
   nl = nl0
  
   return
-end
+end subroutine
 
 function idxchg ( x, y, i1, i2, i3, i4 )
 !
@@ -2869,7 +2869,7 @@ function idxchg ( x, y, i1, i2, i3, i4 )
   idxchg = idx
  
   return
-end
+end function
 
 subroutine timestamp ( )
 !
@@ -2948,6 +2948,6 @@ subroutine timestamp ( )
     trim ( month(m) ), d, y, h, ':', n, ':', s, '.', mm, trim ( ampm )
 
   return
-end
+end subroutine
 
 end module
