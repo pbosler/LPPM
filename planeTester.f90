@@ -9,6 +9,7 @@ use PlaneDirectSumModule
 use PlaneTracerModule
 use PlaneRemeshModule
 
+
 implicit none
 
 include 'mpif.h'
@@ -34,7 +35,7 @@ type(TracerSetup) :: noTracer
 !
 type(RemeshSetup) :: remesh
 real(kreal) :: maxCircTol, vortVarTol, lagVarTol
-integer(kint) :: amrlimit
+integer(kint) :: amrlimit, remeshInterval, remeshCounter
 !
 ! timestepping variables
 !
@@ -45,7 +46,7 @@ integer(kint) :: timeJ, timesteps
 ! input / output variables
 !
 type(PlaneOutput) :: meshOut
-character(len=MAX_STRING_LENGTH) :: filename, fileroot, outputDir, jobPrefix, meshstring
+character(len=MAX_STRING_LENGTH) :: filename, fileroot, outputDir, jobPrefix
 character(len=128) :: namelistInputFile = 'planeTest.namelist'
 !
 ! computing environment variables
@@ -54,7 +55,7 @@ type(Logger) :: exeLog
 character(len=MAX_STRING_LENGTH) :: logstring
 integer(kint) :: mpiErrCode
 real(kreal) :: wallclock
-integer(kint), parameter :: BCAST_INT_SIZE = 3, BCAST_REAL_SIZE = 5
+integer(kint), parameter :: BCAST_INT_SIZE = 4, BCAST_REAL_SIZE = 5
 integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 !
@@ -63,7 +64,7 @@ real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 namelist /meshDefine/ initNest, AMR, amrLimit
 !namelist /vorticityDefine/ str, amp
 namelist /timestepping/ dt, tfinal
-namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol
+namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol, remeshInterval
 namelist /fileIO/ outputDir, jobPrefix
 
 call MPI_INIT(mpiErrCode)
@@ -75,10 +76,10 @@ call New(exeLog,DEBUG_LOGGING_LEVEL)
 wallclock = MPI_WTIME()
 
 ! mesh definition variables
-xmin = -2.0_kreal
-xmax = 2.0_kreal
-ymin = -2.0_kreal
-ymax = 2.0_kreal
+xmin = -1.0_kreal
+xmax = 1.0_kreal
+ymin = -1.0_kreal
+ymax = 1.0_kreal
 
 nTracer = 2
 
@@ -86,7 +87,7 @@ nTracer = 2
 xc = 0.0_kreal
 yc = 0.0_kreal
 rad = 0.25_kreal
-str = 1.0_kreal
+str = 2.0_kreal * PI
 
 call ReadNamelistFile(procRank)
 
@@ -109,6 +110,11 @@ call SetRankineVortexOnMesh(mesh, rankine)
 !
 ! initialize remesher
 !
+call ConvertToRelativeTolerances(mesh, maxCircTol, vortVarTol, lagVarTol)
+call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'maxCircTol = ', maxCircTol)
+call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'vortVarTol = ', vortVarTol)
+call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'lagVarTol  = ', lagVarTol)
+
 call New(remesh, maxCircTol, vortVarTol, lagVarTol, amrlimit)
 if ( AMR > 0 ) then
 	call InitialRefinement(mesh, remesh, nullTracer, noTracer, SetRankineVortexOnMesh, rankine)
@@ -126,8 +132,39 @@ endif
 !
 call New(timekeeper, mesh, numProcs)
 timesteps = floor(tfinal / dt)
+remeshCounter = 0
+
 do timeJ = 0, timesteps - 1
+	!
+	! remesh if necessary
+	!
+	if ( mod(timeJ+1, remeshInterval) == 0 ) then
+		remeshCounter = remeshCounter + 1
+		!
+		! create new mesh
+		!
+		call LagrangianRemeshToInitialTime( mesh, remesh, SetRankineVortexOnMesh, rankine, nullTracer, noTracer)
+
+		!
+		! delete objects associated with old mesh
+		!
+		call Delete(timekeeper)
+		if ( procRank == 0 ) call Delete(meshOut)
+		!
+		! create new objects for new mesh
+		!
+		call New(timekeeper, mesh, numProcs)
+		if ( procRank == 0 ) then
+			call New(meshOut, mesh, filename)
+		endif
+	endif
+	!
+	! increment time
+	!
 	call RK4TimestepNoRotation( timekeeper, mesh, dt, procRank, numProcs)
+	!
+	! output timestep data
+	!
 	if ( procRank == 0 ) then
 		call LogMessage(exeLog, TRACE_LOGGING_LEVEL, ' t = ', real(timeJ+1,kreal) * dt)
 		write(filename,'(A,I0.4,A)') trim(fileroot), timeJ+1, '.vtk'
@@ -167,23 +204,25 @@ subroutine ReadNamelistFile(rank)
 		read(READ_UNIT,nml=remeshing)
 		rewind(READ_UNIT)
 		read(READ_UNIT,nml=fileIO)
-		
+
 		broadcastIntegers(1) = initNest
 		broadcastIntegers(2) = AMR
 		broadcastIntegers(3) = amrLimit
-		
+		broadcastIntegers(4) = remeshInterval
+
 		broadcastReals(1) = dt
 		broadcastReals(2) = tfinal
 		broadcastReals(3) = maxCircTol
 		broadcastReals(4) = vortVarTol
 		broadcastReals(5) = lagVarTol
-		
+
 		write(fileRoot,'(4A)') trim(outputDir), 'vtkOut/', trim(jobPrefix), '_'
 	endif
 	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, mpiErrCode)
 	initNest = broadcastIntegers(1)
 	AMR = broadcastIntegers(2)
 	amrLimit = broadcastIntegers(3)
+	remeshInterval = broadcastIntegers(4)
 	call MPI_BCAST(broadcastReals, BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpiErrCode)
 	dt = broadcastReals(1)
 	tfinal = broadcastReals(2)
@@ -192,5 +231,12 @@ subroutine ReadNamelistFile(rank)
 	lagVarTol = broadcastReals(5)
 end subroutine
 
+subroutine ConvertToRelativeTolerances(aMesh, maxCircTol, vortVarTol, lagVarTol)
+	type(PlaneMesh), intent(in) :: aMesh
+	real(kreal), intent(inout) :: maxCircTol, vortVarTol, lagVarTol
+	maxCircTol = maxCircTol * MaximumCirculation(aMesh)
+	vortVarTol = vortVarTol * MaximumVorticityVariation(aMesh)
+	lagVarTol = lagVarTol * MaximumLagrangianParameterVariation(aMesh)
+end subroutine
 
 end program

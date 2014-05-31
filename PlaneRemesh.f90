@@ -27,7 +27,7 @@ use BIVARModule
 
 implicit none
 
-private 
+private
 public RemeshSetup
 public New, Delete
 public InitialRefinement
@@ -119,7 +119,7 @@ subroutine NewPrivateAll(self, maxCircTol, vortVarTol, lagVarTol, tracerID, maxM
 	self%vorticityRefine = .TRUE.
 	self%maxCircTol = maxCircTol
 	self%vortVarTol = vortVarTol
-	self%flowMapRefine = .TRUE. 
+	self%flowMapRefine = .TRUE.
 	self%lagVarTol = lagVarTol
 	self%tracerRefine = .TRUE.
 	self%tracerID = tracerID
@@ -218,7 +218,7 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 	logical(klog) :: keepGoing
 	logical(klog), allocatable :: refineFlag(:)
 	type(Panels), pointer :: aPanels
-	
+
 	if ( remeshData%uniformMesh ) then
 		call LogMessage(log, WARNING_LOGGING_LEVEL, logKey, ' InitialRefinement WARNING : uniform mesh = no AMR.')
 		return
@@ -227,9 +227,9 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 		call LogMessage(log, WARNING_LOGGING_LEVEL, logKey, ' InitialRefinement WARNING : amr limit = 0.')
 		return
 	endif
-		
+
 	call StartSection(log, 'InitialRefinement')
-	
+
 	aPanels => aMesh%panels
 	allocate(refineFlag(aPanels%N_Max))
 	refineFlag = .FALSE.
@@ -254,7 +254,7 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 		call FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remeshData, startIndex, counters(4))
 		call FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remeshData, startIndex, counters(5))
 	endif
-	
+
 	refineCount = count(refineFlag)
 	spaceLeft = aPanels%N_Max - aPanels%N
 	if ( refineCount > 0 ) then
@@ -314,14 +314,14 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 						call FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remeshData, startIndex, counters(4))
 						call FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remeshData, startIndex, counters(5))
 					endif
-				
+
 					refineCount = count(refineFlag)
 					spaceleft = aPanels%N_Max - aPanels%N
-				
+
 					if ( refineCount == 0 ) then
 						!
 						! stop if refinement is not needed
-						!						
+						!
 						call LogMessage(log, TRACE_LOGGING_LEVEL, 'InitRefine : ', 'refinement converged.')
 						write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
@@ -350,13 +350,13 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 						write(logstring,'(A, I8, A)') 'tracer variation criterion triggered ', counters(5), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						keepGoing = .FALSE.
-					endif ! stopping criteria met						
+					endif ! stopping criteria met
 				endif! below refinement limit
 			enddo! while keepgoing
 		else ! not enough memory
 			call LogMessage(log, WARNING_LOGGING_LEVEL, 'InitRefine WARNING : ', 'not enough memory.')
-		endif	
-	else ! no refinement needed 
+		endif
+	else ! no refinement needed
 		call LogMessage(log, TRACE_LOGGING_LEVEL, 'InitRefine : ',' no refinement necessary.')
 	endif
 	call EndSection(log)
@@ -381,23 +381,25 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 	logical(klog) :: keepGoing
 	integer(kint) :: startIndex, nOldPanels, nOldParticles, refineCount, spaceLeft
 	integer(kint), allocatable :: integerWorkParticles(:), integerWorkPanels(:)
-	
+
 	nullify(newParticles)
 	nullify(newEdges)
 	nullify(newPanels)
 	keepGoing = .FALSE.
 	amrLoopCounter = 0
 	counters = 0
-	
+
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' entering LagrangianRemeshToInitialTime.')
-	
+
 	!
 	! build a new uniform mesh
 	!
 	call New(newMesh, aMesh%initNest, aMesh%amr, aMesh%nTracer)
+	call InitializeRectangle(newMesh, MinX(aMesh), MaxX(aMesh), MinY(aMesh), MaxY(aMesh), aMesh%boundaryType)
 	newParticles => newMesh%particles
 	newEdges => newMesh%edges
 	newPanels => newMesh%panels
+
 	!
 	! set old mesh as interpolation data source
 	!
@@ -417,7 +419,7 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 	call IDBVIP( md, bivarData%n, bivarData%x, bivarData%y, bivarData%y0, &
 				 newParticles%N, newParticles%x(1,1:newParticles%N), newParticles%x(2,1:newParticles%N), &
 				 newParticles%x0(2,1:newParticles%N), integerWorkParticles, bivarData%realWork)
-	md = 2
+	md = 1
 	call IDBVIP( md, bivarData%n, bivarData%x, bivarData%y, bivarData%x0, &
 				 newPanels%N, newPanels%x(1,1:newPanels%N), newPanels%x(2,1:newPanels%N), &
 				 newPanels%x0(1,1:newPanels%N), integerWorkPanels, bivarData%realWork)
@@ -428,15 +430,15 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 
 	!
 	! set tracer values on new mesh
-	!				 
+	!
 	if ( aMesh%nTracer > 0 ) call SetTracer(newMesh, tracerDef)
 	!
 	! set vorticity values on new mesh
 	!
 	call SetVorticity(newMesh, vorticityDef)
-	
+
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' LagRemeshInitTime : new uniform mesh ready.')
-	
+
 	!
 	! AMR
 	!
@@ -450,13 +452,13 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 			call FlagPanelsForVorticityVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(2) )
 		endif
 		if ( remesh%flowMapRefine ) then
-			call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))		
+			call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 		endif
 		if ( remesh%tracerRefine ) then
 			call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 			call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 		endif
-		
+
 		refineCount = count(refineFlag)
 		spaceLeft = newPanels%N_Max - newPanels%N
 		if ( refineCount > 0 ) then
@@ -480,19 +482,19 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 					!
 					! TO DO : ensure adjacent panels differ by no more than 1 level of refinement
 					!
-					
+
 					!
 					! interpolate Lagrangian parameter to new panels
 					!
-					md = 2
+					md = 1
 					call IDBVIP( md, bivarData%n, bivarData%x, bivarData%y, bivarData%x0, &
 						 newParticles%N - nOldParticles, newParticles%x(1,nOldParticles+1:newParticles%N), newParticles%x(2,nOldParticles+1:newParticles%N), &
 						 newParticles%x0(1,nOldParticles+1:newParticles%N), integerWorkParticles, bivarData%realWork)
 					md = 3
 					call IDBVIP( md, bivarData%n, bivarData%x, bivarData%y, bivarData%y0, &
 						 newParticles%N - nOldParticles, newParticles%x(1,nOldParticles+1:newParticles%N), newParticles%x(2,nOldParticles+1:newParticles%N), &
-						 newParticles%x0(2,nOldParticles+1:newParticles%N), integerWorkParticles, bivarData%realWork)	 
-					md = 2
+						 newParticles%x0(2,nOldParticles+1:newParticles%N), integerWorkParticles, bivarData%realWork)
+					md = 1
 					call IDBVIP( md, bivarData%n, bivarData%x, bivarData%y, bivarData%x0, &
 						 newPanels%N - nOldPanels, newPanels%x(1,nOldPanels+1:newPanels%N), newPanels%x(2,nOldPanels+1:newPanels%N), &
 						 newPanels%x0(1,nOldPanels+1:newPanels%N), integerWorkPanels, bivarData%realWork)
@@ -505,7 +507,7 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 					!
 					if ( amesh%nTracer > 0 ) call SetTracer(newMesh, tracerDef)
 					call SetVorticity(newMesh, vorticityDef)
-					
+
 					if ( amrLoopCounter >= remesh%refinementLimit ) then
 						!
 						! prevent too much refinement
@@ -533,16 +535,16 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 							call FlagPanelsForVorticityVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(2) )
 						endif
 						if ( remesh%flowMapRefine ) then
-							call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))		
+							call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 						endif
 						if ( remesh%tracerRefine ) then
 							call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 							call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 						endif
-						
+
 						refineCount = count(refineFlag)
 						spaceLeft = newPanels%N_Max - newPanels%N
-						
+
 						if ( refineCount == 0 ) then
 							keepGoing = .FALSE.
 							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : ', ' refinement converged.')
@@ -578,15 +580,15 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 		else ! refineCount == 0
 			call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : ', ' no refinement necessary.')
 		endif
-		
+
 		call EndSection(log)
 		deallocate(refineFlag)
 	endif! AMR
 	!
 	! replace old mesh with new mesh
 	!
-	call Copy(aMesh, newMesh)	
-	
+	call Copy(aMesh, newMesh)
+
 	!
 	! clean up
 	!
@@ -611,10 +613,10 @@ subroutine FlagPanelsForMaxCirculationRefinement(refineFlag, aMesh, remeshData, 
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j
-		
+
 	aPanels => aMesh%panels
 	aParticles => aMesh%particles
-	
+
 	do j = startIndex, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			if ( abs(aPanels%relVort(j)) * aPanels%area(j) > remeshData%maxCircTol ) then
@@ -636,10 +638,10 @@ subroutine FlagPanelsForVorticityVariationRefinement(refineFlag, aMesh, remeshDa
 	type(Panels), pointer :: aPanels
 	integer(kint) :: edgeList(8), vertList(8), nverts, j, k
 	real(kreal) :: maxVort, minVort, vortVar
-		
+
 	aPanels => aMesh%panels
 	aParticles => aMesh%particles
-	
+
 	do j = startIndex, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			maxVort = aPanels%relVort(j)
@@ -669,10 +671,10 @@ subroutine FlagPanelsForFlowMapRefinement(refineFlag, aMesh, remeshData, startIn
 	type(Panels), pointer :: aPanels
 	integer(kint) :: edgeList(8), vertList(8), nverts, j, k
 	real(kreal) :: maxX0(2), minX0(2), lagVar
-	
+
 	aPanels => aMesh%panels
 	aParticles => aMesh%particles
-	
+
 	do j = startIndex, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			maxX0 = aPanels%x0(:,j)
@@ -685,7 +687,7 @@ subroutine FlagPanelsForFlowMapRefinement(refineFlag, aMesh, remeshData, startIn
 				if ( aParticles%x0(2,vertList(k)) < minX0(2) ) minx0(2) = aParticles%x0(2,vertlist(k))
 			enddo
 			lagVar = sum( maxX0 - minx0)
-			if ( lagVar > remeshData%lagVarTol ) then 
+			if ( lagVar > remeshData%lagVarTol ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif
@@ -703,10 +705,10 @@ subroutine FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remeshData, star
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j
-		
+
 	aPanels => aMesh%panels
 	aParticles => aMesh%particles
-	
+
 	do j = startIndex, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			if ( aPanels%tracer(j,remeshData%tracerID) * aPanels%area(j) > remeshData%maxMassTol ) then
@@ -728,10 +730,10 @@ subroutine FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remeshData,
 	type(Panels), pointer :: aPanels
 	integer(kint) :: edgeList(8), vertList(8), nverts, j, k
 	real(kreal) :: maxTracer, minTracer, tracerVar
-		
+
 	aPanels => aMesh%panels
 	aParticles => aMesh%particles
-	
+
 	do j = startIndex, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			maxTracer = aPanels%tracer(j, remeshData%tracerID)

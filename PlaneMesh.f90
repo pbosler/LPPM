@@ -33,6 +33,9 @@ public LocatePoint
 public LogStats
 public TotalArea
 public DividePanel
+public MaximumCirculation, MaximumVorticityVariation
+public MaximumLagrangianParameterVariation
+public MinX, MaxX, MinY, MaxY
 
 !
 !----------------
@@ -47,6 +50,11 @@ type PlaneMesh
 	integer(kint) :: AMR
 	integer(kint) :: nTracer
 	integer(kint) :: nRootPanels
+	real(kreal) :: xmin
+	real(kreal) :: xmax
+	real(kreal) :: ymin
+	real(kreal) :: ymax
+	integer(kint) :: boundaryType
 end type
 
 integer(kint), parameter :: panelKind = QUAD_PANEL, problemKind = PLANE_SOLVER
@@ -156,6 +164,12 @@ subroutine CopyPrivate(newMesh, oldMesh)
 	call Copy(newMesh%edges, oldMesh%edges)
 	call Copy(newMesh%panels, oldMesh%panels)
 
+	newMesh%xmin = oldMesh%xmin
+	newMesh%xmax = oldMesh%xmax
+	newMesh%ymin = oldMesh%ymin
+	newMesh%ymax = oldMesh%ymax
+	newMesh%boundaryType = oldMesh%boundaryType
+
 end subroutine
 
 !
@@ -197,6 +211,12 @@ subroutine InitializeRectangle(self, xmin, xmax, ymin, ymax, boundaryType)
 		call LogMessage(log, ERROR_LOGGING_LEVEL,logkey,'ERROR : invalid boundary condition.')
 		return
 	endif
+
+	self%xmin = xmin
+	self%xmax = xmax
+	self%ymin = ymin
+	self%ymax = ymax
+	self%boundaryType = boundaryType
 
 	aParticles => self%particles
 	anEdges => self%edges
@@ -417,6 +437,67 @@ function TotalArea(self)
 	apanels => self%panels
 	TotalArea = sum(apanels%area)
 end function
+
+function MaximumCirculation(self)
+	real(kreal) :: MaximumCirculation
+	type(PlaneMesh), intent(in) :: self
+	!
+	type(Panels), pointer :: aPanels
+	aPanels => self%panels
+	MaximumCirculation = maxval(abs(aPanels%relVort(1:aPanels%N))*aPanels%area(1:aPanels%N))
+end function
+
+function MaximumVorticityVariation(self)
+	real(kreal) :: MaximumVorticityVariation
+	type(PlaneMesh), intent(in) :: self
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	real(kreal) :: maxVort, minVort
+
+	aParticles => self%particles
+	aPanels => self%panels
+
+	maxVort = max( maxval(aParticles%relVort(1:aParticles%N)), maxval(aPanels%relVort(1:aPanels%N)) )
+	minVort = min( minval(aParticles%relVort(1:aParticles%N)), minval(aPanels%relVort(1:aPanels%N)) )
+
+	MaximumVorticityVariation = maxVort - minVort
+end function
+
+function MaximumLagrangianParameterVariation(self)
+	real(kreal) :: MaximumLagrangianParameterVariation
+	type(PlaneMesh), intent(in) :: self
+	!
+	integer(kint) :: nActive
+	nActive = 4**self%initNest
+	MaximumLagrangianParameterVariation = max( self%xmax - self%xmin, self%ymax - self%ymin) / sqrt( real(nActive,kreal) )
+end function
+
+function MinX(self)
+	real(kreal) :: MinX
+	type(PlaneMesh), intent(in) :: self
+	minX = min( minval(self%particles%x(1,1:self%particles%N)), minval(self%panels%x(1,1:self%panels%N)))
+end function
+
+function MaxX(self)
+	real(kreal) :: MaxX
+	type(PlaneMesh), intent(in) :: self
+	maxX = max( maxval(self%particles%x(1,1:self%particles%N)), maxval(self%panels%x(1,1:self%panels%N)))
+end function
+
+function MinY(self)
+	real(kreal) :: MinY
+	type(PlaneMesh), intent(in) :: self
+	minY = min( minval(self%particles%x(2,1:self%particles%N)), minval(self%panels%x(2,1:self%panels%N)))
+end function
+
+function MaxY(self)
+	real(kreal) :: MaxY
+	type(PlaneMesh), intent(in) :: self
+	maxY = max( maxval(self%particles%x(2,1:self%particles%N)), maxval(self%panels%x(2,1:self%panels%N)))
+end function
+
+
 
 !
 !----------------

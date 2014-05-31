@@ -6,13 +6,14 @@
 
 &timestepping
 	dt = 0.01
-	tfinal = 1.0
+	tfinal = 2.0
 /
 
 &remeshing
 	maxCircTol = 0.01
 	vortVarTol = 0.5
-	lagVarTol = 0.5
+	lagVarTol = 1.0
+	remeshInterval = 25
 /
 
 &fileIO
