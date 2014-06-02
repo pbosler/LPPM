@@ -96,6 +96,8 @@ rossbyHaurwitz4waveMPI.exe: BVERH4.o $(BVE_OBJS) ReferenceSphere.o
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
 sweTestCase2MPI.exe: SWETestCase2.o $(SWE_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)	
+lambDipoleMPI.exe: LambDipole.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)	
 	
 #############################################################
 ## LPPM MODEL OBJECT FILES
@@ -106,6 +108,7 @@ BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)
 BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) ReferenceSphere.o
 BVERH4.o: BVERH4.f90 $(BVE_OBJS) ReferenceSphere.o
 SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
+LambDipole.o: LambDipole.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
 
 #############################################################
 ## UNIT TEST EXECUTABLES

@@ -1,0 +1,27 @@
+&meshDefine
+	initNest = 3
+	AMR = 3
+	amrLimit = 3
+/
+
+&timestepping
+	dt = 0.01
+	tfinal = 1.0
+/
+
+&remeshing
+	maxCircTol = 0.01
+	vortVarTol = 0.5
+	lagVarTol = 1.0
+	remeshInterval = 25
+/
+
+&fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'planeTest_lambDipole'
+/
+
+&vorticityDefine
+	rad = 1.0
+	u0 = -1.0
+/
