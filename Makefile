@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-#MACHINE='FERRARI'
-MACHINE='TANK'
+MACHINE='FERRARI'
+#MACHINE='TANK'
 #MACHINE='VORTEX'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
@@ -12,8 +12,8 @@ MACHINE='TANK'
 ifeq ($(MACHINE),'FERRARI') 
 # FERRARI LAPTOP #	
   FF = ifort
-  FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-  #FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
+  #FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
   VTK_INCLUDE=/usr/local/include/vtk-5.8
   VTK_LIB_DIR=/usr/local/lib/vtk-5.8
   MKLROOT=/opt/intel/mkl
