@@ -1,4 +1,4 @@
-BigSphere
+LPPM : Lagrangian Particle / Panel Method
 =========
 
 Code associated with 
