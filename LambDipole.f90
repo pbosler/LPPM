@@ -8,6 +8,7 @@ use PlaneVorticityModule
 use PlaneDirectSumModule
 use PlaneTracerModule
 use PlaneRemeshModule
+use BIVARInterfaceModule
 
 
 implicit none
@@ -35,7 +36,8 @@ type(TracerSetup) :: noTracer
 !
 type(RemeshSetup) :: remesh
 real(kreal) :: maxCircTol, vortVarTol, lagVarTol
-integer(kint) :: amrlimit, remeshInterval, remeshCounter
+integer(kint) :: amrlimit, remeshInterval, remeshCounter, resetAlphaInterval
+type(BIVARSetup) :: reference
 !
 ! timestepping variables
 !
@@ -55,7 +57,7 @@ type(Logger) :: exeLog
 character(len=MAX_STRING_LENGTH) :: logstring
 integer(kint) :: mpiErrCode
 real(kreal) :: wallclock
-integer(kint), parameter :: BCAST_INT_SIZE = 4, BCAST_REAL_SIZE = 7
+integer(kint), parameter :: BCAST_INT_SIZE = 5, BCAST_REAL_SIZE = 7
 integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 !
@@ -139,9 +141,36 @@ do timeJ = 0, timesteps - 1
 	if ( mod(timeJ+1, remeshInterval) == 0 ) then
 		remeshCounter = remeshCounter + 1
 		!
-		! create new mesh
+		! perform the appropriate remeshing procedure
 		!
-		call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
+		if ( remeshCounter < resetAlphaInterval ) then
+			!
+			! remesh to t = 0
+			!
+			call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
+		elseif ( remeshCounter == resetAlphaInterval ) then
+			!
+			! remesh to t = 0, create new reference mesh
+			!
+			call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
+			call New(reference, mesh)
+			call ResetLagrangianParameter(reference)
+			call ResetLagrangianParameter(mesh)
+		elseif ( remeshCounter > resetAlphaInterval .AND. mod(remeshCounter, resetAlphaInterval) == 0 ) then
+			!
+			! remesh to previous reference time, create new reference mesh
+			!
+			call LagrangianRemeshToReferenceTime(mesh, reference, remesh)
+			call Delete(reference)
+			call New(reference, mesh)
+			call ResetLagrangianParameter(reference)
+			call ResetLagrangianParameter(mesh)
+		else
+			!
+			! remesh to reference 
+			!
+			call LagrangianRemeshToReferenceTime(mesh, reference, remesh)
+		endif
 
 		!
 		! delete objects associated with old mesh
@@ -209,6 +238,7 @@ subroutine ReadNamelistFile(rank)
 		broadcastIntegers(2) = AMR
 		broadcastIntegers(3) = amrLimit
 		broadcastIntegers(4) = remeshInterval
+		broadcastIntegers(5) = resetAlphaInterval
 
 		broadcastReals(1) = dt
 		broadcastReals(2) = tfinal
@@ -225,6 +255,7 @@ subroutine ReadNamelistFile(rank)
 	AMR = broadcastIntegers(2)
 	amrLimit = broadcastIntegers(3)
 	remeshInterval = broadcastIntegers(4)
+	resetAlphaInterval = broadcastIntegers(5)
 	call MPI_BCAST(broadcastReals, BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpiErrCode)
 	dt = broadcastReals(1)
 	tfinal = broadcastReals(2)

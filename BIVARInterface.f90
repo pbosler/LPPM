@@ -18,12 +18,14 @@ use LoggerModule
 use ParticlesModule
 use PanelsModule
 use PlaneMeshModule
+use BIVARModule
 
 implicit none
 
 private
 public BIVARSetup
 public New, Delete
+public AssignTracer, AssignVorticity
 
 !
 !----------------
@@ -70,6 +72,10 @@ end interface
 
 interface Delete
 	module procedure DeletePrivate
+end interface
+
+interface ResetLagrangianParameter
+	module procedure ResetAlphaPrivate
 end interface
 
 contains
@@ -190,6 +196,59 @@ end subroutine
 ! Public functions
 !----------------
 !
+subroutine AssignTracer(tracerOut, alphaIn, self, tracerID)
+	real(kreal), intent(out) :: tracerOut(:)
+	real(kreal), intent(in) :: alphaIn(:,:)
+	type(BIVARSetup), intent(in) :: self
+	integer(kint), intent(in) :: tracerID
+	!
+	integer(kint) :: nOut, md
+	integer(kint), allocatable :: integerWork(:)
+	
+	
+	nOut = size(alphaIn,2)
+	if ( nOut /= size(tracerOut) ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,trim(logkey)//' AssignTracer ERROR : ', ' size mismatch.')
+		return
+	endif
+	md = 1
+	allocate(integerWork( 31*self%n + nOut))
+	integerWork = 0
+	call IDBVIP( md, self%n, self%x, self%y, self%tracer(:,tracerId), &
+				 nOut, alphaIn(1,:), alphaIn(2,:), tracerOut, integerWork, self%realWork)
+	deallocate(integerWork)
+end subroutine
+
+subroutine AssignVorticity(vorticityOut, alphaIn, self)
+	real(kreal), intent(out) :: vorticityOut(:)
+	real(kreal), intent(in) :: alphaIn(:,:)
+	type(BIVARSetup), intent(in) :: self
+	!
+	integer(kint) :: nOut, md
+	integer(kint), allocatable :: integerWork(:)
+	
+	nOut = size(alphaIn,2)
+	if ( nOut /= size(vorticityOut) ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,trim(logkey)//' AssignVorticity ERROR : ', ' size mismatch.')
+		return
+	endif
+	md = 1
+	allocate(integerWork( 31*self%n + nOut))
+	integerWork = 0
+	call IDBVIP(md, self%n, self%x, self%y, self%vort, &
+				nOut, alphaIn(1,:), alphaIn(2,:), vorticityOut, integerWork, self%realWork)
+	deallocate(integerWork)
+end subroutine
+
+subroutine ResetAlphaPrivate(self)
+	type(BIVARSetup), intent(inout) :: Self
+	!
+	integer(kint) :: j
+	do j = 1, self%n
+		self%x0(j) = self%x(j)
+		self%y0(j) = self%y(j)
+	enddo
+end subroutine
 
 
 !
