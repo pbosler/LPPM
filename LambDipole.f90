@@ -66,7 +66,7 @@ real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 namelist /meshDefine/ initNest, AMR, amrLimit
 namelist /vorticityDefine/ u0, rad
 namelist /timestepping/ dt, tfinal
-namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol, remeshInterval
+namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix
 
 call MPI_INIT(mpiErrCode)
@@ -154,6 +154,7 @@ do timeJ = 0, timesteps - 1
 			!
 			call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
 			call New(reference, mesh)
+			call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'resetAlpha : ','ReferenceMesh created.')
 			call ResetLagrangianParameter(reference)
 			call ResetLagrangianParameter(mesh)
 		elseif ( remeshCounter > resetAlphaInterval .AND. mod(remeshCounter, resetAlphaInterval) == 0 ) then

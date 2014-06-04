@@ -115,6 +115,9 @@ subroutine NewPrivateAll(self, maxCircTol, vortVarTol, lagVarTol, tracerID, maxM
 	integer(kint), intent(in) :: tracerID
 	real(kreal), intent(in) :: maxMassTol, massVarTol
 	integer(kint), intent(in) :: limit
+	
+	if ( .NOT. logInit ) call InitLogger(log, procRank)
+	
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .TRUE.
 	self%maxCircTol = maxCircTol
@@ -132,6 +135,9 @@ subroutine NewPrivateVorticity(self, maxCircTol, vortVarTol, limit)
 	type(RemeshSetup), intent(out) :: self
 	real(kreal), intent(in) :: maxCircTol, vortVarTol
 	integer(kint), intent(in) :: limit
+	
+	if ( .NOT. logInit ) call InitLogger(log, procRank)
+	
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .TRUE.
 	self%maxCircTol = maxCircTol
@@ -149,6 +155,9 @@ subroutine NewPrivateVorticityAndFlowMap(self, maxCircTol, vortVarTol, lagVarTol
 	type(RemeshSetup), intent(out) :: self
 	real(kreal), intent(in) :: maxCircTol, vortVarTol, lagVarTol
 	integer(kint), intent(in) :: limit
+	
+	if ( .NOT. logInit ) call InitLogger(log, procRank)
+	
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .TRUE.
 	self%maxCircTol = maxCircTol
@@ -167,6 +176,9 @@ subroutine NewPrivateTracer(self, tracerID, maxMassTol, massVarTol, limit)
 	integer(kint), intent(in) :: tracerID
 	real(kreal), intent(in) :: maxMassTol, massVarTol
 	integer(kint), intent(in) :: limit
+	
+	if ( .NOT. logInit ) call InitLogger(log, procRank)
+	
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .FALSE.
 	self%maxCircTol = 0.0_kreal
@@ -182,6 +194,9 @@ end subroutine
 
 subroutine NewPrivateNoAMR(self)
 	type(RemeshSetup), intent(inout) :: self
+	
+	if ( .NOT. logInit ) call InitLogger(log, procRank)
+	
 	self%uniformMesh = .TRUE.
 	self%vorticityRefine = .FALSE.
 	self%maxCircTol = 0.0_kreal
@@ -291,6 +306,7 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 				if ( amrLoopCounter >= remeshData%refinementLimit ) then
 					keepGoing = .FALSE.
 					call LogMessage(log, WARNING_LOGGING_LEVEL, 'InitRefine WARNING : ',' refinement limit reached.')
+					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : nActive = ', aPanels%N_Active)
 					write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 					write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
@@ -327,6 +343,7 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 						! stop if refinement is not needed
 						!
 						call LogMessage(log, TRACE_LOGGING_LEVEL, 'InitRefine : ', 'refinement converged.')
+						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : nActive = ', aPanels%N_Active)
 						write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
@@ -343,6 +360,7 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 						! stop if not enough memory
 						!
 						call LogMessage(log, WARNING_LOGGING_LEVEL, 'InitRefine WARNING : ', 'not enough memory to continue AMR.')
+						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : nActive = ', aPanels%N_Active)
 						write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
@@ -518,6 +536,7 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 						!
 						keepGoing = .FALSE.
 						call LogMessage(log, WARNING_LOGGING_LEVEL, 'LagRemeshInitTime WARNING : ', 'refinement limit reached.')
+						call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : nActive = ', newPanels%N_Active)
 						write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
@@ -552,6 +571,7 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 						if ( refineCount == 0 ) then
 							keepGoing = .FALSE.
 							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : ', ' refinement converged.')
+							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : nActive = ', newPanels%N_Active)
 							write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 							write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
@@ -565,6 +585,7 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 						elseif ( spaceLeft / 4 < refineCount ) then
 							keepGoing = .FALSE.
 							call LogMessage(log, WARNING_LOGGING_LEVEL, 'LagRemeshInitTime WARNING : ', 'not enough memory to continue AMR.')
+							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : nActive = ', newPanels%N_Active)
 							write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 							write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
@@ -603,7 +624,7 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 end subroutine
 
 subroutine LagrangianRemeshToReferenceTime(aMesh, reference, remesh)
-	type(PlaneMesh), intent(out) :: aMesh
+	type(PlaneMesh), intent(inout) :: aMesh
 	type(BIVARSetup), intent(in) :: reference
 	type(RemeshSetup), intent(in) :: remesh
 	!
@@ -634,9 +655,12 @@ subroutine LagrangianRemeshToReferenceTime(aMesh, reference, remesh)
 	!
 	call New(newMesh, aMesh%initNest, aMesh%amr, aMesh%ntracer)
 	call InitializeRectangle(newMesh, MinX(aMesh), MaxX(aMesh), MinY(aMesh), MaxY(aMesh), aMesh%boundaryType)
+	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' base mesh returned.')
 	newParticles => newMesh%particles
 	newEdges => newMesh%edges
 	newPanels => newMesh%panels
+	
+	
 	
 	!
 	! setup old mesh as interpolation source
@@ -646,6 +670,7 @@ subroutine LagrangianRemeshToReferenceTime(aMesh, reference, remesh)
 	allocate(integerWorkPanels( 31*bivarData%n + newPanels%N_Max))
 	integerWorkParticles = 0
 	integerWorkPanels = 0
+	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' alpha source data ready.')
 	
 	!
 	! interpolate Lagrangian parameter from old mesh to new mesh
@@ -667,6 +692,9 @@ subroutine LagrangianRemeshToReferenceTime(aMesh, reference, remesh)
 				 newPanels%N, newPanels%x(1,1:newPanels%n), newPanels%x(2,1:newPanels%n), &
 				 newPanels%x0(2,1:newPanels%N), integerWorkPanels, bivarData%realWork)
 
+	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' base mesh interpolation complete.')
+	
+	
 	!
 	! set tracer values on new mesh
 	!				 
@@ -766,6 +794,7 @@ subroutine LagrangianRemeshToReferenceTime(aMesh, reference, remesh)
 						if ( amrLoopCounter >= remesh%refinementLimit ) then
 							keepGoing = .FALSE.
 							call LogMessage(log, WARNING_LOGGING_LEVEL, 'LagRemeshReference WARNING : ', 'refinement limit reached.')
+							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshReference N_Active = ', newPanels%N_Active)
 							write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 							write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
