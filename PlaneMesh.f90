@@ -36,6 +36,7 @@ public DividePanel
 public MaximumCirculation, MaximumVorticityVariation
 public MaximumLagrangianParameterVariation
 public MinX, MaxX, MinY, MaxY
+public ResetLagrangianParameter
 
 !
 !----------------
@@ -91,6 +92,9 @@ interface LogStats
 	module procedure LogStatsPrivate
 end interface
 
+interface ResetLagrangianParameter
+	module procedure ResetAlphaPrivate
+end interface
 
 contains
 !
@@ -177,6 +181,23 @@ end subroutine
 ! Public functions
 !----------------
 !
+subroutine ResetAlphaPrivate(self)
+	type(PlaneMesh), intent(inout) :: self
+	!
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	aParticles => self%particles
+	aPanels => self%panels
+	do j = 1, aParticles%N
+		aParticles%x0(:,j) = aParticles%x(:,j)
+	enddo
+	do j = 1, aPanels%N
+		aPanels%x0(:,j) = aPanels%x(:,j)
+	enddo
+end subroutine
+
+
 subroutine LogStatsPrivate(self, aLog, msg)
 	type(PlaneMesh), intent(in) :: self
 	type(Logger), intent(inout) :: aLog

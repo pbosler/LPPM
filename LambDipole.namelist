@@ -6,7 +6,7 @@
 
 &timestepping
 	dt = 0.01
-	tfinal = 1.0
+	tfinal = 3.0
 /
 
 &remeshing
@@ -14,14 +14,15 @@
 	vortVarTol = 0.5
 	lagVarTol = 1.0
 	remeshInterval = 25
+	resetAlphaInterval = 3
 /
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'planeTest_lambDipole'
+	jobPrefix = 'reinitTest_lambDipole'
 /
 
 &vorticityDefine
 	rad = 1.0
-	u0 = -1.0
+	u0 = 1.0
 /
