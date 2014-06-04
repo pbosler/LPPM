@@ -188,7 +188,8 @@ if ( procRank == 0 ) then
 
 
 	call New(vtkOut,sphere,vtkFile,'RH4Wave')
-	call VTKOutputMidpointRule(vtkOut,sphere)
+	!call VTKOutputMidpointRule(vtkOut,sphere)
+	call VTKOutput(vtkOut,sphere)
 
 	if ( outputContours > 0 ) then
 		write(LLRoot,'(A,A,A,A,A)') trim(outputDir), '/LLOut/',trim(jobPrefix),trim(amrString),'_'
@@ -343,7 +344,8 @@ do timeJ = 0, timesteps - 1
 
 		write(vtkFile,'(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
 		call UpdateFileName(vtkOut,vtkFile)
-		call VTKOutputMidpointRule(vtkOut,sphere)
+		!call VTKOutputMidpointRule(vtkOut,sphere)
+		call VTKOutput(vtkOut,sphere)
 
 		if ( outputContours > 0 ) then
 			write(LLFile,'(A,I0.4,A)') trim(LLRoot), frameCounter, '.m'

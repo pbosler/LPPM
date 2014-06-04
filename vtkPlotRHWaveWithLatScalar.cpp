@@ -37,13 +37,14 @@ int main(){
 	double relVortMax = 6.71E-05;
 	char scalarsDataName[16] = "relVortPanel";
 	char scalarsDataTitle[28] = "Rel. Vort.";
-	char scalarsDataName2[16] = "Tracer1";
+	char scalarsDataName2[16] = "tracer1";
 	char scalarsDataTitle2[28] = "Init. Lat.";
 	double latMin = -1.5708;
 	double latMax = 1.5708;
 
-	char vtkFileroot[256] = "/Users/pbosler/Desktop/modelData/vtkOut/rhWave_remesh20_noReinit_quadUnif5__";
-	char imgFileroot[256] = "/Users/pbosler/Desktop/modelData/imgOut/rhWave_remesh20_noReinit_withScalar_";
+	char vtkFileroot[256] = "/Users/pbosler/Desktop/modelData/vtkOut/rhWave_remesh20_reinit4_quadUnif5__";
+	char vtkFileroot2[256] = "/Users/pbosler/Desktop/modelData/vtkOut/rhWave_remesh20_particleData_quadUnif5__";
+	char imgFileroot[256] = "/Users/pbosler/Desktop/modelData/imgOut/rhWave_remesh20_reinit4_withScalar_";
 	
 	int numColorsInColorbars = 1024;
 	//
@@ -60,9 +61,13 @@ int main(){
 	int j;
 	j = sprintf(counterString,"%04d",0);
 	char vtkFilename[256];
+	char vtkFilename2[256];
 	strcpy(vtkFilename, vtkFileroot);
 	strcat(vtkFilename,counterString);
 	strcat(vtkFilename,".vtk");
+	strcpy(vtkFilename2, vtkFileroot2);
+	strcat(vtkFilename2,counterString);
+	strcat(vtkFilename2,".vtk");
 	
 	cout << "reading " << finalFrame + 1 << " .vtk data files beginning with : " << endl;
 	cout << "        " << vtkFilename << endl;
@@ -76,12 +81,15 @@ int main(){
 		strcpy(vtkFilename, vtkFileroot);
 		strcat(vtkFilename,counterString);
 		strcat(vtkFilename,".vtk");
+		strcpy(vtkFilename2, vtkFileroot2);
+		strcat(vtkFilename2,counterString);
+		strcat(vtkFilename2,".vtk");
 		
 		relVortData[frameJ] = vtkPolyDataReader::New();
 		meshData[frameJ] = vtkPolyDataReader::New();
 		
 		relVortData[frameJ]->SetFileName(vtkFilename);
-		meshData[frameJ]->SetFileName(vtkFilename);
+		meshData[frameJ]->SetFileName(vtkFilename2);
 		
 		relVortData[frameJ]->SetScalarsName(scalarsDataName);
 		meshData[frameJ]->SetScalarsName(scalarsDataName2);	
@@ -184,10 +192,10 @@ int main(){
 		
 	vtkRenderer * meshRenderer = vtkRenderer::New();
 		meshRenderer -> AddActor(meshSphere);
-		meshRenderer -> AddActor(latColorbar);
+		//meshRenderer -> AddActor(latColorbar);
 		meshRenderer -> SetBackground( 1.0, 1.0, 1.0);
 		meshRenderer -> SetViewport( 0.5, 0.0, 1.0, 1.0);
-		meshRenderer -> SetActiveCamera(camera1);
+		meshRenderer -> SetActiveCamera(camera2);
 	
 	vtkRenderWindow * renWin = vtkRenderWindow::New();
 		renWin -> AddRenderer(relVortRenderer);

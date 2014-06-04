@@ -182,11 +182,11 @@ subroutine vtkOutput(self,aMesh)
 	!
 	write(WRITE_UNIT_1,'(A,I8,A)') 'POINTS ',self%nPoints,' double'
 	do j=1,aparticles%N
-		write(WRITE_UNIT_1,'(3F24.8)') aParticles%x(1,j),aParticles%x(2,j),aParticles%x(3,j)
+		write(WRITE_UNIT_1,'(3F24.8)') aParticles%x(1,j)/EARTH_RADIUS,aParticles%x(2,j)/EARTH_RADIUS,aParticles%x(3,j)/EARTH_RADIUS
 	enddo
 	do j=1,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			write(WRITE_UNIT_1,'(3F24.8)') aPanels%x(1,j), aPanels%x(2,j), aPanels%x(3,j)
+			write(WRITE_UNIT_1,'(3F24.8)') aPanels%x(1,j)/EARTH_RADIUS, aPanels%x(2,j)/EARTH_RADIUS, aPanels%x(3,j)/EARTH_RADIUS
 		endif
 	enddo
 
@@ -211,11 +211,11 @@ subroutine vtkOutput(self,aMesh)
 		write(WRITE_UNIT_1,'(A)') trim(dataString)
 		write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
 		do j=1,aParticles%N
-			write(WRITE_UNIT_1,'(3F24.8)') aParticles%x0(:,j)
+			write(WRITE_UNIT_1,'(3F24.8)') aParticles%x0(:,j)/EARTH_RADIUS
 		enddo
 		do j=1,aPanels%N
 			if (.NOT. aPanels%hasChildren(j) ) then
-				write(WRITE_UNIT_1,'(3F24.8)') aPanels%x0(:,j)
+				write(WRITE_UNIT_1,'(3F24.8)') aPanels%x0(:,j)/EARTH_RADIUS
 			endif
 		enddo
 
@@ -327,7 +327,7 @@ subroutine vtkOutput(self,aMesh)
 		nTracer = GetNTracer(aPanels)
 		if ( nTracer > 0 ) then
 			do k=1,nTracer
-				write(dataString,'(A6,I1)') trim('Tracer'),k
+				write(dataString,'(A6,I1)') trim('tracer'),k
 				write(WRITE_UNIT_1,'(A,A,A)') 'SCALARS  ',trim(dataString),'  double 1'
 				write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
 				do j=1,aParticles%N
@@ -467,7 +467,7 @@ subroutine VTKOutputMidpointRule(self,aMesh)
 	endif
 	if ( aMesh%nTracer > 0 ) then
 		do k = 1, aMesh%nTracer
-			write(WRITE_UNIT_1,'(A,I1,A)') 'SCALARS Tracer', k, '  double 1'
+			write(WRITE_UNIT_1,'(A,I1,A)') 'SCALARS tracer', k, '  double 1'
 			write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
 			do j = 1, aParticles%N
 				write(WRITE_UNIT_1,'(F24.8)') aParticles%tracer(j,k)
