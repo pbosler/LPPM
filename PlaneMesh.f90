@@ -37,6 +37,7 @@ public MaximumCirculation, MaximumVorticityVariation
 public MaximumLagrangianParameterVariation
 public MinX, MaxX, MinY, MaxY
 public ResetLagrangianParameter
+public GetTotalCirculation, GetTotalKE, GetTotalEnstrophy
 
 !
 !----------------
@@ -457,6 +458,37 @@ function TotalArea(self)
 	type(Panels), pointer :: apanels
 	apanels => self%panels
 	TotalArea = sum(apanels%area)
+end function
+
+function GetTotalEnstrophy(self)
+	real(kreal) :: GetTotalEnstrophy
+	type(PlaneMesh), intent(in) :: self
+	!
+	type(Panels), pointer :: aPanels
+	aPanels => self%panels
+	GetTotalEnstrophy = 0.5_kreal * sum( aPanels%relVort * aPanels%relVort * aPanels%area )
+end function
+
+function GetTotalCirculation(self)
+	real(kreal) :: GetTotalCirculation
+	type(PlaneMesh), intent(in) :: self
+	!
+	type(Panels), pointer :: aPanels
+	aPanels => self%panels
+	GetTotalCirculation = sum( aPanels%relVort * aPanels%area)
+end function
+
+function GetTotalKE(self)
+	real(kreal) :: GetTotalKE
+	type(PlaneMesh), intent(in) :: GetTotalKE
+	!
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+	aPanels => self%panels
+	GetTotalKE = 0.0_kreal
+	do j = 1, aPanels%N
+		GetTotalKE = GetTotalKE + 0.5_kreal * sum( aPanels%u(:,j)*aPanels%u(:,j) ) * aPanels%area(j)
+	enddo
 end function
 
 function MaximumCirculation(self)

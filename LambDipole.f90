@@ -45,10 +45,14 @@ type(PlaneRK4DirectSum) :: timekeeper
 real(kreal) :: dt, tfinal
 integer(kint) :: timeJ, timesteps
 !
+! computation and error calculation variables
+!
+real(kreal), allocatable :: totalKE(:), totalEnstrophy(:), totalCirc(:)
+!
 ! input / output variables
 !
 type(PlaneOutput) :: meshOut
-character(len=MAX_STRING_LENGTH) :: filename, fileroot, outputDir, jobPrefix
+character(len=MAX_STRING_LENGTH) :: filename, fileroot, outputDir, jobPrefix, summaryFile
 character(len=128) :: namelistInputFile = 'LambDipole.namelist'
 !
 ! computing environment variables
@@ -68,6 +72,10 @@ namelist /vorticityDefine/ u0, rad
 namelist /timestepping/ dt, tfinal
 namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!	INITIALIZE COMPUTER, MESH, TEST CASE
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 call MPI_INIT(mpiErrCode)
 call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcs,mpiErrCode)
@@ -133,6 +141,19 @@ endif
 call New(timekeeper, mesh, numProcs)
 timesteps = floor(tfinal / dt)
 remeshCounter = 0
+allocate(totalCirc(0:timesteps))
+allocate(totalEnstrophy(0:timesteps))
+allocate(totalKE(0:timesteps))
+totalCirc = 0.0_kreal
+totalEnstrophy = 0.0_kreal
+totalKE = 0.0_kreal
+
+totalCirc(0) = GetTotalCirculation(mesh)
+totalEnstrophy(0) = GetTotalEnstrophy(mesh)
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!	RUN THE PROBLEM
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 do timeJ = 0, timesteps - 1
 	!
@@ -191,6 +212,13 @@ do timeJ = 0, timesteps - 1
 	!
 	call RK4TimestepNoRotation( timekeeper, mesh, dt, procRank, numProcs)
 	!
+	! compute integral invariants
+	!	
+	totalCirc(timeJ+1) = GetTotalCirculation(mesh)
+	totalEnstrophy(timeJ+1) = GetTotalEnstrophy(mesh)
+	totalKE(timeJ+1) = GetTotalKE(mesh)
+	if ( timeJ == 0 ) totalKE(0) = totalKE(timeJ+1)
+	!
 	! output timestep data
 	!
 	if ( procRank == 0 ) then
@@ -201,11 +229,33 @@ do timeJ = 0, timesteps - 1
 	endif
 enddo
 
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!	OUTPUT FINAL DATA
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 if ( procRank == 0 ) then
+	write(summaryFile,'(A,A)') trim(fileRoot), 'summary.txt'
+	open(unit=WRITE_UNIT_1,file=summaryFile,status='REPLACE',action='WRITE', iostat=readstat)
+	if (readstat == 0 ) then
+		write(WRITE_UNIT_1,'(4A24)') 't ', 'totalCirc', 'totalKE', 'totalEns'
+		do j = 0, timesteps
+			write(WRITE_UNIT_1,'(4F24.12)') j*dt, totalCirc(j), totalKE(j), totalEnstrophy(j)
+		enddo
+	else
+		call LogMessage(exeLog,ERROR_LOGGING_LEVEL,'summaryFile ERROR : ','cannot open datafile.')
+	endif
+	close(WRITE_UNIT_1)
 	write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
 	call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
 endif
 
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!	FREE MEMORY, CLEAN UP, FINALIZE
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+deallocate(totalCirc)
+deallocate(totalEnstrophy)
+deallocate(totalKE)
 call Delete(lamb)
 call Delete(mesh)
 call Delete(remesh)
