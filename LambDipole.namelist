@@ -1,6 +1,6 @@
 &meshDefine
 	initNest = 3
-	AMR = 3
+	AMR = 0
 	amrLimit = 3
 /
 
@@ -19,12 +19,12 @@
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'reinitTest_lambDipole'
+	jobPrefix = 'lambDipole_nest3_dt0.01_'
 /
 
 &vorticityDefine
 	rad = 1.0
 	u0 = 1.0
-	xc = 1.0
+	xc = -1.0
 	yc = 0.0
 /

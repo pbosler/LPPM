@@ -61,7 +61,7 @@ type(Logger) :: exeLog
 character(len=MAX_STRING_LENGTH) :: logstring
 integer(kint) :: mpiErrCode
 real(kreal) :: wallclock
-integer(kint), parameter :: BCAST_INT_SIZE = 5, BCAST_REAL_SIZE = 7
+integer(kint), parameter :: BCAST_INT_SIZE = 5, BCAST_REAL_SIZE = 9
 integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 integer(kint) :: j, writestat
@@ -124,6 +124,9 @@ call New(remesh, maxCircTol, vortVarTol, lagVarTol, amrlimit)
 if ( AMR > 0 ) then
 	call InitialRefinement(mesh, remesh, nullTracer, noTracer, SetLambDipoleOnMesh, lamb)
 endif
+
+call StoreLagrangianXCoordinateInTracer(mesh, 1)
+
 !
 ! initialize output
 !
@@ -166,11 +169,13 @@ do timeJ = 0, timesteps - 1
 			! remesh to t = 0
 			!
 			call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
+			call StoreLagrangianXCoordinateInTracer(mesh, 1)
 		elseif ( remeshCounter == resetAlphaInterval ) then
 			!
 			! remesh to t = 0, create new reference mesh
 			!
 			call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
+			call StoreLagrangianXCoordinateInTracer(mesh, 1)
 			call New(reference, mesh)
 			call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'resetAlpha : ','ReferenceMesh created.')
 			call ResetLagrangianParameter(reference)
@@ -295,6 +300,8 @@ subroutine ReadNamelistFile(rank)
 		broadcastReals(5) = lagVarTol
 		broadcastReals(6) = u0
 		broadcastReals(7) = rad
+		broadcastReals(8) = xc
+		broadcastReals(9) = yc
 
 		write(fileRoot,'(4A)') trim(outputDir), 'vtkOut/', trim(jobPrefix), '_'
 	endif
@@ -312,6 +319,8 @@ subroutine ReadNamelistFile(rank)
 	lagVarTol = broadcastReals(5)
 	u0 = broadcastReals(6)
 	rad = broadcastReals(7)
+	xc = broadcastReals(8)
+	yc = broadcastReals(9)
 end subroutine
 
 subroutine ConvertToRelativeTolerances(aMesh, maxCircTol, vortVarTol, lagVarTol)
@@ -320,6 +329,26 @@ subroutine ConvertToRelativeTolerances(aMesh, maxCircTol, vortVarTol, lagVarTol)
 	maxCircTol = maxCircTol * MaximumCirculation(aMesh)
 	vortVarTol = vortVarTol * MaximumVorticityVariation(aMesh)
 	lagVarTol = lagVarTol * MaximumLagrangianParameterVariation(aMesh)
+end subroutine
+
+subroutine StoreLagrangianXCoordinateInTracer(aMesh, tracerID)
+	use ParticlesModule
+	use PanelsModule
+	implicit none
+	type(PlaneMesh), intent(inout) :: aMesh
+	integer(kint), intent(in) :: tracerID
+	!
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	do j = 1, aParticles%N
+		aParticles%tracer(j, tracerID) = aParticles%x0(1,j)
+	enddo
+	do j = 1, aPanels%N
+		aPanels%tracer(j, tracerID) = aPanels%x0(1,j)
+	enddo
 end subroutine
 
 end program
