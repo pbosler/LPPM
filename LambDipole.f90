@@ -69,7 +69,7 @@ integer(kint) :: j, writestat
 ! namelists
 !
 namelist /meshDefine/ initNest, AMR, amrLimit
-namelist /vorticityDefine/ u0, rad
+namelist /vorticityDefine/ u0, rad, xc, yc
 namelist /timestepping/ dt, tfinal
 namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix
@@ -93,10 +93,6 @@ ymin = -2.0_kreal
 ymax = 2.0_kreal
 
 nTracer = 2
-
-! vorticity definition variables
-xc = 0.0_kreal
-yc = 0.0_kreal
 
 call ReadNamelistFile(procRank)
 

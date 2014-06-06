@@ -25,4 +25,6 @@
 &vorticityDefine
 	rad = 1.0
 	u0 = 1.0
+	xc = 1.0
+	yc = 0.0
 /
