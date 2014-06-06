@@ -480,7 +480,7 @@ end function
 
 function GetTotalKE(self)
 	real(kreal) :: GetTotalKE
-	type(PlaneMesh), intent(in) :: GetTotalKE
+	type(PlaneMesh), intent(in) :: self
 	!
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j

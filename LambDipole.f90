@@ -64,6 +64,7 @@ real(kreal) :: wallclock
 integer(kint), parameter :: BCAST_INT_SIZE = 5, BCAST_REAL_SIZE = 7
 integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
+integer(kint) :: j, writestat
 !
 ! namelists
 !
@@ -235,8 +236,8 @@ enddo
 
 if ( procRank == 0 ) then
 	write(summaryFile,'(A,A)') trim(fileRoot), 'summary.txt'
-	open(unit=WRITE_UNIT_1,file=summaryFile,status='REPLACE',action='WRITE', iostat=readstat)
-	if (readstat == 0 ) then
+	open(unit=WRITE_UNIT_1,file=summaryFile,status='REPLACE',action='WRITE', iostat=writestat)
+	if (writestat == 0 ) then
 		write(WRITE_UNIT_1,'(4A24)') 't ', 'totalCirc', 'totalKE', 'totalEns'
 		do j = 0, timesteps
 			write(WRITE_UNIT_1,'(4F24.12)') j*dt, totalCirc(j), totalKE(j), totalEnstrophy(j)
