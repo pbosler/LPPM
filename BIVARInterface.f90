@@ -70,7 +70,7 @@ interface New
 	module procedure NewPrivate
 end interface
 
-interface Delete
+interface Delete 
 	module procedure DeletePrivate
 end interface
 
