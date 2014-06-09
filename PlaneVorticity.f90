@@ -30,6 +30,7 @@ public New, Delete
 public InitRankineVortex, SetRankineVortexOnMesh, RankineVortex, RANKINE_N_INT, RANKINE_N_REAL
 public NullVorticity
 public InitLambDipole, SetLambDipoleOnMesh, LambDipole, LAMB_DIPOLE_N_INT, LAMB_DIPOLE_N_REAL
+public InitTwoDipoles, SetTwoDipolesOnMesh, TwoDipoles, TWO_DIPOLES_N_INT, TWO_DIPOLES_N_REAL
 
 !
 !----------------
@@ -42,7 +43,8 @@ type VorticitySetup
 end type
 
 integer(kint), parameter :: RANKINE_N_INT = 0, RANKINE_N_REAL = 4, &
-							LAMB_DIPOLE_N_INT = 0, LAMB_DIPOLE_N_REAL = 4
+							LAMB_DIPOLE_N_INT = 0, LAMB_DIPOLE_N_REAL = 4, &
+							TWO_DIPOLES_N_INT = 0, TWO_DIPOLES_N_REAL = 8
 
 real(kreal), parameter :: LAMB_K0 = 3.8317_kreal
 !
@@ -239,6 +241,61 @@ function LambDipole( xy, lambR, U0, xcent, ycent)
 		LambDipole = -2.0_kreal * U0 * k * BESSJ1( k * r) * sintheta / denom
 	endif
 end function
+
+subroutine InitTwoDipoles(self, xc1, yc1, rad1, u1, xc2, yc2, rad2, u2)
+	type(VorticitySetup), intent(inout) :: self
+	real(kreal), intent(in) :: xc1, yc1, rad1, u1, xc2, yc2, rad2, u2
+
+	if ( size(self%reals) /= TWO_DIPOLES_N_REAL) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'VorticitySetup ERROR : ',' real array size incorrect.')
+		return
+	endif
+
+	self%reals(1) = xc1
+	self%reals(2) = yc1
+	self%reals(3) = rad1
+	self%reals(4) = u1
+	self%reals(5) = xc2
+	self%reals(6) = yc2
+	self%reals(7) = rad2
+	self%reals(8) = u2
+end subroutine
+
+
+subroutine SetTwoDipolesOnMesh( aMesh, self)
+	type(PlaneMesh), intent(inout) :: aMesh
+	type(VorticitySetup), intent(in) :: self
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+
+	aParticles => amesh%particles
+	aPanels => aMesh%panels
+
+	do j = 1, aParticles%N
+		aparticles%relVort(j) = TwoDipoles(aParticles%x0(:,j), &
+								self%reals(1), self%reals(2), self%reals(3), self%reals(4), &
+								self%reals(5), self%reals(6), self%reals(7), self%reals(8) )
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%relVort(j) = 0.0_kreal
+		else
+			aPanels%relVort(j) = TwoDipoles(aPanels%x0(:,j), &
+								 self%reals(1), self%reals(2), self%reals(3), self%reals(4), &
+								 self%reals(5), self%reals(6), self%reals(7), self%reals(8) )
+		endif
+	enddo
+end subroutine
+
+function TwoDipoles( xy, xc1, yc1, rad1, u1, xc2, yc2, rad2, u2)
+	real(kreal) :: TwoDipoles
+	real(kreal), intent(in) :: xy(2), xc1, yc1, rad1, u1, xc2, yc2, rad2, u2
+	!
+	TwoDipoles = LambDipole(xy, rad1, u1, xc1, yc1) + LambDipole(xy, rad2, u2, xc2, yc2)
+end function
+
 
 !
 !----------------

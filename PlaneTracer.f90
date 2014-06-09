@@ -26,10 +26,12 @@ implicit none
 
 private
 public TracerSetup
+public New, Delete
 public InitGaussianHill, SetGaussianHillOnMesh, GaussianHill
 public InitSlottedCylinder, SetSlottedCylinderOnMesh, SlottedCylinder
 public InitThreeTracers, SetThreeTracersOnMesh, ThreeTracers
 public NullTracer
+public InitDipoleIDTracer, SetDipoleIDTracerOnMesh, DipoleID
 
 !
 !----------------
@@ -116,7 +118,7 @@ end subroutine
 subroutine InitThreeTracers(self, tracerID)
 	type(TracerSetup), intent(inout) :: self
 	integer(kint), intent(in) :: tracerID
-	
+
 	call New(self, 1, 0)
 	self%integers(1) = tracerID
 end subroutine
@@ -128,10 +130,10 @@ subroutine SetThreeTracersOnMesh( aMesh, self)
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	do j = 1, aParticles%N
 		aParticles%tracer(j, self%integers(1)) = ThreeTracers(aParticles%x0(:,j))
 	enddo
@@ -149,7 +151,7 @@ function ThreeTracers(xy)
 	real(kreal), intent(in) :: xy(2)
 	!
 	real(kreal) :: r, cosArg
-	
+
 	! cosine hill
 	r = sqrt( (xy(1) - 0.25_kreal)*(xy(1) - 0.25_kreal) + (xy(2) - 0.5_kreal)*(xy(2)-0.5_kreal))
 	if ( r >= 0.15_kreal ) then
@@ -159,7 +161,7 @@ function ThreeTracers(xy)
 	endif
 	cosArg = cosArg / 0.15_kreal
 	ThreeTracers = 0.25_kreal * (1.0_kreal + cos(PI * cosArg))
-	
+
 	! slotted cylinder
 	r = sqrt( (xy(1) - 0.5_kreal)*(xy(1)-0.5_kreal) + (xy(2) - 0.75_kreal)*(xy(2) - 0.75_kreal))
 	if ( r < 0.15_kreal) ThreeTracers = ThreeTracers + 1.0_kreal
@@ -168,28 +170,28 @@ function ThreeTracers(xy)
 			ThreeTracers = ThreeTracers - 1.0_kreal
 		endif
 	endif
-	
+
 	! cone
 	r = 1.0_kreal - sqrt( (xy(1) -0.5_kreal)*(xy(1) - 0.5_kreal) + (xy(2) - 0.25_kreal)*(xy(2) - 0.25_kreal))
 	if ( r < 0.0_kreal ) r = 0.0_kreal
-	ThreeTracers = ThreeTracers + r	
+	ThreeTracers = ThreeTracers + r
 end function
 
 subroutine InitGaussianHill(self, tracerID, xCent, yCent, betaSq, amp)
 	type(TracerSetup), intent(inout) :: self
 	integer(kint), intent(in) :: tracerID
 	real(kreal), intent(in) :: xCent, yCent, betaSq, amp
-	
+
 	call New(self, 1, 4)
-	self%integers(1) = tracerID			
-	
+	self%integers(1) = tracerID
+
 	self%reals(1) = xCent
 	self%reals(2) = yCent
 	self%reals(3) = betaSq
 	self%reals(4) = amp
 end subroutine
 
-subroutine SetGaussianHillOnMesh( aMesh, self ) 
+subroutine SetGaussianHillOnMesh( aMesh, self )
 	type(PlaneMesh), intent(inout) :: aMesh
 	type(TracerSetup), intent(in) :: self
 	!
@@ -197,15 +199,15 @@ subroutine SetGaussianHillOnMesh( aMesh, self )
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j
 	real(kreal) :: xCent, yCent, betaSq, amp
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	xCent = self%reals(1)
 	yCent = self%reals(2)
 	betaSq = self%reals(3)
 	amp = self%reals(4)
-	
+
 	do j = 1, aParticles%N
 		aParticles%tracer(j, self%integers(1)) = GaussianHill(aParticles%x0(:,j), xCent, yCent, betaSq, amp)
 	enddo
@@ -231,13 +233,13 @@ subroutine InitSlottedCylinder(self, tracerID, xcent, ycent, r, slotL, slotR, sl
 	!
 	call New(self, 1, 6)
 	self%integers(1) = tracerID
-	
+
 	self%reals(1) = xcent
 	self%reals(2) = ycent
 	self%reals(3) = r
 	self%reals(4) = slotL
 	self%reals(5) = slotR
-	self%reals(6) = slotTop	
+	self%reals(6) = slotTop
 end subroutine
 
 subroutine SetSlottedCylinderOnMesh(aMesh, self)
@@ -247,10 +249,10 @@ subroutine SetSlottedCylinderOnMesh(aMesh, self)
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	do j = 1, aParticles%N
 		aParticles%tracer(j, self%integers(1)) = SlottedCylinder(aParticles%x0(:,j), self%reals(1), self%reals(2), &
 				          self%reals(3), self%reals(4), self%reals(5), self%reals(6) )
@@ -280,6 +282,70 @@ function SlottedCylinder(xy, xcent, ycent, r, slotL, slotR, slotTop)
 	endif
 	SlottedCylinder = q
 end function
+
+function SignedDistance(xy, xc, yc, rad)
+	real(kreal) :: SignedDistance
+	real(kreal), intent(in) :: xy(2), xc, yc, rad
+	!
+	SignedDistance = rad - sqrt( (xy(1) - xc) * (xy(1)-xc) + (xy(2)-yc) * (xy(2) - yc) )
+end function
+
+subroutine InitDipoleIDTracer(self, xc1, yc1, rad1, xc2, yc2, rad2, tracerID)
+	type(TracerSetup), intent(inout) :: self
+	real(kreal), intent(in) :: xc1, yc1, rad1, xc2, yc2, rad2
+	integer(kint), intent(in) :: tracerID
+
+	call New(self, 1, 6 )
+
+	self%reals(1) = xc1
+	self%reals(2) = yc1
+	self%reals(3) = rad1
+	self%reals(4) = xc2
+	self%reals(5) = yc2
+	self%reals(6) = rad2
+	self%integers(1) = tracerID
+end subroutine
+
+function DipoleID(xy, xc1, yc1, rad1, xc2, yc2, rad2)
+	real(kreal) :: DipoleID
+	real(kreal), intent(in) :: xy(2), xc1, yc1, rad1, xc2, yc2, rad2
+	!
+	real(kreal) :: d1, d2
+
+	DipoleID = 0.0_kreal
+
+	d1 = SignedDistance(xy, xc1, yc1, rad1)
+	d2 = SignedDistance(xy, xc2, yc2, rad2)
+
+	if ( d1 > ZERO_TOL ) DipoleID = DipoleID - 1.0_kreal
+	if ( d2 > ZERO_TOL ) DipoleID = DipoleID + 1.0_kreal
+end function
+
+subroutine SetDipoleIDTracerOnMesh(aMesh, tsetup)
+	type(PlaneMesh), intent(inout) :: aMesh
+	type(TracerSetup), intent(in) :: tsetup
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+
+	do j = 1, aParticles%N
+		aParticles%tracer(j, tsetup%integers(1) ) = DipoleID( aParticles%x0(:,j), tsetup%reals(1), tsetup%reals(2), tsetup%reals(3), &
+														tsetup%reals(4), tsetup%reals(5), tsetup%reals(6) )
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%tracer(j, tsetup%integers(1) ) = 0.0_kreal
+		else
+			aPanels%tracer(j, tsetup%integers(1) ) = DipoleID( aPanels%x0(:,j), tsetup%reals(1), tsetup%reals(2), tsetup%reals(3), &
+														tsetup%reals(4), tsetup%reals(5), tsetup%reals(6) )
+		endif
+	enddo
+end subroutine
+
 
 
 !

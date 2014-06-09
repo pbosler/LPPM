@@ -1,7 +1,9 @@
-program LambTest
+program TwoDipolesMain
 
 use NumberKindsModule
 use LoggerModule
+use ParticlesModule
+use PanelsModule
 use PlaneMeshModule
 use PlaneOutputModule
 use PlaneVorticityModule
@@ -22,54 +24,62 @@ type(PlaneMesh) :: mesh
 integer(kint) :: initNest, AMR, nTracer
 real(kreal) :: xmin, xmax, ymin, ymax
 integer(kint) :: boundaryType = FREE_BOUNDARIES
+
 !
 ! vorticity variables
 !
-type(VorticitySetup) :: lamb
-real(kreal) :: xc, yc, rad, u0
+type(VorticitySetup) :: dipoles
+real(kreal) :: xc1, yc1, rad1, u1, xc2, yc2, rad2, u2
+
 !
 ! tracer variables
 !
-type(TracerSetup) :: noTracer
+type(tracerSetup) :: dipoleIDs
+
 !
 ! remeshing / refinement variables
 !
 type(RemeshSetup) :: remesh
 real(kreal) :: maxCircTol, vortVarTol, lagVarTol
-integer(kint) :: amrlimit, remeshInterval, remeshCounter, resetAlphaInterval
+integer(kint) :: amrLimit, remeshInterval, remeshCounter, resetAlphaInterval
 type(BIVARSetup) :: reference
+
 !
 ! timestepping variables
 !
 type(PlaneRK4DirectSum) :: timekeeper
 real(kreal) :: dt, tfinal
 integer(kint) :: timeJ, timesteps
+
 !
-! computation and error calculation variables
+! computation variables
 !
 real(kreal), allocatable :: totalKE(:), totalEnstrophy(:), totalCirc(:)
+
 !
 ! input / output variables
 !
 type(PlaneOutput) :: meshOut
-character(len=MAX_STRING_LENGTH) :: filename, fileroot, outputDir, jobPrefix, summaryFile
-character(len=128) :: namelistInputFile = 'LambDipole.namelist'
+character(len=MAX_STRING_LENGTH) :: vtkFilename, vtkFileroot, outputDir, jobPrefix, summaryFile
+character(len=128) :: namelistFile = 'TwoDipoles.namelist'
+
 !
-! computing environment variables
+! mpi / computing environment variables
 !
 type(Logger) :: exeLog
 character(len=MAX_STRING_LENGTH) :: logstring
-integer(kint) :: mpiErrCode
+integer(kint) :: errCode
 real(kreal) :: wallclock
-integer(kint), parameter :: BCAST_INT_SIZE = 5, BCAST_REAL_SIZE = 9
+integer(kint), parameter :: BCAST_INT_SIZE = 5, BCAST_REAL_SIZE = 17
 integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
-integer(kint) :: j, writestat
+integer(kint) :: j, iostat
+
 !
-! namelists
+! namelists for user input
 !
-namelist /meshDefine/ initNest, AMR, amrLimit
-namelist /vorticityDefine/ u0, rad, xc, yc
+namelist /meshDefine/ initNest, AMR, amrLimit, xmin, xmax, ymin, ymax
+namelist /vorticityDefine/ xc1, yc1, rad1, u1, xc2, yc2, rad2, u2
 namelist /timestepping/ dt, tfinal
 namelist /remeshing/ maxCircTol, vortVarTol, lagVarTol, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix
@@ -78,67 +88,72 @@ namelist /fileIO/ outputDir, jobPrefix
 !	INITIALIZE COMPUTER, MESH, TEST CASE
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-call MPI_INIT(mpiErrCode)
-call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcs,mpiErrCode)
-call MPI_COMM_RANK(MPI_COMM_WORLD,procRank,mpiErrCode)
+call MPI_INIT(errCode)
+call MPI_COMM_SIZE(MPI_COMM_WORLD,numProcs,errCode)
+call MPI_COMM_RANK(MPI_COMM_WORLD,procRank,errCode)
 
 call New(exeLog,DEBUG_LOGGING_LEVEL)
 
 wallclock = MPI_WTIME()
 
-! mesh definition variables
-xmin = -2.0_kreal
-xmax = 2.0_kreal
-ymin = -2.0_kreal
-ymax = 2.0_kreal
+nTracer = 3
 
-nTracer = 2
+call InitLogger(exelog, procRank)
 
 call ReadNamelistFile(procRank)
 
-! i/o variables
-if ( procRank == 0 ) write(filename,'(A,I0.4,A)') trim(fileroot), 0, '.vtk'
+if ( procrank == 0 ) write(vtkFilename,'(A,I0.4,A)') trim(vtkFileRoot), 0, '.vtk'
+
 !
-! build the initial mesh
+! build initial mesh
 !
-call New(mesh,initNest,AMR,nTracer)
-call InitializeRectangle(mesh,xmin,xmax,ymin,ymax,boundaryType)
-write(logstring,'(A,I1,A,F16.12)') 'nest = ', initNest, ' , total area = ',  TotalArea(mesh)
-call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'mesh info ', logstring)
+call New(mesh, initNest, AMR, nTracer)
+call InitializeRectangle(mesh, xmin, xmax, ymin, ymax, boundaryType)
+write(logstring,'(A,I1,A,I8,A,F16.12)') 'nest = ', initNest, ', nPanels = ', mesh%panels%N_Active, ' total area = ', TotalArea(mesh)
+call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'base mesh : ',trim(logstring))
+
 !
 ! initialize vorticity
 !
-call New(lamb, LAMB_DIPOLE_N_INT, LAMB_DIPOLE_N_REAL)
-call InitLambDipole(lamb, rad, u0, xc, yc)
-call SetLambDipoleOnMesh(mesh, lamb)
+call New(dipoles, TWO_DIPOLES_N_INT, TWO_DIPOLES_N_REAL)
+call InitTwoDipoles(dipoles, xc1, yc1, rad1, u1, xc2, yc2, rad2, u2)
+call SetTwoDipolesOnMesh(mesh, dipoles)
 
 !
-! initialize remesher
+! initialize tracer
 !
-call ConvertToRelativeTolerances(mesh, maxCircTol, vortVarTol, lagVarTol)
-call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'maxCircTol = ', maxCircTol)
-call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'vortVarTol = ', vortVarTol)
-call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'lagVarTol  = ', lagVarTol)
+call InitDipoleIDTracer(dipoleIDs, xc1, yc1, rad1, xc2, yc2, rad2, 2)
+call SetDipoleIDTracerOnMesh(mesh, dipoleIDs)
 
-call New(remesh, maxCircTol, vortVarTol, lagVarTol, amrlimit)
-if ( AMR > 0 ) then
-	call InitialRefinement(mesh, remesh, nullTracer, noTracer, SetLambDipoleOnMesh, lamb)
-endif
+!
+! initialize remeshing
+!
+call ConvertToRelativeTolerances( mesh, maxCircTol, vortVarTol, lagVarTol)
+	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'maxCircTol = ', maxCircTol)
+	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'vortVarTol = ', vortVarTol)
+	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'lagVarTol  = ', lagVarTol)
+call New( remesh, maxCircTol, vortVarTol, lagVarTol, amrLimit)
+if ( AMR > 0 ) call InitialRefinement(mesh, remesh, SetDipoleIDTracerOnMesh, dipoleIDs, SetTwoDipolesOnMesh, dipoles)
 
 call StoreLagrangianXCoordinateInTracer(mesh, 1)
+
+
 
 !
 ! initialize output
 !
-if ( procRank == 0 ) then
-	call New(meshOut,mesh,filename)
-	call LogStats(mesh,exeLog)
-	call OutputForVTK(meshOut,mesh)
+if ( procrank == 0 ) then
+	call New(meshOut, mesh, vtkFilename)
+	call LogStats(mesh, exeLog)
+	call OutputForVTK(meshout, mesh)
 endif
+
+
+
 !
-! initialize timestepping
+! initialize time stepping
 !
-call New(timekeeper, mesh, numProcs)
+call New( timekeeper, mesh, numProcs)
 timesteps = floor(tfinal / dt)
 remeshCounter = 0
 allocate(totalCirc(0:timesteps))
@@ -150,39 +165,36 @@ totalKE = 0.0_kreal
 
 totalCirc(0) = GetTotalCirculation(mesh)
 totalEnstrophy(0) = GetTotalEnstrophy(mesh)
-
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	RUN THE PROBLEM
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 do timeJ = 0, timesteps - 1
 	!
 	! remesh if necessary
 	!
-	if ( mod(timeJ+1, remeshInterval) == 0 ) then
+	if ( mod(timeJ+1, remeshInterval ) == 0 ) then
 		remeshCounter = remeshCounter + 1
 		!
-		! perform the appropriate remeshing procedure
+		! choose appropriate remeshing procedure
 		!
-		if ( remeshCounter < resetAlphaInterval ) then
+		if ( remeshcounter < resetAlphaInterval ) then
 			!
 			! remesh to t = 0
 			!
-			call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
+			call LagrangianRemeshToInitialTime( mesh, remesh, SetTwoDipolesOnMesh, dipoles, SetDipoleIDTracerOnMesh, dipoleIDs)
 			call StoreLagrangianXCoordinateInTracer(mesh, 1)
 		elseif ( remeshCounter == resetAlphaInterval ) then
 			!
-			! remesh to t = 0, create new reference mesh
+			! remesh to t = 0, then build a new reference mesh
 			!
-			call LagrangianRemeshToInitialTime( mesh, remesh, SetLambDipoleOnMesh, lamb, nullTracer, noTracer)
+			call LagrangianRemeshToInitialTime( mesh, remesh, SetTwoDipolesOnMesh, dipoles, SetDipoleIDTracerOnMesh, dipoleIDs)
 			call StoreLagrangianXCoordinateInTracer(mesh, 1)
 			call New(reference, mesh)
-			call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'resetAlpha : ','ReferenceMesh created.')
 			call ResetLagrangianParameter(reference)
 			call ResetLagrangianParameter(mesh)
 		elseif ( remeshCounter > resetAlphaInterval .AND. mod(remeshCounter, resetAlphaInterval) == 0 ) then
 			!
-			! remesh to previous reference time, create new reference mesh
+			! remesh to previous reference mesh, then create new reference mesh
 			!
 			call LagrangianRemeshToReferenceTime(mesh, reference, remesh)
 			call Delete(reference)
@@ -200,45 +212,46 @@ do timeJ = 0, timesteps - 1
 		! delete objects associated with old mesh
 		!
 		call Delete(timekeeper)
-		if ( procRank == 0 ) call Delete(meshOut)
+		if ( procrank == 0 ) call Delete(meshOut)
 		!
-		! create new objects for new mesh
+		! create new mesh-associated objects
 		!
 		call New(timekeeper, mesh, numProcs)
-		if ( procRank == 0 ) then
-			call New(meshOut, mesh, filename)
-		endif
-	endif
+		if ( procRank == 0 ) call New(meshout, mesh, vtkFilename)
+	endif! remeshing
+
 	!
 	! increment time
 	!
 	call RK4TimestepNoRotation( timekeeper, mesh, dt, procRank, numProcs)
+
 	!
-	! compute integral invariants
+	! compute conserved integrals
 	!
 	totalCirc(timeJ+1) = GetTotalCirculation(mesh)
 	totalEnstrophy(timeJ+1) = GetTotalEnstrophy(mesh)
 	totalKE(timeJ+1) = GetTotalKE(mesh)
 	if ( timeJ == 0 ) totalKE(0) = totalKE(timeJ+1)
+
 	!
 	! output timestep data
 	!
 	if ( procRank == 0 ) then
-		call LogMessage(exeLog, TRACE_LOGGING_LEVEL, ' t = ', real(timeJ+1,kreal) * dt)
-		write(filename,'(A,I0.4,A)') trim(fileroot), timeJ+1, '.vtk'
-		call UpdateFilename(meshOut, filename)
-		call OutputForVTK(meshout,mesh)
+		call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 't = ', real(timeJ+1,kreal) * dt)
+		write(vtkFilename,'(A,I0.4,A)') trim(vtkFileRoot), timeJ+1, '.vtk'
+		call UpdateFilename(meshOut, vtkFilename)
+		call OutputForVTK(meshOUt, mesh)
 	endif
 enddo
+
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	OUTPUT FINAL DATA
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if ( procRank == 0 ) then
-	write(summaryFile,'(A,A)') trim(fileRoot), '_summary.txt'
-	open(unit=WRITE_UNIT_1,file=summaryFile,status='REPLACE',action='WRITE', iostat=writestat)
-	if (writestat == 0 ) then
+	open(unit=WRITE_UNIT_1,file=summaryFile,status='REPLACE',action='WRITE', iostat=iostat)
+	if (iostat == 0 ) then
 		write(WRITE_UNIT_1,'(4A24)') 't ', 'totalCirc', 'totalKE', 'totalEns'
 		do j = 0, timesteps
 			write(WRITE_UNIT_1,'(4F24.12)') j*dt, totalCirc(j), totalKE(j), totalEnstrophy(j)
@@ -251,41 +264,47 @@ if ( procRank == 0 ) then
 	call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
 endif
 
-
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	FREE MEMORY, CLEAN UP, FINALIZE
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 deallocate(totalCirc)
 deallocate(totalEnstrophy)
 deallocate(totalKE)
-call Delete(lamb)
-call Delete(mesh)
+call Delete(timekeeper)
+call Delete(dipoleIDs)
+if (procRank == 0 ) call Delete(meshOut)
 call Delete(remesh)
-call Delete(meshOut)
-call Delete(exelog)
+call Delete(dipoles)
+call Delete(mesh)
+call Delete(exeLog)
 
-call MPI_FINALIZE(mpiErrCode)
+call MPI_FINALIZE(errCode)
 
 contains
 
-subroutine ReadNamelistFile(rank)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!	supplemental functions and subroutines
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+subroutine ReadNamelistfile(rank)
+!	processor 0 reads user input, then broadcasts initialization variables to all other processes.
+!
 	integer(kint), intent(in) :: rank
-	!
 	integer(kint) :: readStat
 	if ( rank == 0 ) then
-		open(unit = READ_UNIT, file=namelistInputFile, status='OLD', action='READ', iostat=readStat )
-		if ( readstat /= 0 ) then
-			stop 'cannot read namelist file.'
-		endif
-		read(READ_UNIT,nml=meshDefine)
+		open(unit=READ_UNIT, file=namelistFile, status='OLD', action='READ',iostat=readStat)
+		if ( readStat /= 0 ) stop 'cannot read namelist file.'
+
+		read(READ_UNIT, nml = meshDefine)
 		rewind(READ_UNIT)
-		read(READ_UNIT,nml=timestepping)
+		read(READ_UNIT, nml = vorticityDefine)
 		rewind(READ_UNIT)
-		read(READ_UNIT,nml=remeshing)
+		read(READ_UNIT, nml = timestepping)
 		rewind(READ_UNIT)
-		read(READ_UNIT,nml=fileIO)
+		read(READ_UNIT, nml = fileIO)
 		rewind(READ_UNIT)
-		read(READ_UNIT, nml=vorticityDefine)
+		read(READ_UNIT, nml = remeshing)
+		rewind(READ_UNIT)
 
 		close(READ_UNIT)
 
@@ -300,32 +319,53 @@ subroutine ReadNamelistFile(rank)
 		broadcastReals(3) = maxCircTol
 		broadcastReals(4) = vortVarTol
 		broadcastReals(5) = lagVarTol
-		broadcastReals(6) = u0
-		broadcastReals(7) = rad
-		broadcastReals(8) = xc
-		broadcastReals(9) = yc
+		broadcastReals(6) = xc1
+		broadcastReals(7) = yc1
+		broadcastReals(8) = u1
+		broadcastReals(9) = rad1
+		broadcastReals(10) = xc2
+		broadcastReals(11) = yc2
+		broadcastReals(12) = u2
+		broadcastReals(13) = rad2
+		broadcastReals(14) = xmin
+		broadcastReals(15) = xmax
+		broadcastReals(16) = ymin
+		broadcastReals(17) = ymax
 
-		write(fileRoot,'(4A)') trim(outputDir), 'vtkOut/', trim(jobPrefix), '_'
+		write(vtkFileRoot,'(4A)') trim(outputDir), 'vtkOut/', trim(jobPrefix), '_'
+		write(summaryFile,'(3A)') trim(outputDir), trim(jobPrefix), '_summary.txt'
 	endif
-	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, mpiErrCode)
+
+	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, errCode)
 	initNest = broadcastIntegers(1)
 	AMR = broadcastIntegers(2)
 	amrLimit = broadcastIntegers(3)
 	remeshInterval = broadcastIntegers(4)
 	resetAlphaInterval = broadcastIntegers(5)
-	call MPI_BCAST(broadcastReals, BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, mpiErrCode)
+
+	call MPI_BCAST(broadcastReals, BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, errCode)
 	dt = broadcastReals(1)
 	tfinal = broadcastReals(2)
 	maxCircTol = broadcastReals(3)
 	vortVarTol = broadcastReals(4)
 	lagVarTol = broadcastReals(5)
-	u0 = broadcastReals(6)
-	rad = broadcastReals(7)
-	xc = broadcastReals(8)
-	yc = broadcastReals(9)
+	xc1 = broadcastReals(6)
+	yc1 = broadcastReals(7)
+	u1 = broadcastReals(8)
+	rad1 = broadcastReals(9)
+	xc2 = broadcastReals(10)
+	yc2 = broadcastReals(11)
+	u2 = broadcastReals(12)
+	rad2 = broadcastReals(13)
+	xmin = broadcastReals(14)
+	xmax = broadcastReals(15)
+	ymin = broadcastReals(16)
+	ymax = broadcastReals(17)
 end subroutine
 
 subroutine ConvertToRelativeTolerances(aMesh, maxCircTol, vortVarTol, lagVarTol)
+!	converts relative AMR tolerances (input between 0 and 1) to absolute tolerances (output between 0 and max( panel circulation)
+!
 	type(PlaneMesh), intent(in) :: aMesh
 	real(kreal), intent(inout) :: maxCircTol, vortVarTol, lagVarTol
 	maxCircTol = maxCircTol * MaximumCirculation(aMesh)
@@ -352,5 +392,18 @@ subroutine StoreLagrangianXCoordinateInTracer(aMesh, tracerID)
 		aPanels%tracer(j, tracerID) = aPanels%x0(1,j)
 	enddo
 end subroutine
+
+subroutine InitLogger(aLog, rank)
+	type(Logger), intent(inout) :: aLog
+	integer(kint), intent(in) :: rank
+	if ( rank == 0 ) then
+		call New(aLog,DEBUG_LOGGING_LEVEL)
+	else
+		call New(aLog,WARNING_LOGGING_LEVEL)
+	endif
+end subroutine
+
+
+
 
 end program

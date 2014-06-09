@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-MACHINE='FERRARI'
-#MACHINE='TANK'
+#MACHINE='FERRARI'
+MACHINE='TANK'
 #MACHINE='VORTEX'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
@@ -87,18 +87,19 @@ SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.
 #############################################################
 
 testCase1MPI.exe: TestCase1.o $(ADVECTION_OBJS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)	
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS) ReferenceSphere.o
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 rossbyHaurwitz4waveMPI.exe: BVERH4.o $(BVE_OBJS) ReferenceSphere.o	 
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_LINK)
 sweTestCase2MPI.exe: SWETestCase2.o $(SWE_OBJS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE) $(MKL_LINK)	
 lambDipoleMPI.exe: LambDipole.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE)	
-	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
+twoDipolesMPI.exe: TwoDipoles.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################
@@ -109,7 +110,7 @@ BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) ReferenceSphe
 BVERH4.o: BVERH4.f90 $(BVE_OBJS) ReferenceSphere.o
 SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 LambDipole.o: LambDipole.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
-
+TwoDipoles.o: TwoDipoles.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
 #############################################################
 ## UNIT TEST EXECUTABLES
 #############################################################

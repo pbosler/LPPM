@@ -1,11 +1,11 @@
 &meshDefine
-	initNest = 3
+	initNest = 6
 	AMR = 0
 	amrLimit = 3
 /
 
 &timestepping
-	dt = 0.01
+	dt = 0.005
 	tfinal = 3.0
 /
 
@@ -19,7 +19,7 @@
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'lambDipole_nest3_dt0.01_'
+	jobPrefix = 'lambDipole_nest6_dt0.005_'
 /
 
 &vorticityDefine

@@ -485,10 +485,11 @@ function GetTotalKE(self)
 	type(Panels), pointer :: aPanels
 	integer(kint) :: j
 	aPanels => self%panels
-	GetTotalKE = 0.0_kreal
-	do j = 1, aPanels%N
-		GetTotalKE = GetTotalKE + 0.5_kreal * sum( aPanels%u(:,j)*aPanels%u(:,j) ) * aPanels%area(j)
-	enddo
+!	GetTotalKE = 0.0_kreal
+!	do j = 1, aPanels%N
+!		GetTotalKE = GetTotalKE + 0.5_kreal * sum( aPanels%u(:,j)*aPanels%u(:,j) ) * aPanels%area(j)
+!	enddo
+	GetTotalKE = 0.5_kreal * sum( aPanels%ke(1:aPanels%N) * aPanels%area(1:aPanels%N))
 end function
 
 function MaximumCirculation(self)

@@ -26,6 +26,7 @@ private
 public BIVARSetup
 public New, Delete
 public AssignTracer, AssignVorticity
+public ResetLagrangianParameter
 
 !
 !----------------
@@ -40,11 +41,11 @@ type BIVARSetup
 	real(kreal), pointer :: vort(:) => null()
 	real(kreal), pointer :: tracer(:,:) => null()
 	real(kreal), pointer :: realWork(:) => null()
-	
+
 	integer(kint), pointer :: activeMap(:) => null()
 	type(Particles), pointer :: particles => null()
 	type(Panels), pointer :: activePanels => null()
-	integer(kint) :: n	
+	integer(kint) :: n
 	integer(kint) :: nParticles
 	integer(kint) :: nActive
 end type
@@ -70,7 +71,7 @@ interface New
 	module procedure NewPrivate
 end interface
 
-interface Delete 
+interface Delete
 	module procedure DeletePrivate
 end interface
 
@@ -91,36 +92,36 @@ subroutine NewPrivate(self, aMesh)
 	integer(kint) :: j, k, nActive, nPassive, nTracer, n
 	type(Panels), pointer :: aPanels, passivePanels
 	integer(kint), allocatable :: passiveMap(:)
-	
+
 	if (.NOT. logInit) call InitLogger(log, procRank)
-	
+
 	aPanels => aMesh%panels
 	nActive = aPanels%N_Active
 	nPassive = aPanels%N - aPanels%N_Active
 	nTracer = aMesh%nTracer
-	
+
 	self%particles => aMesh%particles
-	
+
 	self%n = nActive + self%particles%N
 	n = self%n
 	self%nParticles = self%particles%N
 	self%nActive = nActive
-	
+
 	allocate(self%activePanels)
 	call New(self%activePanels, nActive, QUAD_PANEL, nTracer, PLANE_SOLVER)
 	self%activePanels%n = nActive
 	self%activePanels%N_Active = nActive
 	allocate(self%activeMap(nActive))
 	self%activeMap = 0
-	
+
 	allocate(passivePanels)
 	call New(passivePanels, nPassive, QUAD_PANEL, nTracer, PLANE_SOLVER)
 	passivePanels%N = nPassive
 	allocate(passiveMap(nPassive))
 	passiveMap = 0
-	
+
 	call GatherPanels(aPanels, self%activePanels, self%activeMap, passivePanels, passiveMap)
-	
+
 	allocate(self%x(n))
 	self%x = 0.0_kreal
 	allocate(self%y(n))
@@ -137,7 +138,7 @@ subroutine NewPrivate(self, aMesh)
 	endif
 	allocate(self%realWork( 8 * n ) )
 	self%realWork = 0.0_kreal
-	
+
 	!
 	! populate interpolation source data
 	!
@@ -153,7 +154,7 @@ subroutine NewPrivate(self, aMesh)
 			self%tracer(j, k) = self%particles%tracer(j,k)
 		enddo
 	enddo
-	
+
 	do j = 1, self%activePanels%N
 		self%x(self%nParticles + j) = self%activePanels%x(1,j)
 		self%y(self%nParticles + j) = self%activePanels%x(2,j)
@@ -166,7 +167,7 @@ subroutine NewPrivate(self, aMesh)
 			self%tracer(self%nParticles+j, k) = self%activePanels%tracer(j,k)
 		enddo
 	enddo
-	
+
 	call Delete(passivePanels)
 	deallocate(passivePanels)
 	deallocate(passiveMap)
@@ -175,21 +176,21 @@ end subroutine
 
 subroutine DeletePrivate(self)
 	type(BIVARSetup), intent(inout) :: self
-	
+
 	call Delete(self%activePanels)
 	deallocate(self%activeMap)
 	deallocate(self%activePanels)
-	
+
 	self%nParticles = 0
 	nullify(self%particles)
-	
+
 	deallocate(self%x)
-	deallocate(self%y) 
+	deallocate(self%y)
 	deallocate(self%x0)
 	deallocate(self%y0)
 	deallocate(self%vort)
 	if ( associated(self%tracer)) deallocate(self%tracer)
-end subroutine	
+end subroutine
 
 !
 !----------------
@@ -204,8 +205,8 @@ subroutine AssignTracer(tracerOut, alphaIn, self, tracerID)
 	!
 	integer(kint) :: nOut, md
 	integer(kint), allocatable :: integerWork(:)
-	
-	
+
+
 	nOut = size(alphaIn,2)
 	if ( nOut /= size(tracerOut) ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL,trim(logkey)//' AssignTracer ERROR : ', ' size mismatch.')
@@ -226,7 +227,7 @@ subroutine AssignVorticity(vorticityOut, alphaIn, self)
 	!
 	integer(kint) :: nOut, md
 	integer(kint), allocatable :: integerWork(:)
-	
+
 	nOut = size(alphaIn,2)
 	if ( nOut /= size(vorticityOut) ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL,trim(logkey)//' AssignVorticity ERROR : ', ' size mismatch.')
