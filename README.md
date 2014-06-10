@@ -31,7 +31,13 @@ Example:
 To define a Rossby-Haurwitz wave vorticity distribution for a sphere mesh, a user would first allocate the VorticitySetup object by calling its New subroutine.
 Then the wave would be initialized with user-defined parameters (most commonly read from a namelist file) by calling the VorticitySetup module's InitRHWave routine.
 Finally, the wave is defined and users can define the vorticity on a sphere mesh by calling the SetRHWaveOnMesh subroutine.  
-
+	call New(rhWave, nIntegers, nReals)
+	call InitRH4Wave(rhWave, backgoundWindSpeed, amplitude)
+	call SetRH4WaveOnMesh( sphere, rhWave)
+	
+	--- run the problem --
+	
+	call Delete(rhWave)
 
 Requirements
 =========
