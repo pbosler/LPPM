@@ -34,9 +34,7 @@ Finally, the wave is defined and users can define the vorticity on a sphere mesh
 	call New(rhWave, nIntegers, nReals)
 	call InitRH4Wave(rhWave, backgoundWindSpeed, amplitude)
 	call SetRH4WaveOnMesh( sphere, rhWave)
-	
 	--- run the problem --
-	
 	call Delete(rhWave)
 
 Requirements
