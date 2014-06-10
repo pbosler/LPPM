@@ -26,6 +26,8 @@ The PlaneDirectSum.f90 module defines the Runge-Kutta time stepping data type fo
 Each object must be created in memory using its New method, many objects must then be initialized using a call to an Init or Initialize subroutine.  
 For clean code, every time a New subroutine is called on an object, a corresponding call to that object's Delete subroutine should be used when the object is no longer needed or goes out of scope.
 
+Example: 
+---------
 To define a Rossby-Haurwitz wave vorticity distribution for a sphere mesh, a user would first allocate the VorticitySetup object by calling its New subroutine.
 Then the wave would be initialized with user-defined parameters (most commonly read from a namelist file) by calling the VorticitySetup module's InitRHWave routine.
 Finally, the wave is defined and users can define the vorticity on a sphere mesh by calling the SetRHWaveOnMesh subroutine.  
