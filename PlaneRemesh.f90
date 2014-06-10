@@ -70,6 +70,14 @@ interface Delete
 	module procedure DeletePrivate
 end interface
 
+interface InitialRefinement
+	module procedure InitialRefinementPrivate
+end interface
+
+interface LagrangianRemeshToInitialTime
+	module procedure LagrangianRemeshToInitialTimePrivate
+end interface
+
 interface
 	subroutine SetVorticityOnMesh( genMesh, genVort)
 		use PlaneMeshModule
@@ -224,7 +232,7 @@ end subroutine
 ! Public functions
 !----------------
 !
-subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefinition, updateVorticityOnMesh, vorticityDefinition)
+subroutine InitialRefinementPrivate( aMesh, remeshData, updateTracerOnMesh, tracerDefinition, updateVorticityOnMesh, vorticityDefinition)
 	type(PlaneMesh), intent(inout) :: aMesh
 	type(RemeshSetup), intent(in) :: remeshData
 	procedure(SetTracerOnMesh) :: updateTracerOnMesh
@@ -385,7 +393,7 @@ subroutine InitialRefinement( aMesh, remeshData, updateTracerOnMesh, tracerDefin
 	deallocate(refineFlag)
 end subroutine
 
-subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityDef, setTracer, tracerDef)
+subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vorticityDef, setTracer, tracerDef)
 	type(PlaneMesh), intent(inout) :: aMesh
 	type(RemeshSetup), intent(in) :: remesh
 	procedure(SetVorticityOnMesh) :: setVorticity
@@ -623,7 +631,7 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 	call Delete(newMesh)
 end subroutine
 
-subroutine LagrangianRemeshToReferenceTime(aMesh, reference, remesh)
+subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	type(PlaneMesh), intent(inout) :: aMesh
 	type(BIVARSetup), intent(in) :: reference
 	type(RemeshSetup), intent(in) :: remesh

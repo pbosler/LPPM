@@ -21,12 +21,13 @@ use LoggerModule
 use ParticlesModule
 use PanelsModule
 use SphereMeshModule
-use RefineRemeshModule
+!use RefineRemeshModule
 use TracerSetupModule
 use VTKOutputModule
 use BVESetupModule
 use BVEDirectSumModule
-use ReferenceSphereModule
+!use ReferenceSphereModule
+use SphereRemeshModule
 use LatLonOutputModule
 
 implicit none
@@ -58,20 +59,13 @@ real(kreal), allocatable :: exactVortParticles(:), exactVortPanels(:)
 !
 type(tracerSetup) :: nullScalar
 !
-!	refinement variables
+!	refinement / remeshing variables
 !
-type(RefinementSetup) :: vortRefine
-real(kreal) :: circMaxTol, vortVarTol
-type(RefinementSetup) :: flowMapRefine
-type(RefinementSetup) :: nullRefine
-real(kreal) :: lagVarTol
-integer(kint) :: refinementLimit
-!
-!	remeshing variables
-!
-integer(kint) :: remeshInterval, remeshCounter, resetAlpha
-type(ReferenceSphere) :: refSphere
-logical(klog) :: refSphereReady
+type(RemeshSetup) :: remesh
+type(ReferenceSphere) :: reference
+real(kreal) :: maxCircTol, vortVarTol, lagVarTol
+integer(kint) :: amrLimit, remeshInterval, remeshCounter, resetAlpha
+
 !
 !	Output variables
 !
@@ -88,7 +82,7 @@ integer(kint) :: nLon, outputContours
 !
 character(len = 128) :: namelistInputFile = 'RH4Wave.namelist'
 integer(kint) :: readStat
-namelist /sphereDefine/ panelKind, initNest, AMR, refineMentLimit, circMaxTol, vortVarTol, lagVarTol
+namelist /sphereDefine/ panelKind, initNest, AMR, amrLimit, maxCircTol, vortVarTol, lagVarTol
 namelist /vorticityDefine/ 	alpha, amp
 namelist /timeStepping/ tfinal, dt,  remeshInterval, resetAlpha
 namelist /fileIO/ outputDir, jobPrefix, frameOut, nLon, outputContours
@@ -123,7 +117,6 @@ wallClock = MPI_WTIME()
 !	read user input from namelist file, set starting state
 !
 call ReadNamelistFile(procRank)
-refSphereReady = .FALSE.
 nTracer = 3
 problemKind = BVE_SOLVER
 
@@ -147,30 +140,28 @@ call SetFlowMapLatitudeTracerOnMesh(sphere,1)
 call SetFlowMapLatitudeTracerOnMesh(sphere,2)
 call SetRH4WaveOnMesh(sphere,rhWave)
 call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,trim(logKey),' base sphere (t = 0) done.')
+
+!
+! 	initialize remeshing
+!
+call ConvertToRelativeTolerances(sphere, maxCircTol, vortVarTol, lagVarTol)
+call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'maxCircTol = ', maxCircTol)
+call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'vortVarTol = ', vortVarTol)
+call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'lagVarTol  = ', lagVarTol)
+
+call New(remesh, maxCircTol, vortVarTol, lagVarTol, amrLimit)
+
+
+
 if ( AMR > 0 ) then
-	call New(vortRefine,refinementLimit,circMaxTol,vortVarTol,RELVORT_REFINE)
-	call SetRelativeVorticityTols(sphere,vortRefine)
-
-	call New(flowMapREfine,refinementLimit,100000.0_kreal,lagVarTol,FLOWMAP_REFINE)
-	call SetRelativeFlowMapTol(sphere,flowMapRefine)
-
-	call New(nullRefine)
-
-	!
-	!	initial refinement
-	!
-	call InitialRefinement(sphere, nullRefine, nullTracer, nullScalar, &
-					vortRefine, SetRH4WaveOnMesh, rhWave)
+	call InitialRefinement(sphere, remesh, nullTracer, nullScalar, SetRH4WaveOnMesh, rhWave)
 	call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' initial refinement done.')
 
 	if ( panelKind == QUAD_PANEL) then
-		write(amrString,'(A,I1,A,I0.2,A)') 'quadAMR_',initNest,'to',initNest+refinementLimit,'_'
+		write(amrString,'(A,I1,A,I0.2,A)') 'quadAMR_',initNest,'to',initNest+amrLimit,'_'
 	endif
 else
 	! uniform mesh
-	! nullify AMR variables
-	call New(vortRefine)
-	call New(flowMapRefine)
 	if ( panelKind == QUAD_PANEL ) then
 		write(amrString,'(A,I1,A)') 'quadUnif',initNest,'_'
 	endif
@@ -220,8 +211,8 @@ totalEns(0) = TotalEnstrophy(sphere)
 
 sphereParticles => sphere%particles
 spherePanels => sphere%panels
-allocate(exactVortParticles(sphereparticles%N))
-allocate(exactVortPanels(spherepanels%N))
+allocate(exactVortParticles(sphereparticles%N_Max))
+allocate(exactVortPanels(spherepanels%N_Max))
 exactVortParticles = 0.0_kreal
 exactVortPanels = 0.0_kreal
 beta = 2.0_kreal*(OMEGA - alpha)*4.0_kreal/30.0_kreal - alpha*4.0_kreal
@@ -244,67 +235,56 @@ do timeJ = 0, timesteps - 1
 	!	remesh if necessary
 	!
 	if ( mod(timeJ+1,remeshInterval) == 0 ) then
+		!
+		! remesh before time step
+		!
 		remeshCounter = remeshCounter + 1
 		!
-		!	delete objects associated with old mesh
+		! choose appropriate remeshing procedure
 		!
-		nullify(sphereParticles)
-		nullify(spherePanels)
-		call Delete(bveRK4)
-		call Delete(vtkOut)
-		!
-		! build new mesh
-		!
-		if (remeshCounter < resetAlpha ) then
-			call LagrangianRemesh(sphere, SetRH4WaveOnMesh, rhWave, vortRefine, &
-										  nullTracer, nullScalar, nullRefine, &
-										  flowMapRefine)
-
+		if ( remeshCounter < resetAlpha ) then
+			!
+			! remesh to t = 0
+			!
+			call LagrangianRemeshToInitialTime(sphere, remesh, SetRH4WaveOnMesh, rhWave, nulltracer, nullscalar)
 			call SetFlowMapLatitudeTracerOnMesh(sphere,1)
 			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
-		elseif ( mod(remeshCounter,resetAlpha) == 0 ) then
-
-			call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' developing new mapping time.')
-
-			if ( refSphereReady ) then
-				call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' deleting reference sphere.')
-				call Delete(refSphere)
-				refSphereReady = .FALSE.
-			endif
-
-			call New(refSphere,sphere)
-			refSphereReady = .TRUE.
-			call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' reference sphere returned.')
-
-			flowMapRefine%type = NULL_REFINE
-			call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' flowMap refinement nullified.')
-
-			call ResetLagrangianParameter(sphere)
-			call LagrangianRemesh(sphere,refSphere,vortRefine,nullRefine,flowMapRefine)
-
-
-  		    call ResetLagrangianParameter(sphere)
-  		    flowMapRefine%type = FLOWMAP_REFINE
-
+		elseif ( remeshCounter == resetAlpha ) then
+			!
+			! remesh to t = 0, create reference to current time
+			!
+			call LagrangianRemeshToInitialTime(sphere, remesh, SetRH4WaveOnMesh, rhWave, nulltracer, nullscalar)
+			call SetFlowMapLatitudeTracerOnMesh(sphere,1)
 			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
-
-		    call LogMessage(exeLog,TRACE_LOGGING_LEVEL,logkey,'RESET LAGRANGIAN PARAMETER')
-
+			call New(reference, sphere)
+			call ResetLagrangianParameter(sphere)
+		elseif ( remeshCounter > resetAlpha .AND. mod(remeshCounter, resetAlpha) == 0 ) then
+			!
+			! remesh to previous reference time, create new reference to current time
+			!
+			call LagrangianRemeshToReference(sphere, reference, remesh)
+			call Delete(reference)
+			call New(reference, sphere)
+			call SetFlowMapLatitudeTracerOnMesh(sphere,2)
+			call ResetLagrangianParameter(sphere)
 		else
-		    call LagrangianRemesh(sphere,refSphere,vortRefine,nullRefine,flowMapRefine)
-
-		    call SetFlowMapLatitudeTracerOnMesh(sphere,2)
+			!
+			! remesh to reference
+			!
+			call LagrangianRemeshToReference(sphere, reference, remesh)
 		endif
+		
 		!
-		!	create new associated objects
+		! delete objects associated with old mesh
 		!
-		call New(bveRK4,sphere,numProcs)
-		call New(vtkOut,sphere,vtkFile,'gaussVort')
-
-		sphereParticles => sphere%particles
-		spherePanels => sphere%panels
-		write(logString,'(A,I4)') 'remesh ', remeshCounter
-		if ( procRank == 0 ) call LogStats(sphere,exelog,trim(logString))
+		call Delete(bveRK4)
+		if ( procRank == 0 ) call Delete(vtkOut)
+		
+		!
+		! create new associated objects for new mesh
+		!
+		call New(bveRK4, sphere, numProcs)
+		if ( procRank == 0 ) call New(vtkOut,sphere,vtkFile,'RH4Wave')
 	endif
 	!
 	!	advance timestep
@@ -386,13 +366,13 @@ if ( procRank == 0 ) then
 	call Write(writer,'dt (seconds) = ', dt)
 	call Write(writer,'remeshInterval = ',remeshInterval)
 	call Write(writer,'reset LagParam = ',resetAlpha)
-		if (AMR > 0 ) then
+	if (AMR > 0 ) then
 		call Write(writer,'AMR initNest = ', initNest)
-		call Write(writer,'AMR maxNest = ', maxval(sphere%panels%nest))
-		call Write(writer,'AMR refinementLimit = ', refinementLimit)
-		call Write(writer,'AMR circMaxTol = ', vortRefine%maxTol)
-		call Write(writer,'AMR relVortVarTol = ', vortRefine%varTol)
-		call Write(writer,'AMR flowMap varTol = ', flowMapRefine%varTol)
+		call Write(writer,'AMR maxNest = ', maxval(sphere%panels%nest)) 
+		call Write(writer,'AMR amrLimit = ', amrLimit )
+		call Write(writer,'AMR maxCircTol = ', maxCircTol )
+		call Write(writer,'AMR relVortVarTol = ', vortVarTol )
+		call Write(writer,'AMR flowMap varTol = ', lagVarTol )
 	else
 		call Write(writer,'uniformMesh, initNest = ', initNest)
 	endif
@@ -415,12 +395,13 @@ deallocate(totalEns)
 deallocate(vortErrorLinf)
 deallocate(vortErrorL2)
 call Delete(sphere)
-call Delete(vortRefine)
-call Delete(flowMapRefine)
+call Delete(remesh)
 call Delete(rhWave)
 call Delete(nullScalar)
 call Delete(exeLog)
+
 call MPI_FINALIZE(mpiErrCode)
+
 contains
 
 subroutine ReadNamelistfile(rank)
@@ -441,14 +422,14 @@ subroutine ReadNamelistfile(rank)
 			broadcastIntegers(1) = panelKind
 			broadcastIntegers(2) = AMR
 			broadcastIntegers(3) = initNest
-			broadcastIntegers(4) = refinementLimit
+			broadcastIntegers(4) = amrLimit
 			broadcastIntegers(5) = remeshInterval
             broadcastIntegers(6) = resetAlpha
 
 			broadcastReals(1) = alpha
 			broadcastReals(2) = amp
 			broadcastReals(3) = tfinal
-			broadcastReals(4) = circMaxTol
+			broadcastReals(4) = maxCircTol
 			broadcastReals(5) = vortVarTol
 			broadcastReals(6) = dt
 			broadcastReals(7) = lagVarTol
@@ -457,7 +438,7 @@ subroutine ReadNamelistfile(rank)
 	panelKind = broadcastIntegers(1)
 	AMR = broadcastIntegers(2)
 	initNest = broadcastIntegers(3)
-	refinementLimit = broadcastIntegers(4)
+	amrLimit = broadcastIntegers(4)
 	remeshInterval = broadcastIntegers(5)
 	resetAlpha = broadcastIntegers(6)
 
@@ -465,10 +446,19 @@ subroutine ReadNamelistfile(rank)
 	alpha = broadcastReals(1)
 	amp = broadcastReals(2)
 	tfinal = broadcastReals(3)*ONE_DAY ! convert tfinal to seconds
-	circMaxTol = broadcastReals(4)
+	maxCircTol = broadcastReals(4)
 	vortVarTol = broadcastReals(5)
 	dt = broadcastReals(6) * ONE_DAY ! convert dt to seconds
 	lagVarTol = broadcastReals(7)
+end subroutine
+
+
+subroutine ConvertToRelativeTolerances(aMesh, maxCircTol, vortVarTol, lagVarTol)
+	type(SphereMesh), intent(in) :: aMesh
+	real(kreal), intent(inout) :: maxCircTol, vortVarTol, lagVarTol
+	maxCircTol = maxCircTol * MaximumCirculation(aMesh)
+	vortVarTol = vortVarTol * MaximumVorticityVariation(aMesh)
+	lagVarTol = lagVarTol * AverageLagrangianParameterVariation(aMesh)
 end subroutine
 
 subroutine InitLogger(alog,rank)

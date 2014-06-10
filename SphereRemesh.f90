@@ -34,8 +34,7 @@ public RemeshSetup, ReferenceSphere
 public New, Delete
 public LagrangianRemeshToInitialTime, LagrangianRemeshToReference
 public InitialRefinement
-public GetRelativeCircTol, GetRelativeVorticityVarTol, GetRelativeFlowMapVarTol
-public GetRelativeTracerMassTol, GetRelativeTracerVarTol
+public ResetLagrangianParameter
 
 !
 !----------------
@@ -80,6 +79,14 @@ end interface
 interface Delete
 	module procedure DeletePrivate
 	module procedure DeleteReference
+end interface
+
+interface InitialRefinement
+	module procedure InitialRefinementPrivate
+end interface
+
+interface LagrangianRemeshToInitialTime
+	module procedure LagrangianRemeshToInitialTimePrivate
 end interface
 
 interface
@@ -327,7 +334,6 @@ subroutine NewReference(self, aMesh)
 	type(ReferenceSphere), intent(out) :: self
 	type(SphereMesh), intent(in) :: aMesh
 	!
-	integer(kint) :: i, j, k, errCode
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
 	
@@ -358,8 +364,8 @@ subroutine DeleteReference(self)
 		deallocate(self%tracerSource)
 	endif
 	if ( associated(self%absVortSource) ) then
-		call Delete(absVortSource)
-		deallocate(absVortSource)
+		call Delete(self%absVortSource)
+		deallocate(self%absVortSource)
 	endif
 	call Delete(self%delTri)	
 end subroutine
@@ -371,7 +377,7 @@ end subroutine
 !----------------
 !
 
-subroutine InitialRefinement(aMesh, remesh, updateTracerOnMesh, tracerDef, updateVorticityOnMesh, vorticityDef)
+subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef, updateVorticityOnMesh, vorticityDef)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(RemeshSetup), intent(in) :: remesh
 	procedure(SetTracerOnMesh) :: updateTracerOnMesh
@@ -380,7 +386,7 @@ subroutine InitialRefinement(aMesh, remesh, updateTracerOnMesh, tracerDef, updat
 	type(BVESetup), intent(in) :: vorticityDef
 	!
 	integer(kint) :: refinecount, spaceLeft, counters(5), j
-	integer(kint) :: startIndex, nOldPanels, amrLoopCounter, limit
+	integer(kint) :: startIndex, nOldPanels, amrLoopCounter
 	logical(klog) :: keepGoing
 	logical(klog), allocatable :: refineFlag(:)
 	type(Panels), pointer :: aPanels
@@ -397,6 +403,7 @@ subroutine InitialRefinement(aMesh, remesh, updateTracerOnMesh, tracerDef, updat
 	refineFlag = .FALSE.
 	keepGoing = .FALSE.
 	counters = 0
+	startIndex = 1
 	!
 	! apply refinement criteria
 	!
@@ -422,7 +429,7 @@ subroutine InitialRefinement(aMesh, remesh, updateTracerOnMesh, tracerDef, updat
 			do while (keepGoing)
 				amrLoopCounter = amrLoopCounter + 1
 				write(logstring,'(A,I2,A,I8,A)') 'AMR loop ', amrLoopCounter, ' : refining ', refineCount, ' panels.'
-				call LogMessage(log, TRACE_LOGGGING_LEVEL, 'InitRefine : ', trim(logstring))
+				call LogMessage(log, TRACE_LOGGING_LEVEL, 'InitRefine : ', trim(logstring))
 				!
 				! divide flagged panels
 				!
@@ -531,7 +538,7 @@ subroutine InitialRefinement(aMesh, remesh, updateTracerOnMesh, tracerDef, updat
 	call EndSection(log)
 end subroutine
 
-subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityDef, setTracer, tracerDef)
+subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vorticityDef, setTracer, tracerDef)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(RemeshSetup), intent(in) :: remesh
 	procedure(SetVorticityOnMesh) :: setVorticity
@@ -597,12 +604,12 @@ subroutine LagrangianRemeshToInitialTime(aMesh, remesh, setVorticity, vorticityD
 	! AMR
 	!
 	if ( aMesh%AMR > 0 .AND. remesh%useAMR ) then
-		call StartSection(log, 'LagRemeshInit, AMR : ')_
+		call StartSection(log, 'LagRemeshInit, AMR : ')
 		allocate(refineFlag(newPanels%N_Max))
 		refineFlag = .FALSE.
 		startIndex = 1
 		amrLoopCounter = 0
-		if ( remesh%vorticityDefine ) then
+		if ( remesh%vorticityRefine ) then
 			call FlagPanelsForMaxCirculationRefinement(refineFlag, newMesh, remesh, startIndex, counters(1))
 			call FlagPanelsForVorticityVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(2))
 		endif
@@ -771,7 +778,7 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 	nullify(newPanels)
 	amrLoopCounter = 0
 	counters = 0
-	startIndex = 0
+	startIndex = 1
 	keepGoing = .FALSE.
 	
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' entering LagrangianRemeshToReferenceTime')
@@ -925,7 +932,7 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 						do j = nOldPanels + 1, newPanels%N
 							newPanels%absVort(j) = InterpolateScalar(newPanels%x0(:,j), &
 								reference%absVortSource, reference%delTri)
-							newPanels%absVort(j) = newPanels%absVort(j) - &
+							newPanels%relVort(j) = newPanels%absVort(j) - &
 								2.0_kreal * OMEGA * newPanels%x(3,j) / EARTH_RADIUS
 						enddo
 					endif
@@ -1025,7 +1032,9 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 	call Delete(newMesh)	
 end subroutine
 
-
+!subroutine ResetLagrangianParameter(ref)
+!	type(ReferenceSphere), intent(inout) :: ref
+!end subroutine
 
 !
 !----------------
@@ -1047,7 +1056,7 @@ subroutine FlagPanelsForMaxCirculationRefinement(refineFlag, aMesh, remesh, star
 	
 	do j = startIndex, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			if ( abs(aPanels%relVort(j)) * aPanels%area(j) > remes%maxCircTol ) then
+			if ( abs(aPanels%relVort(j)) * aPanels%area(j) > remesh%maxCircTol ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif
@@ -1139,7 +1148,7 @@ subroutine FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remesh, startInd
 	
 	do j = startIndex, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			if ( aPanels%tracer(j,remesh%tracerID) * aPanels%area(j) > remes%tracerMassTol ) then
+			if ( aPanels%tracer(j,remesh%tracerID) * aPanels%area(j) > remesh%tracerMassTol ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif

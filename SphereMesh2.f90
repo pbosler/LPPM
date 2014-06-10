@@ -49,6 +49,7 @@ public LocatePoint
 public DividePanel
 public GetRossbyNumber
 public ResetLagrangianParameter
+public MaximumCirculation, MaximumVorticityVariation, AverageLagrangianParameterVariation
 !
 !----------------
 ! Types and module constants
@@ -101,6 +102,10 @@ end interface
 
 interface GetNTracer
 	module procedure GetNTracerMesh
+end interface
+
+interface ResetLagrangianParameter
+	module procedure ResetLagrangianParameterPrivate
 end interface
 
 contains
@@ -451,7 +456,7 @@ function CountSubtriangles(self)
 	enddo
 end function
 
-subroutine ResetLagrangianParameter(self)
+subroutine ResetLagrangianParameterPrivate(self)
   type(SphereMesh), intent(in) :: self
   integer(kint) :: j
   type(Particles), pointer :: aParticles
@@ -469,6 +474,38 @@ subroutine ResetLagrangianParameter(self)
 
 end subroutine
 
+function MaximumCirculation(self)
+	real(kreal) :: MaximumCirculation
+	type(SphereMesh), intent(in) :: self
+	!
+	type(Panels), pointer :: aPanels
+	aPanels => self%panels
+	MaximumCirculation = maxval( abs(aPanels%relvort(1:aPanels%N)) * aPanels%area(1:aPanels%N) )
+end function
+
+
+function MaximumVorticityVariation(self)
+	real(kreal) :: MaximumVorticityVariation
+	type(SphereMesh), intent(in) :: self
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	real(kreal) :: maxVort, minVort
+
+	aParticles => self%particles
+	aPanels => self%panels
+
+	maxVort = max( maxval(aParticles%relVort(1:aParticles%N)), maxval(aPanels%relVort(1:aPanels%N)) )
+	minVort = min( minval(aParticles%relVort(1:aParticles%N)), minval(aPanels%relVort(1:aPanels%N)) )
+
+	MaximumVorticityVariation = maxVort - minVort
+end function
+
+function AverageLagrangianParameterVariation(self)
+	real(kreal) :: AverageLagrangianParameterVariation
+	type(SphereMesh), intent(in) :: self
+ 	AverageLagrangianParameterVariation = sqrt( 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS / self%panels%N_Active )
+end function
 
 !
 !----------------

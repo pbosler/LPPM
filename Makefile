@@ -1,9 +1,9 @@
 SHELL = /bin/bash
 
-#MACHINE='FERRARI'
+MACHINE='FERRARI'
 #MACHINE='TANK'
 #MACHINE='VORTEX'
-MACHINE='LING'
+#MACHINE='LING'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -77,16 +77,16 @@ OUTPUT_OBJS = VTKOutput.o LatLonOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS
 
 TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o 
 
-ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
+ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o SphereRemesh.o
 
-BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o RefineRemesh2.o
+BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o SphereRemesh.o
 
 PLANE_MESH = $(BASE_OBJS) Particles.o Edges.o Panels.o PlaneMesh.o
 PLANE_REMESH = $(BASE_OBJS) $(PLANE_MESH) bivar.o BIVARInterface.o PlaneRemesh.o
 PLANE_OUTPUT = $(BASE_OBJS) $(PLANE_MESH) PlaneOutput.o
 PLANE_RUNS = $(BASE_OBJS) $(PLANE_MESH) $(PLANE_REMESH) $(PLANE_OUTPUT) PlaneDirectSum.o PlaneTracer.o PlaneVorticity.o
 
-SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o RefineRemesh2.o $(TEST_CASE_OBJS)
+SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o SphereRemesh.o $(TEST_CASE_OBJS)
 
 
 #############################################################
@@ -97,9 +97,9 @@ testCase1MPI.exe: TestCase1.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)	
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
-singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS) ReferenceSphere.o
+singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
-rossbyHaurwitz4waveMPI.exe: BVERH4.o $(BVE_OBJS) ReferenceSphere.o	 
+rossbyHaurwitz4waveMPI.exe: BVERH4.o $(BVE_OBJS) 
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_LINK)
 sweTestCase2MPI.exe: SWETestCase2.o $(SWE_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE) $(MKL_LINK)	
@@ -113,8 +113,8 @@ twoDipolesMPI.exe: TwoDipoles.o $(PLANE_RUNS)
 
 TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)
-BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) ReferenceSphere.o
-BVERH4.o: BVERH4.f90 $(BVE_OBJS) ReferenceSphere.o
+BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) 
+BVERH4.o: BVERH4.f90 $(BVE_OBJS) 
 SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 LambDipole.o: LambDipole.f90 $(PLANE_RUNS)
 TwoDipoles.o: TwoDipoles.f90 $(PLANE_RUNS)
@@ -161,7 +161,7 @@ BIVARInterface.o: BIVARInterface.f90 $(BASE_OBJS) $(PLANE_MESH)
 STRIPACKInterface2.o: STRIPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) stripack.o 
 SSRFPACKInterface2.o: SSRFPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) STRIPACKInterface2.o ssrfpack.o
 VTKOutput.o: VTKOutput.f90 $(BASE_OBJS) $(MESH_OBJS)
-RefineRemesh2.o: RefineRemesh2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) Tracers.o BVEVorticity.o
+#RefineRemesh2.o: RefineRemesh2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) Tracers.o BVEVorticity.o
 Tracers.o: Tracers.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
 PlaneVorticity.o: PlaneVorticity.f90 $(BASE_OBJS) $(PLANE_MESH)
@@ -170,10 +170,11 @@ Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
 PlaneDirectSum.o: PlaneDirectSum.f90 $(BASE_OBJS) $(PLANE_MESH)
 PlaneRemesh.o: PlaneRemesh.f90 $(BASE_OBJS) $(PLANE_MESH) PlaneTracer.o PlaneVorticity.o bivar.o BIVARInterface.o
-ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
+#ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
 LatLonOutput.o: LatLonOutput.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 SWEDirectSum.o: SWEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 SWEVorticityAndDivergence.o: SWEVorticityAndDivergence.f90 $(BASE_OBJS) $(MESH_OBJS)
+SphereRemesh.o: SphereRemesh.f90 $(BASE_OBJS) $(MESH_OBJS) Tracers.o BVEVorticity.o $(INTERP_OBJS)
 
 #############################################################
 ## VTK EXECUTABLES

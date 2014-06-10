@@ -1,11 +1,11 @@
 & sphereDefine
 	panelKind = 4
-	initNest = 5
-	AMR = 0	
-	refinementLimit = 4
-	circMaxTol = 1.2
-	vortVarTol = 1.2
-	lagVarTol = 1.2
+	initNest = 4
+	AMR = 3	
+	amrLimit = 4
+	maxCircTol = 0.6
+	vortVarTol = 0.8
+	lagVarTol = 4.0
 /
 
 & vorticityDefine
@@ -14,16 +14,16 @@
 /
 
 & timeStepping
-	tfinal = 14.0		! days (test case 6 tfinal = 14)
+	tfinal = 1.0		! days (test case 6 tfinal = 14)
 	dt = 0.01			! days 
-	remeshInterval = 20	! timesteps
-	resetAlpha = 4		! remeshings
+	remeshInterval = 5	! timesteps
+	resetAlpha = 2		! remeshings
 /
 
 & fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'rhWave_remesh20_particleData_'
-	frameOut = 4
+	jobPrefix = 'rhWave_reinitTest_'
+	frameOut = 1
 	nLon = 360
 	outputContours = 0
 /
