@@ -1,8 +1,9 @@
 SHELL = /bin/bash
 
 #MACHINE='FERRARI'
-MACHINE='TANK'
+#MACHINE='TANK'
 #MACHINE='VORTEX'
+MACHINE='LING'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -41,6 +42,9 @@ else ifeq ($(MACHINE),'TANK')
   MKL_LINK=-L$(MKLROOT)/lib $(MKLROOT)/lib/libmkl_lapack95_lp64.a \
   -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -openmp -lpthread -lm
   MKL_COMPILE=-openmp -I/opt/intel/mkl/include/intel64/lp64 -I/opt/intel/mkl/include 
+else ifeq ($(MACHINE),'LING')  
+  FF=gfortran
+  FF_FLAGS=-O2 -fopenmp -ffree-line-length-none
 endif
 #-----------------------------------------------------------------------------#
 
@@ -63,21 +67,24 @@ cleanx:
 BASE_OBJS = NumberKinds3.o OutputWriter2.o Logger2.o SphereGeom3.o IntegerList2.o PlaneGeometry.o
 base_objs: NumberKinds3.o OutputWriter2.o Logger2.o SphereGeom3.o IntegerList2.o PlaneGeometry.o
 
-MESH_OBJS = $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o PlaneMesh.o
-mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o PlaneMesh.o
+MESH_OBJS = $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o 
+mesh_objs: $(BASE_OBJS) Particles.o Edges.o Panels.o SphereMesh2.o 
 
 INTERP_OBJS = $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 interp_objs: $(BASE_OBJS) $(MESH_OBJS) ssrfpack.o stripack.o STRIPACKInterface2.o SSRFPACKInterface2.o
 
-OUTPUT_OBJS = VTKOutput.o LatLonOutput.o PlaneOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
+OUTPUT_OBJS = VTKOutput.o LatLonOutput.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 
-TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o PlaneVorticity.o PlaneTracer.o
+TEST_CASE_OBJS = Tracers.o BVEVorticity.o SWEVorticityAndDivergence.o 
 
 ADVECTION_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) Advection2.o RefineRemesh2.o
 
 BVE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) BVEDirectSum.o RefineRemesh2.o
 
-PLANE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o 
+PLANE_MESH = $(BASE_OBJS) Particles.o Edges.o Panels.o PlaneMesh.o
+PLANE_REMESH = $(BASE_OBJS) $(PLANE_MESH) bivar.o BIVARInterface.o PlaneRemesh.o
+PLANE_OUTPUT = $(BASE_OBJS) $(PLANE_MESH) PlaneOutput.o
+PLANE_RUNS = $(BASE_OBJS) $(PLANE_MESH) $(PLANE_REMESH) $(PLANE_OUTPUT) PlaneDirectSum.o PlaneTracer.o PlaneVorticity.o
 
 SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.o RefineRemesh2.o $(TEST_CASE_OBJS)
 
@@ -96,9 +103,9 @@ rossbyHaurwitz4waveMPI.exe: BVERH4.o $(BVE_OBJS) ReferenceSphere.o
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_LINK)
 sweTestCase2MPI.exe: SWETestCase2.o $(SWE_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` $(MKL_COMPILE) $(MKL_LINK)	
-lambDipoleMPI.exe: LambDipole.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
+lambDipoleMPI.exe: LambDipole.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
-twoDipolesMPI.exe: TwoDipoles.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o	
+twoDipolesMPI.exe: TwoDipoles.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 #############################################################
 ## LPPM MODEL OBJECT FILES
@@ -109,8 +116,8 @@ BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)
 BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) ReferenceSphere.o
 BVERH4.o: BVERH4.f90 $(BVE_OBJS) ReferenceSphere.o
 SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
-LambDipole.o: LambDipole.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
-TwoDipoles.o: TwoDipoles.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
+LambDipole.o: LambDipole.f90 $(PLANE_RUNS)
+TwoDipoles.o: TwoDipoles.f90 $(PLANE_RUNS)
 #############################################################
 ## UNIT TEST EXECUTABLES
 #############################################################
@@ -127,7 +134,7 @@ sweDivergenceTerms.exe: SWEDivergenceEqnTerms.o $(BASE_OBJS) $(MESH_OBJS) $(OUTP
 #############################################################
 
 CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
-planeTester.o: planeTester.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
+planeTester.o: planeTester.f90 $(PLANE_RUNS)
 SWEDivergenceEqnTerms.o: SWEDivergenceEqnTerms.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
 	$(FF) $(FF_FLAGS) -c $< $(MKL_COMPILE) `mpif90 -showme:compile`
 
@@ -150,19 +157,19 @@ PlaneOutput.o: PlaneOutput.f90 PlaneMesh.o Particles.o Edges.o Panels.o $(BASE_O
 ssrfpack.o: ssrfpack.f
 stripack.o: stripack.f
 bivar.o: bivar.f90 NumberKinds3.o
-BIVARInterface.o: BIVARInterface.f90 $(BASE_OBJS) $(MESH_OBJS)
+BIVARInterface.o: BIVARInterface.f90 $(BASE_OBJS) $(PLANE_MESH)
 STRIPACKInterface2.o: STRIPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) stripack.o 
 SSRFPACKInterface2.o: SSRFPACKInterface2.f90 $(BASE_OBJS) $(MESH_OBJS) STRIPACKInterface2.o ssrfpack.o
 VTKOutput.o: VTKOutput.f90 $(BASE_OBJS) $(MESH_OBJS)
 RefineRemesh2.o: RefineRemesh2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) Tracers.o BVEVorticity.o
 Tracers.o: Tracers.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEVorticity.o: BVEVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
-PlaneVorticity.o: PlaneVorticity.f90 $(BASE_OBJS) $(MESH_OBJS)
-PlaneTracer.o: PlaneTracer.f90 $(BASE_OBJS) $(MESH_OBJS)
+PlaneVorticity.o: PlaneVorticity.f90 $(BASE_OBJS) $(PLANE_MESH)
+PlaneTracer.o: PlaneTracer.f90 $(BASE_OBJS) $(PLANE_MESH)
 Advection2.o: Advection2.f90 $(BASE_OBJS) $(MESH_OBJS)
 BVEDirectSum.o: BVEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
-PlaneDirectSum.o: PlaneDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS)
-PlaneRemesh.o: PlaneRemesh.f90 $(BASE_OBJS) $(MESH_OBJS) $(TEST_CASE_OBJS) bivar.o BIVARInterface.o
+PlaneDirectSum.o: PlaneDirectSum.f90 $(BASE_OBJS) $(PLANE_MESH)
+PlaneRemesh.o: PlaneRemesh.f90 $(BASE_OBJS) $(PLANE_MESH) PlaneTracer.o PlaneVorticity.o bivar.o BIVARInterface.o
 ReferenceSphere.o: ReferenceSphere.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) RefineRemesh2.o
 LatLonOutput.o: LatLonOutput.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)
 SWEDirectSum.o: SWEDirectSum.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS)

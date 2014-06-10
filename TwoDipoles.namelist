@@ -1,6 +1,6 @@
 &meshDefine
-	initNest = 4
-	AMR = 4
+	initNest = 2
+	AMR = 0
 	amrLimit = 4
 	xmin = -5.0
 	xmax = 5.0
@@ -20,15 +20,15 @@
 /
 
 &timestepping
-	dt = 0.005
-	tfinal = 3.0
+	dt = 0.01
+	tfinal = 0.5
 /
 
 &remeshing
 	maxCircTol = 0.1
 	vortVarTol = 0.25
 	lagVarTol = 1.5
-	remeshInterval = 25
+	remeshInterval = 5
 	resetAlphaInterval = 3
 /
 
