@@ -433,6 +433,7 @@ subroutine ReadNamelistfile(rank)
 			broadcastReals(5) = vortVarTol
 			broadcastReals(6) = dt
 			broadcastReals(7) = lagVarTol
+		close(READ_UNIT)	
 	endif
 	call MPI_BCAST(broadcastIntegers,BROADCAST_INT_SIZE,MPI_INTEGER,0,MPI_COMM_WORLD,mpiErrCode)
 	panelKind = broadcastIntegers(1)

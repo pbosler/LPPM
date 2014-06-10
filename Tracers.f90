@@ -29,9 +29,9 @@ include 'mpif.h'
 private
 public TracerSetup
 public New, Delete, NullTracer
-public InitCosineBellTracer, SetCosineBellTracerOnMesh
-public COS_BELL_NINT, COS_BELL_NREAL
+public InitCosineBellTracer, SetCosineBellTracerOnMesh, COS_BELL_NINT, COS_BELL_NREAL
 public SetFlowMapLatitudeTracerOnMesh
+public InitGaussianHillsTracer, SetGaussianHillsTracerOnMesh, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL
 
 
 !
@@ -45,7 +45,8 @@ type TracerSetup
 	integer(kint) :: tracerID						! 	index of starting tracer array in SphereMesh objects
 end type
 
-integer(kint), parameter :: COS_BELL_NINT = 0, COS_BELL_NREAL = 4
+integer(kint), parameter :: COS_BELL_NINT = 0, COS_BELL_NREAL = 4, &
+							GAUSS_HILLS_N_INT = 1, GAUSS_HILLS_N_REAL = 2
 
 !
 !----------------
@@ -141,7 +142,7 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
 
-	xyzCent = [cos(cosBell%reals(1))*cos(cosBell%reals(2)), cos(cosBell%reals(1))*sin(cosBell%reals(2)), sin(cosBell%reals(1)) ]
+	xyzCent = EARTH_RADIUS * [cos(cosBell%reals(1))*cos(cosBell%reals(2)), cos(cosBell%reals(1))*sin(cosBell%reals(2)), sin(cosBell%reals(1)) ]
 
 	do j=1,aParticles%N
 		aParticles%tracer(j,cosBell%tracerID) = CosineBellX(aParticles%x0(:,j),xyzCent,cosBell%reals(3),cosBell%reals(4))
@@ -153,7 +154,66 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 			aPanels%tracer(j,cosBell%tracerID) = 0.0_kreal
 		endif
 	enddo
+end subroutine
 
+subroutine InitGaussianHillsTracer(gHills, hmax, beta, tracerID)
+	type(TracerSetup), intent(inout) :: gHills
+	real(kreal), intent(in) :: hmax, beta
+	integer(kint), intent(in) :: tracerID
+	!
+	if ( size(gHills%reals) /= 2 )
+		call LogMessage(log, ERROR_LOGGING_LEVEL,'tracerSetup ERROR : ',' real array size incorrect')
+		return
+	endif
+	if ( size(gHills%integers) /=1 ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,'tracerSetup ERROR : ',' integer array size incorrect')
+		return
+	endif
+	
+	gHills%reals(1) = hmax
+	gHills%reals(2) = beta
+	gHills%integers(1) = tracerID	
+end subroutine
+
+subroutine SetGaussianHillsTracerOnMesh(aMesh, gHills)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(TracerSetup), intent(in) :: gHills
+	!
+	real(kreal) :: xyzCent1(3), xyzCent2(3)
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	
+	xyzCent1 = EARTH_RADIUS * [ cos(5.0_kreal * PI / 6.0_kreal), sin( 5.0_kreal * PI / 6.0_kreal ), sin(5.0_kreal*PI/6.0_kreal) ]
+	xyzCent2 = EARTH_RADIUS * [ cos(7.0_kreal * PI / 6.0_kreal), sin( 7.0_kreal * PI / 6.0_kreal ), sin(7.0_kreal*PI/6.0_kreal) ]
+	
+	do j = 1, aParticles%N
+		aParticles%tracer(j, gHills%integers(1) ) = gHills%reals(1) * exp( - gHills%reals(2) * ( &
+			(aParticles%x0(1,j) - xyzCent1(1) ) * (aParticles%x0(1,j) - xyzCent1(1) ) + &
+			(aParticles%x0(2,j) - xyzCent1(2) ) * (aParticles%x0(2,j) - xyzCent1(2) ) + &
+			(aParticles%x0(3,j) - xyzCent1(3) ) * (aParticles%x0(3,j) - xyzCent1(3) ) ) ) + &
+			gHills%reals(1) * exp( - gHills%reals(2) * ( &
+			(aParticles%x0(1,j) - xyzCent2(1) ) * (aParticles%x0(1,j) - xyzCent2(1) ) + &
+			(aParticles%x0(2,j) - xyzCent2(2) ) * (aParticles%x0(1,j) - xyzCent2(2) ) + &
+			(aParticles%x0(3,j) - xyzCent2(3) ) * (aParticles%x0(1,j) - xyzCent2(3) ) ) ) 
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%tracer(j, gHills%integers(1) ) = 0.0_kreal
+		else
+			aPanels%tracer(j, gHills%integers(1) ) = gHills%reals(1) * exp( - gHills%reals(2) * ( &
+				(aPanels%x0(1,j) - xyzCent1(1) ) * (aPanels%x0(1,j) - xyzCent1(1) ) + &
+				(aPanels%x0(2,j) - xyzCent1(2) ) * (aPanels%x0(2,j) - xyzCent1(2) ) + &
+				(aPanels%x0(3,j) - xyzCent1(3) ) * (aPanels%x0(3,j) - xyzCent1(3) ) ) ) + &
+				gHills%reals(1) * exp( - gHills%reals(2) * ( &
+				(aPanels%x0(1,j) - xyzCent2(1) ) * (aPanels%x0(1,j) - xyzCent2(1) ) + &
+				(aPanels%x0(2,j) - xyzCent2(2) ) * (aPanels%x0(1,j) - xyzCent2(2) ) + &
+				(aPanels%x0(3,j) - xyzCent2(3) ) * (aPanels%x0(1,j) - xyzCent2(3) ) ) ) 
+		endif
+	enddo
 end subroutine
 
 subroutine SetFlowMapLatitudeTracerOnMesh(aMesh,tracerID)
@@ -179,7 +239,6 @@ subroutine NullTracer(aMesh,nullScalar)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(TracerSetup), intent(in) :: nullScalar
 end subroutine
-
 
 !
 !----------------

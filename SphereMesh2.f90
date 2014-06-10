@@ -483,6 +483,32 @@ function MaximumCirculation(self)
 	MaximumCirculation = maxval( abs(aPanels%relvort(1:aPanels%N)) * aPanels%area(1:aPanels%N) )
 end function
 
+function MaximumTracerMass(self, tracerID)
+	real(kreal) :: MaximumTracerMass
+	type(SphereMesh), intent(in) :: self
+	integer(kint), intent(in) :: tracerID
+	!
+	MaximumTracerMass = maxval( self%panels%tracer(1:self%panels%N, tracerID) * self%panels%area(1:self%panels%N) )
+end function
+
+function MaximumTracerVariation(self, tracerID)
+	real(kreal) :: MaximumTracerVariation
+	type(SphereMesh), intent(in) :: self
+	integer(kint), intent(in) :: tracerID
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	real(kreal) :: tmax, tmin
+	
+	aParticles => self%particles
+	aPanels => self%panels
+	
+	tmax = max( maxval(aParticles%tracer(1:aParticles%N, tracerID)), maxval( aPanels%tracer(1:aPanels%N, tracerID)) )
+	tmin = min( minval(aParticles%tracer(1:aParticles%N, tracerID)), minval( aPanels%tracer(1:aPanels%N, tracerID)) )
+	
+	MaximumTracerVariation = tmax - tmin	
+end function 
+
 
 function MaximumVorticityVariation(self)
 	real(kreal) :: MaximumVorticityVariation
