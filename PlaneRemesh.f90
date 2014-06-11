@@ -14,7 +14,7 @@ module PlaneRemeshModule
 ! USAGE :  This module provides methods for interpolating and remeshing a planar mesh.
 !----------------
 use NumberKindsModule
-use LoggerModule 
+use LoggerModule
 use PlaneGeomModule
 use ParticlesModule
 use EdgesModule
@@ -78,6 +78,10 @@ interface LagrangianRemeshToInitialTime
 	module procedure LagrangianRemeshToInitialTimePrivate
 end interface
 
+interface LagrangianRemeshToReferenceTime
+	module procedure LagrangianRemeshToReferenceTimePrivate
+end interface
+
 interface
 	subroutine SetVorticityOnMesh( genMesh, genVort)
 		use PlaneMeshModule
@@ -123,9 +127,9 @@ subroutine NewPrivateAll(self, maxCircTol, vortVarTol, lagVarTol, tracerID, maxM
 	integer(kint), intent(in) :: tracerID
 	real(kreal), intent(in) :: maxMassTol, massVarTol
 	integer(kint), intent(in) :: limit
-	
+
 	if ( .NOT. logInit ) call InitLogger(log, procRank)
-	
+
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .TRUE.
 	self%maxCircTol = maxCircTol
@@ -143,9 +147,9 @@ subroutine NewPrivateVorticity(self, maxCircTol, vortVarTol, limit)
 	type(RemeshSetup), intent(out) :: self
 	real(kreal), intent(in) :: maxCircTol, vortVarTol
 	integer(kint), intent(in) :: limit
-	
+
 	if ( .NOT. logInit ) call InitLogger(log, procRank)
-	
+
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .TRUE.
 	self%maxCircTol = maxCircTol
@@ -163,9 +167,9 @@ subroutine NewPrivateVorticityAndFlowMap(self, maxCircTol, vortVarTol, lagVarTol
 	type(RemeshSetup), intent(out) :: self
 	real(kreal), intent(in) :: maxCircTol, vortVarTol, lagVarTol
 	integer(kint), intent(in) :: limit
-	
+
 	if ( .NOT. logInit ) call InitLogger(log, procRank)
-	
+
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .TRUE.
 	self%maxCircTol = maxCircTol
@@ -184,9 +188,9 @@ subroutine NewPrivateTracer(self, tracerID, maxMassTol, massVarTol, limit)
 	integer(kint), intent(in) :: tracerID
 	real(kreal), intent(in) :: maxMassTol, massVarTol
 	integer(kint), intent(in) :: limit
-	
+
 	if ( .NOT. logInit ) call InitLogger(log, procRank)
-	
+
 	self%uniformMesh = .FALSE.
 	self%vorticityRefine = .FALSE.
 	self%maxCircTol = 0.0_kreal
@@ -202,9 +206,9 @@ end subroutine
 
 subroutine NewPrivateNoAMR(self)
 	type(RemeshSetup), intent(inout) :: self
-	
+
 	if ( .NOT. logInit ) call InitLogger(log, procRank)
-	
+
 	self%uniformMesh = .TRUE.
 	self%vorticityRefine = .FALSE.
 	self%maxCircTol = 0.0_kreal
@@ -646,7 +650,7 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	logical(klog) :: keepGoing
 	integer(kint) :: startIndex, nOldPanels, nOldParticles, refineCount, spaceLeft
 	integer(kint), allocatable :: integerWorkParticles(:), integerWorkPanels(:)
-	
+
 	nullify(newparticles)
 	nullify(newEdges)
 	nullify(newPanels)
@@ -655,9 +659,9 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	md = 1
 	startIndex = 1
 	keepGoing = .FALSE.
-	
+
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' entering LagrangianRemeshToReferenceTime')
-	
+
 	!
 	! build a new uniform mesh
 	!
@@ -667,9 +671,9 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	newParticles => newMesh%particles
 	newEdges => newMesh%edges
 	newPanels => newMesh%panels
-	
-	
-	
+
+
+
 	!
 	! setup old mesh as interpolation source
 	!
@@ -679,7 +683,7 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	integerWorkParticles = 0
 	integerWorkPanels = 0
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' alpha source data ready.')
-	
+
 	!
 	! interpolate Lagrangian parameter from old mesh to new mesh
 	!
@@ -687,25 +691,25 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	call IDBVIP( md, bivarData%n, bivarData%x, bivarData%y, bivarData%x0, &
 				 newParticles%N, newParticles%x(1,1:newParticles%N), newParticles%x(2,1:newParticles%N), &
 				 newParticles%x0(1,1:newParticles%N), integerWorkParticles, bivarData%realWork)
-	md = 3			 
+	md = 3
 	call IDBVIP( md, bivarData%n, bivarData%x, bivarData%y, bivarData%y0, &
 				 newParticles%N, newParticles%x(1,1:newParticles%N), newParticles%x(2,1:newParticles%N), &
 				 newParticles%x0(2,1:newParticles%N), integerWorkParticles, bivarData%realWork)
 	md = 1
 	call IDBVIP( md, bivarData%N, bivarData%x, bivarData%y, bivarData%x0, &
 				 newPanels%N, newPanels%x(1,1:newPanels%n), newPanels%x(2,1:newPanels%n), &
-				 newPanels%x0(1,1:newPanels%N), integerWorkPanels, bivarData%realWork)				 		 
+				 newPanels%x0(1,1:newPanels%N), integerWorkPanels, bivarData%realWork)
 	md = 3
 	call IDBVIP( md, bivarData%N, bivarData%x, bivarData%y, bivarData%y0, &
 				 newPanels%N, newPanels%x(1,1:newPanels%n), newPanels%x(2,1:newPanels%n), &
 				 newPanels%x0(2,1:newPanels%N), integerWorkPanels, bivarData%realWork)
 
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' base mesh interpolation complete.')
-	
-	
+
+
 	!
 	! set tracer values on new mesh
-	!				 
+	!
 	do k = 1, aMesh%nTracer
 		call AssignTracer(newParticles%tracer(1:newParticles%N,k), newParticles%x0(:,1:newParticles%N), reference, k)
 		call AssignTracer(newPanels%tracer(1:newPanels%N, k), newPanels%x0(:,1:newPanels%N), reference, k)
@@ -717,7 +721,7 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	call AssignVorticity(newPanels%relVort(1:newPanels%N), newPanels%x0(:,1:newPanels%N), reference)
 
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, ' LagRemeshReference : new uniform mesh ready.')
-	
+
 	if ( aMesh%AMR > 0 ) then
 		call StartSection(log,'LagrangianRemeshToReference AMR :')
 			allocate(refineFlag(newPanels%N_Max))
@@ -733,10 +737,10 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 				call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 				call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 			endif
-			
+
 			refineCount = count(refineFlag)
 			spaceLeft = newPanels%N_Max - newPanels%N
-			
+
 			if ( refineCount > 0 ) then
 				if ( spaceLeft / 4 > refineCount ) then
 					keepGoing = .TRUE.
@@ -758,7 +762,7 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 						!
 						! TO DO : ensure adjacent panels differ by no more than 1 level of refinement
 						!
-						
+
 						!
 						! interpolate Lagrangian parameter to new panels
 						!
@@ -767,11 +771,11 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 								    newParticles%N - nOldParticles, &
 								    newParticles%x(1,nOldParticles+1:newParticles%N), newParticles%x(2,nOldParticles+1:newParticles%N), &
 								    newParticles%x0(1, nOldParticles+1:newParticles%N), integerWorkParticles, bivarData%realwork)
-						md = 3								    
+						md = 3
 						call IDBVIP(md, bivarData%n, bivarData%x, bivarData%y, bivarData%y0, &
 								    newParticles%N - nOldParticles, &
 								    newParticles%x(1,nOldParticles+1:newParticles%N), newParticles%x(2,nOldParticles+1:newParticles%N), &
-								    newParticles%x0(2, nOldParticles+1:newParticles%N), integerWorkParticles, bivarData%realwork)								    
+								    newParticles%x0(2, nOldParticles+1:newParticles%N), integerWorkParticles, bivarData%realwork)
 						md = 1
 						call IDBVIP(md, bivarData%n, bivarData%x, bivarData%y, bivarData%x0, &
 						 			newPanels%N - nOldPanels, &
@@ -789,13 +793,13 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 							call AssignTracer(newParticles%tracer(nOldParticles+1:newParticles%N,k), &
 											  newParticles%x0(:,nOldParticles+1:newParticles%N), reference, k)
 							call AssignTracer(newPanels%tracer(nOldPanels+1:newPanels%N,k), &
-											  newPanels%x0(:,nOldPanels+1:newPanels%N), reference, k)									  
+											  newPanels%x0(:,nOldPanels+1:newPanels%N), reference, k)
 						enddo
 						call AssignVorticity(newParticles%relVort(nOldParticles+1:newParticles%N), &
 											 newParticles%x0(:, nOldParticles+1:newParticles%N), reference)
 						call AssignVorticity(newPanels%relVort(nOldPanels+1:newPanels%N), &
 											 newPanels%x0(:,nOldPanels+1:newPanels%N), reference)
-						
+
 						!
 						! prevent too much refinement
 						!
@@ -830,10 +834,10 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 								call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 								call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 							endif
-							
+
 							refineCount = count(refineFlag)
 							spaceLeft = newPanels%N_Max - newPanels%N
-							
+
 							!
 							! check stopping criteria
 							!
@@ -873,7 +877,7 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 				endif ! spaceleft
 			else ! refinecount == 0
 				call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshReference : ',' no refinement necessary.')
-			endif			
+			endif
 		call EndSection(log)
 		deallocate(refineFlag)
 	endif!AMR
@@ -881,14 +885,14 @@ subroutine LagrangianRemeshToReferenceTimePrivate(aMesh, reference, remesh)
 	!	replace old mesh with new mesh
 	!
 	call Copy(aMesh, newMesh)
-	
+
 	!
 	! clean up
 	!
 	deallocate(integerWorkParticles)
 	deallocate(integerWorkPanels)
 	call Delete(bivarData)
-	call Delete(newMesh)				 
+	call Delete(newMesh)
 end subroutine
 
 
