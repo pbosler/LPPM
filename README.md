@@ -62,7 +62,7 @@ This interface is required in order for the LagrangianRemeshing subroutines to w
 
 	call SetRH4WaveOnMesh( aMesh, rhWave)
 
-The SetRH4Wave on mesh calls the mathematical functions that define the vorticity distribution of a Rossby-Haurwitz wave, given the parameters defined by the rhWave test case object.
+SetRH4WaveOnMesh calls the mathematical functions that define the vorticity distribution of a Rossby-Haurwitz wave, given the parameters defined by the rhWave test case object.
 
 To create a new test case then, users must first decide how many integers and reals are required to define their test case, and allocate the appropriate amount of memory with the "New" subroutine.
 Then the test case object must be initialized with an "Init" subroutine to define the parameters in the test case object's memory.
