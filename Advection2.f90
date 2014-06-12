@@ -30,7 +30,7 @@ private
 public AdvRK4Data
 public New, Delete
 public ZeroRK4
-public AdvectionRK4
+public AdvectionRK4Timestep
 public LauritzenEtAlNonDivergentWind, LauritzenEtAlDivergentWind
 public TestCase1Velocity, SetAlpha
 
@@ -56,9 +56,6 @@ type AdvRK4Data
 
 	logical(klog) :: rk4isReady, &
 				     mpiIsReady
-	! parameters
-	real(kreal) :: smooth
-
 	! mesh variables
 	type(Panels), pointer :: activePanels => null(),&
 							 passivePanels => null()
@@ -183,11 +180,6 @@ subroutine NewPrivate(self,aMesh,nProcs,isDivergent)
 	self%passivePanelsIndexStart = -1
 	self%passivePanelsIndexEnd = -1
 	self%passivePanelsMessageSize = -1
-
-	!
-	!	Set physical parameters
-	!
-	self%smooth = VELOCITY_SMOOTH
 
 	!
 	!	Separate active panels from passive panels
@@ -323,7 +315,7 @@ end subroutine
 ! Public member functions
 !----------------
 !
-subroutine AdvectionRK4(self,aMesh, dt, t, procRank, nProcs, velocityFunction)
+subroutine AdvectionRK4Timestep(self,aMesh, dt, t, procRank, nProcs, velocityFunction)
 !	Non-divergent advection
 !
 !
@@ -619,21 +611,16 @@ function LauritzenEtAlNonDivergentWind(xyz,t)
 	real(kreal), intent(in) :: xyz(3), t
 	!real(kreal), parameter :: RR = 1.0_kreal, TT = 5.0_kreal
 	real(kreal), parameter :: RR = EARTH_RADIUS, TT = 12.0_kreal * ONE_DAY
-	real(kreal) :: u, v, lat, long, raxis
-	lat = latitude(xyz)
-	long = longitude(xyz)
-	raxis = sqrt(xyz(1)*xyz(1) + xyz(2)*xyz(2))
-	if ( raxis > ZERO_TOL) then ! Check divide by zero
-		u = 10.0_kreal*RR/TT*sin(long-2.0_kreal*PI*t/TT)*sin(long-2.0_kreal*PI*t/TT)*sin(2.0_kreal*lat)*cos(PI*t/TT) + &
-			2.0_kreal*PI*RR/TT*cos(lat)
-		v = 10.0_kreal*RR/TT*sin(2.0_kreal*(long-2.0_kreal*PI*t/TT))*cos(lat)*cos(PI*t/TT)
+	real(kreal) :: u, v, lat, lon!, raxis
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
+	u = 10.0_kreal*RR/TT*sin(lon-2.0_kreal*PI*t/TT)*sin(lon-2.0_kreal*PI*t/TT)*sin(2.0_kreal*lat)*cos(PI*t/TT) + &
+		2.0_kreal*PI*RR/TT*cos(lat)
+	v = 10.0_kreal*RR/TT*sin(2.0_kreal*(lon-2.0_kreal*PI*t/TT))*cos(lat)*cos(PI*t/TT)
 
-		LauritzenEtAlNonDivergentWind(1) = -u*xyz(2)/raxis - v*xyz(1)*xyz(3)/raxis
-		LauritzenEtAlNonDivergentWind(2) =  u*xyz(1)/raxis - v*xyz(2)*xyz(3)/raxis
-		LauritzenEtAlNonDivergentWind(3) =  v*raxis
-	else
-		LauritzenEtAlNonDivergentWind = 0.0_kreal
-	endif
+	LauritzenEtAlNonDivergentWind(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
+	LauritzenEtAlNonDivergentWind(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
+	LauritzenEtAlNonDivergentWind(3) =  v*cos(lat)
 end function
 
 function LauritzenEtAlDivergentWind(xyz,t)
@@ -643,21 +630,15 @@ function LauritzenEtAlDivergentWind(xyz,t)
 	real(kreal) :: LauritzenEtAlDivergentWind(3)
 	!real(kreal), parameter :: RR = 1.0_kreal, TT = 5.0_kreal
 	real(kreal), parameter :: RR = EARTH_RADIUS, TT = 12.0_kreal * ONE_DAY
-	real(kreal) :: u, v, lat, long, raxis
-	lat = latitude(xyz)
-	long = longitude(xyz)
-	raxis = sqrt(xyz(1)*xyz(1) + xyz(2)*xyz(2))
-	if ( raxis > ZERO_TOL) then ! Check divide by zero
-		u = -5.0_kreal*RR/TT*sin((long-2.0_kreal*PI*t/TT)/2.0_kreal)*sin((long-2.0_kreal*PI*t/TT)/2.0_kreal)*sin(2.0_kreal*lat)*&
-			cos(lat)*cos(lat)*cos(PI*t/TT) + 2.0_kreal*PI*RR*cos(lat)/TT
-		v = 5.0_kreal*RR/(2.0_kreal*TT)*sin(long-2.0_kreal*PI*t/TT)*cos(lat)*cos(lat)*cos(lat)*cos(PI*t/TT)
-
-		LauritzenEtAlDivergentWind(1) = -u*xyz(2)/raxis - v*xyz(1)*xyz(3)/raxis
-		LauritzenEtAlDivergentWind(2) =  u*xyz(1)/raxis - v*xyz(2)*xyz(3)/raxis
-		LauritzenEtAlDivergentWind(3) =  v*raxis
-	else
-		LauritzenEtAlDivergentWind = 0.0_kreal
-	endif
+	real(kreal) :: u, v, lat, lon
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
+	u = -5.0_kreal*RR/TT*sin((lon-2.0_kreal*PI*t/TT)/2.0_kreal)*sin((lon-2.0_kreal*PI*t/TT)/2.0_kreal)*sin(2.0_kreal*lat)*&
+		cos(lat)*cos(lat)*cos(PI*t/TT) + 2.0_kreal*PI*RR*cos(lat)/TT
+	v = 5.0_kreal*RR/(2.0_kreal*TT)*sin(lon-2.0_kreal*PI*t/TT)*cos(lat)*cos(lat)*cos(lat)*cos(PI*t/TT)
+	LauritzenEtAlDivergentWind(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
+	LauritzenEtAlDivergentWind(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
+	LauritzenEtAlDivergentWind(3) =  v*cos(lat)
 end function
 
 function TestCase1Velocity(xyz,t)

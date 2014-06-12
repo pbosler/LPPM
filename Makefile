@@ -94,7 +94,9 @@ SWE_OBJS = $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) SWEDirectSum.
 #############################################################
 
 testCase1MPI.exe: TestCase1.o $(ADVECTION_OBJS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
+advectGaussHillsMPI.exe: AdvectGaussHills.o $(ADVECTION_OBJS)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
 solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)	
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS)
@@ -111,6 +113,7 @@ twoDipolesMPI.exe: TwoDipoles.o $(PLANE_RUNS)
 ## LPPM MODEL OBJECT FILES
 #############################################################
 
+AdvectGaussHills.o: AdvectGaussHills.f90 $(ADVECTION_OBJS)
 TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)
 BVESingleGaussianVortex.o: BVESingleGaussianVortex.f90 $(BVE_OBJS) 

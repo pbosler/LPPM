@@ -81,7 +81,7 @@ LPPM uses interpolation software provided by ACM TOMS algorithm 526 written by H
 and ACM TOMS algorithms 772 and 773 written by Robert Renka.  All other code is original and authored by Peter Bosler.
 	
 	H. Akima, 1978, A method of bivariate interpolation and smooth surface fitting for irregularly distributed data points.
-		ACM TOMS, 4.
+		ACM TOMS, 4:148-159.
 	H. Akima, 1984, On estimating partial derivatives for bivariate interpolation of scattered data.
 		Rocky Mountain Journal of Mathematics, 14:41-52.
 	R. Renka, 1997, Algorithm 772 : STRIPACK : Delaunay triangulation and Voronoi diagram on the surface of a sphere.

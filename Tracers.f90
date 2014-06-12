@@ -161,7 +161,7 @@ subroutine InitGaussianHillsTracer(gHills, hmax, beta, tracerID)
 	real(kreal), intent(in) :: hmax, beta
 	integer(kint), intent(in) :: tracerID
 	!
-	if ( size(gHills%reals) /= 2 )
+	if ( size(gHills%reals) /= 2 ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL,'tracerSetup ERROR : ',' real array size incorrect')
 		return
 	endif
@@ -187,34 +187,32 @@ subroutine SetGaussianHillsTracerOnMesh(aMesh, gHills)
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
 	
-	xyzCent1 = EARTH_RADIUS * [ cos(5.0_kreal * PI / 6.0_kreal), sin( 5.0_kreal * PI / 6.0_kreal ), sin(5.0_kreal*PI/6.0_kreal) ]
-	xyzCent2 = EARTH_RADIUS * [ cos(7.0_kreal * PI / 6.0_kreal), sin( 7.0_kreal * PI / 6.0_kreal ), sin(7.0_kreal*PI/6.0_kreal) ]
+	xyzCent1 = [ cos(5.0_kreal * PI / 6.0_kreal), sin( 5.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
+	xyzCent2 = [ cos(7.0_kreal * PI / 6.0_kreal), sin( 7.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
 	
 	do j = 1, aParticles%N
-		aParticles%tracer(j, gHills%integers(1) ) = gHills%reals(1) * exp( - gHills%reals(2) * ( &
-			(aParticles%x0(1,j) - xyzCent1(1) ) * (aParticles%x0(1,j) - xyzCent1(1) ) + &
-			(aParticles%x0(2,j) - xyzCent1(2) ) * (aParticles%x0(2,j) - xyzCent1(2) ) + &
-			(aParticles%x0(3,j) - xyzCent1(3) ) * (aParticles%x0(3,j) - xyzCent1(3) ) ) ) + &
-			gHills%reals(1) * exp( - gHills%reals(2) * ( &
-			(aParticles%x0(1,j) - xyzCent2(1) ) * (aParticles%x0(1,j) - xyzCent2(1) ) + &
-			(aParticles%x0(2,j) - xyzCent2(2) ) * (aParticles%x0(1,j) - xyzCent2(2) ) + &
-			(aParticles%x0(3,j) - xyzCent2(3) ) * (aParticles%x0(1,j) - xyzCent2(3) ) ) ) 
+		aParticles%tracer(j, gHills%integers(1) ) = GaussianHillsTracer(aParticles%x0(:,j)/EARTH_RADIUS, xyzcent1, xyzcent2, gHills%reals(1), gHills%reals(2))
 	enddo
 	do j = 1, aPanels%N
 		if ( aPanels%hasChildren(j) ) then
 			aPanels%tracer(j, gHills%integers(1) ) = 0.0_kreal
 		else
-			aPanels%tracer(j, gHills%integers(1) ) = gHills%reals(1) * exp( - gHills%reals(2) * ( &
-				(aPanels%x0(1,j) - xyzCent1(1) ) * (aPanels%x0(1,j) - xyzCent1(1) ) + &
-				(aPanels%x0(2,j) - xyzCent1(2) ) * (aPanels%x0(2,j) - xyzCent1(2) ) + &
-				(aPanels%x0(3,j) - xyzCent1(3) ) * (aPanels%x0(3,j) - xyzCent1(3) ) ) ) + &
-				gHills%reals(1) * exp( - gHills%reals(2) * ( &
-				(aPanels%x0(1,j) - xyzCent2(1) ) * (aPanels%x0(1,j) - xyzCent2(1) ) + &
-				(aPanels%x0(2,j) - xyzCent2(2) ) * (aPanels%x0(1,j) - xyzCent2(2) ) + &
-				(aPanels%x0(3,j) - xyzCent2(3) ) * (aPanels%x0(1,j) - xyzCent2(3) ) ) ) 
+			aPanels%tracer(j, gHills%integers(1) ) = GaussianHillsTracer(aPanels%x0(:,j)/EARTH_RADIUS, xyzcent1, xyzcent2, gHills%reals(1), gHills%reals(2))
 		endif
 	enddo
 end subroutine
+
+function GaussianHillsTracer(xyz, cent1, cent2, hmax, beta)
+	real(kreal) :: GaussianHillsTracer
+	real(kreal), intent(in) :: xyz(3), cent1(3), cent2(3), hmax, beta
+	!
+	real(kreal) :: h1, h2
+	
+	h1 = hmax * exp( -beta * ( sum( (xyz-cent1) * (xyz-cent1) ) ) )
+	h2 = hmax * exp( -beta * ( sum( (xyz-cent2) * (xyz-cent2) ) ) )
+	
+	GaussianHillsTracer = h1 + h2
+end function
 
 subroutine SetFlowMapLatitudeTracerOnMesh(aMesh,tracerID)
 	type(SphereMesh), intent(inout) :: aMesh

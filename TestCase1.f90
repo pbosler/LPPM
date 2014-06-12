@@ -17,7 +17,7 @@ use NumberKindsModule
 use LoggerModule
 use SphereMeshModule
 use AdvectionModule
-use RefineRemeshModule
+use SphereRemeshModule
 use TracerSetupModule
 use VTKOutputModule
 use BVESetupModule
@@ -46,7 +46,7 @@ integer(kint) :: tracerID
 !
 !	refinement variables
 !
-type(RefinementSetup) :: tracerRefine
+type(RemeshSetup) :: tracerRefine
 real(kreal) :: tracerMaxTol, tracerVarTol
 integer(kint) :: refinementLimit
 !
@@ -128,9 +128,9 @@ call InitCosineBellTracer(cosBell,lat0,lon0,RR,h0,tracerID)
 call New(sphere,panelKind,initNest,AMR,nTracer,problemKind)
 call SetCosineBellTracerOnMesh(sphere,cosBell)
 if ( AMR > 0 ) then
-	call New(tracerRefine,refinementLimit,tracermaxTol,tracerVarTol,TRACER_REFINE,tracerID)
-	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
-						   tracerRefine, NullVorticity,nullVort)
+	call New(tracerRefine,tracerID, tracermaxTol,tracerVarTol,refinementLimit )
+!	call InitialRefinement(sphere,tracerRefine,SetCosineBellTracerOnMesh, cosBell, &
+!						   tracerRefine, NullVorticity,nullVort)
 	if ( panelKind == QUAD_PANEL) then
 		write(amrString,'(A,I1,A,I0.2)') 'quadAMR_',initNest,'to',initNest+refinementLimit
 	endif
@@ -169,31 +169,31 @@ do timeJ = 0, timesteps - 1
 	!	remesh if necessary
 	!
 	if ( mod(timeJ+1,remeshInterval) == 0 ) then
-		remeshCounter = remeshCounter + 1
-		!
-		!	delete objects associated with old mesh
-		!
-		call Delete(advRK4)
-		call Delete(vtkOut)
-		!
-		! build new mesh
-		!
-		call LagrangianRemesh(sphere, NullVorticity, nullVort, tracerRefine, &
-									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
-									  tracerRefine)
-		!
-		!	create new associated objects
-		!
-		call New(advRK4,sphere,numProcs)
-		call New(vtkOut,sphere,vtkFile,'tc1')
-
-		write(logString,'(A,I4)') 'remesh ', remeshCounter
-		if ( procRank == 0 ) call LogStats(sphere,exelog,trim(logString))
+!		remeshCounter = remeshCounter + 1
+!		!
+!		!	delete objects associated with old mesh
+!		!
+!		call Delete(advRK4)
+!		call Delete(vtkOut)
+!		!
+!		! build new mesh
+!		!
+!		call LagrangianRemesh(sphere, NullVorticity, nullVort, tracerRefine, &
+!									  SetCosineBellTracerOnMesh, cosBell, tracerRefine, &
+!									  tracerRefine)
+!		!
+!		!	create new associated objects
+!		!
+!		call New(advRK4,sphere,numProcs)
+!		call New(vtkOut,sphere,vtkFile,'tc1')
+!
+!		write(logString,'(A,I4)') 'remesh ', remeshCounter
+!		if ( procRank == 0 ) call LogStats(sphere,exelog,trim(logString))
 	endif
 	!
 	!	advance timestep
 	!
-	call AdvectionRK4(advRK4,sphere, dt, t, procRank, numProcs, TestCase1Velocity)
+	call AdvectionRK4Timestep(advRK4,sphere, dt, t, procRank, numProcs, TestCase1Velocity)
 
 	t = real(timeJ+1,kreal)*dt
 

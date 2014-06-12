@@ -50,6 +50,7 @@ public DividePanel
 public GetRossbyNumber
 public ResetLagrangianParameter
 public MaximumCirculation, MaximumVorticityVariation, AverageLagrangianParameterVariation
+public MaximumTracerMass, MaximumTracerVariation
 !
 !----------------
 ! Types and module constants
@@ -779,8 +780,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 	else ! divide edge
 		anEdges%hasChildren(edgeIndices(1)) = .TRUE.
 		anEdges%children(:,edgeIndices(1)) = [nEdges+1,nEdges+2]
-!		anEdges%length(edgeIndices(1)) = 0.0_kreal
-!		anEdges%length0(edgeIndices(1)) = 0.0_kreal
+
 		! create new particle
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(1)),&
 													  aParticles%x(:,vertexIndices(2)))
@@ -814,14 +814,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 
 			aPanels%edges(1,nPanels+2) = nEdges+1
 		endif
-!		anEdges%length(nEdges+1) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length0(nEdges+1) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length(nEdges+2) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+2)))
-!		anEdges%length0(nEdges+2) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+2)))
+
 		! update insertion points
 		nParticles = nParticles + 1
 		nEdges = nEdges + 2
@@ -850,8 +843,6 @@ subroutine DivideQuadPanel(self,panelIndex)
 	else ! divide edge 2
 		anEdges%hasChildren(edgeIndices(2)) = .TRUE.
 		anEdges%children(:,edgeIndices(2)) = [nEdges+1,nEdges+2]
-!		anEdges%length(edgeIndices(2)) = 0.0_kreal
-!		anEdges%length0(edgeIndices(2)) = 0.0_kreal
 
 		! create new particle
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(2)),&
@@ -882,14 +873,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 			anEdges%rightPanel(nEdges+2) = nPanels+2
 			aPanels%edges(2,nPanels+2) = nEdges+2
 		endif
-!		anEdges%length(nEdges+1) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length0(nEdges+1) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length(nEdges+2) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+2)))
-!		anEdges%length0(nEdges+2) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+2)))
+
 		! update insertion points
 		nParticles = nParticles + 1
 		nEdges = nEdges + 2
@@ -918,8 +902,6 @@ subroutine DivideQuadPanel(self,panelIndex)
 	else ! divide edge 3
 		anEdges%hasChildren(edgeIndices(3)) = .TRUE.
 		anEdges%children(:,edgeIndices(3)) = [nEdges+1,nEdges+2]
-!		anEdges%length(edgeIndices(3)) = 0.0_kreal
-!		anEdges%length0(edgeIndices(3)) = 0.0_kreal
 
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(3)),&
 													  aParticles%x(:,vertexIndices(4)))
@@ -950,14 +932,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 			aPanels%edges(3,nPanels+3) = nEdges+2
 
 		endif
-!		anEdges%length(nEdges+1) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length0(nEdges+1) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length(nEdges+2) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+2)))
-!		anEdges%length0(nEdges+2) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+2)))
+
 		! update insertion points
 		nParticles = nParticles + 1
 		nEdges = nEdges + 2
@@ -985,8 +960,6 @@ subroutine DivideQuadPanel(self,panelIndex)
 	else ! divide edge 4
 		anEdges%hasChildren(edgeIndices(4)) = .TRUE.
 		anEdges%children(:,edgeIndices(4)) = [nEdges+1,nEdges+2]
-!		anEdges%length(edgeIndices(4)) = 0.0_kreal
-!		anEdges%length0(edgeIndices(4)) = 0.0_kreal
 
 		aParticles%x(:,nParticles+1) = SphereMidpoint(aParticles%x(:,vertexIndices(4)),&
 													  aParticles%x(:,vertexIndices(1)))
@@ -1016,14 +989,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 			anEdges%rightPanel(nEdges+2) = nPanels+4
 			aPanels%edges(4,nPanels+4) = nEdges+2
 		endif
-!		anEdges%length(nEdges+1) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length0(nEdges+1) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+1)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+1)))
-!		anEdges%length(nEdges+2) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x(:,anEdges%verts(2,nEdges+2)))
-!		anEdges%length0(nEdges+2) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+2)),&
-!											      aParticles%x0(:,anEdges%verts(2,nEdges+2)))
+
 		! update insertion points
 		nParticles = nParticles + 1
 		nEdges = nEdges + 2
@@ -1066,10 +1032,6 @@ subroutine DivideQuadPanel(self,panelIndex)
 	aPanels%edges(3,nPanels+1) = nEdges+4
 	aPanels%edges(1,nPanels+4) = nEdges+4
 
-!	do j=1,4
-!		anEdges%length(nEdges+j) = SphereDistance(aParticles%x(:,anEdges%verts(1,nEdges+j)),aParticles%x(:,anEdges%verts(2,nEdges+j)))
-!		anEdges%length0(nEdges+j) = SphereDistance(aParticles%x0(:,anEdges%verts(1,nEdges+j)),aParticles%x0(:,anEdges%verts(2,nEdges+j)))
-!	enddo
 	nParticles = nParticles+1
 	nEdges = nEdges+4
 

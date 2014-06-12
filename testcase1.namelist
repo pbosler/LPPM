@@ -14,7 +14,7 @@
 /
 
 & fileIO
-	outputDir = '~/Desktop/BigSphere'
-	jobPrefix = 'tc1_adv_rm30'
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'tc1_noRemesh'
 	frameOut = 4
 /
