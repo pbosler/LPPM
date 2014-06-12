@@ -71,21 +71,31 @@ Finally, users must write a SetTestCaseOnMesh subroutine and the associated math
 	
 Requirements
 =========
-The code requires a modern Fortran compiler with an OpenMPI distribution for parallel computing.  
+The code requires a modern Fortran compiler with an OpenMPI (<http://www.open-mpi.org>) distribution for parallel computing.  
 Without OpenMPI serial computations are still possible, but the code is designed to use distributed memory parallelism.
 
 Currently the software is written for Intel compilers and makes use of the Intel MKL software library (LAPACK, specifically).  
 It is possible to use other compilers (e.g. gfortran) provided OpenMPI and LAPACK are also available.  
 
-LPPM uses interpolation software provided by ACM TOMS algorithm 526 written by Hiroshi Akima and implemented by John Burkhardt,
-and ACM TOMS algorithms 772 and 773 written by Robert Renka.  All other code is authored by Peter Bosler.
+LPPM uses interpolation software provided by ACM TOMS algorithm 526 written by Hiroshi Akima and implemented by John Burkhardt (<https://orion.math.iastate.edu/burkardt/f_src/bivar/bivar.html>),
+and ACM TOMS algorithms 772 and 773 written by Robert Renka.  All other code is original and authored by Peter Bosler.
+	
+	H. Akima, 1978, A method of bivariate interpolation and smooth surface fitting for irregularly distributed data points.
+		ACM TOMS, 4.
+	H. Akima, 1984, On estimating partial derivatives for bivariate interpolation of scattered data.
+		Rocky Mountain Journal of Mathematics, 14:41-52.
+	R. Renka, 1997, Algorithm 772 : STRIPACK : Delaunay triangulation and Voronoi diagram on the surface of a sphere.
+		ACM TOMS, 23:416-434.
+	R. Renka, 1997, Algorithm 773 : SSRFPACK : Interpolation of scattered data on the surface of a sphere with a surface under thension.
+		ACM TOMS, 23:435-442.
+	
 
 
 Plotting and graphics
 =========
 
 LPPM includes subroutines for outputting data into formats readable by the VTK C++ graphics library and ParaView, available 
-from www.kitware.org, as well as routines for the NCAR Command Language (NCL) and Matlab.  
+from www.kitware.org, as well as routines for the NCAR Command Language (NCL) <http://www.ncl.ucar.edu> and Matlab.  
 
 
 
