@@ -39,6 +39,35 @@ Finally, the wave is defined and users can define the vorticity on a sphere mesh
 Code runs...
 
 	call Delete(rhWave)	
+
+To create a new test case:
+---------------
+The first step is to create the object that will control your test case, either a tracer or a vorticity distribution, in the Tracers.f90 or BVEVorticity.f90 files.
+Test cases are defined by BVESetup or TracerSetup objects.  
+These objects hold the integers and real numbers that define your test case; numbers that, for example, define the amplitude of a Rossby-Haurwitz wave or the maximum value of an advected tracer.
+To create the object the first step is to allocate the memory to hold these parameters using the "New" subroutine.  
+
+	call New(rhWave, RHWAVE_N_INT, RHWAVE_N_REAL)
+
+RHWAVE_N_INIT and RHWAVE_N_REAL are integer constants defined in the BVESetup.f90 module; their values are 0 and 2 for the RH4 test case,
+which indicates that this test case is defined by 2 real numbers (the ampilitude and phase speeed of the wave).  
+Now that memory is allocated to hold these parameters, the test case must be initialized from user input (typically read from a namelist file).
+If the variables backgroundWindSpeed and amplitude are set by the user, the test case is defind by calling the "Init" subroutine on the test case object.
+
+	call InitRH4Wave(rhWave, backgroundWindSpeed, amplitude)
+
+Finally and most importantly is the subroutine which translates a test case into a tracer or vorticity distribution over a mesh.
+These subroutine must all have the same interface -- only 2 arguments, the first being a mesh object and second being the test case definition.
+This interface is required in order for the LagrangianRemeshing subroutines to work properly.
+
+	call SetRH4WaveOnMesh( aMesh, rhWave)
+
+The SetRH4Wave on mesh calls the mathematical functions that define the vorticity distribution of a Rossby-Haurwitz wave, given the parameters defined by the rhWave test case object.
+
+To create a new test case then, users must first decide how many integers and reals are required to define their test case, and allocate the appropriate amount of memory with the "New" subroutine.
+Then the test case object must be initialized with an "Init" subroutine to define the parameters in the test case object's memory.
+Finally, users must write a SetTestCaseOnMesh subroutine and the associated mathematical functions that define their test case.
+
 	
 Requirements
 =========
