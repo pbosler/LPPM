@@ -1,5 +1,5 @@
 &meshDefine
-	initNest = 2
+	initNest = 1
 	AMR = 0
 	amrLimit = 4
 	xmin = -5.0
@@ -21,7 +21,7 @@
 
 &timestepping
 	dt = 0.01
-	tfinal = 0.5
+	tfinal = 0.01
 /
 
 &remeshing
@@ -34,6 +34,6 @@
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'TwoDipole_amrTest2_dt0.005_'
+	jobPrefix = 'TwoDipole_Ling_dt0.01_'
 /
 
