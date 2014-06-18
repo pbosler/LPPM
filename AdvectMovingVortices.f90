@@ -1,4 +1,4 @@
-program GaussianHillsAdvection
+program MovingVorticesAdvection
 
 use NumberKindsModule
 use OutputWriterModule
@@ -85,7 +85,7 @@ integer(kint) :: j
 !
 ! namelists and user input
 !
-character(len=MAX_STRING_LENGTH) :: namelistFile = 'AdvectGaussHillsDirect.namelist'
+character(len=MAX_STRING_LENGTH) :: namelistFile = 'MovingVortices.namelist'
 namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol 
 namelist /timestepping/ tfinal, dt, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
@@ -190,9 +190,39 @@ do timeJ = 0, timesteps - 1
 		! remesh before timestep
 		!
 		remeshCounter = remeshCounter + 1
-		
-		call DirectRemesh(sphere, remesh)
-		
+		!
+		! choose appropriate remeshing procedure
+		!
+		if ( remeshCounter < resetAlphaInterval ) then
+			!
+			! remesh to t = 0
+			!
+			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetGaussianHillsTracerOnMesh, gHills)
+			
+		elseif ( remeshCounter == resetAlphaInterval ) then
+			!
+			! remesh to t = 0, create reference mesh to current time
+			!
+			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetGaussianHillsTracerOnMesh, gHills)
+			allocate(reference)
+			call New(reference, sphere)
+			call ResetLagrangianParameter(sphere)
+			
+		elseif ( remeshCounter > resetAlphaInterval .AND. mod(remeshCounter, resetAlphaInterval) == 0 ) then
+			!
+			! remesh to existing reference, then create new reference to current time
+			!
+			call LagrangianRemeshToReference( sphere, reference, remesh)
+			call Delete(reference)
+			call New( reference, sphere)
+			call ResetLagrangianParameter(sphere)
+		else
+			!
+			! remesh to existing reference
+			!
+			call LagrangianRemeshToReference(sphere, reference, remesh)
+			
+		endif
 		!
 		! delete objects associated with old mesh
 		!
@@ -210,7 +240,7 @@ do timeJ = 0, timesteps - 1
 	!
 	! advance time
 	!
-	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, LauritzenEtAlNonDivergentWind)
+	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, MovingVorticesVelocity)
 	
 	totalMassGHills(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
 	

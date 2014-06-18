@@ -1,5 +1,5 @@
 &meshDefine
-	initNest = 6
+	initNest = 4
 	AMR = 0
 	panelKind = 4
 	amrLimit = 0
@@ -16,6 +16,6 @@
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'advectGaussHills_'
+	jobPrefix = 'advectMovingVortices_test_'
 	frameOut = 1
 /

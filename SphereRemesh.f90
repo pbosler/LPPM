@@ -1054,7 +1054,7 @@ subroutine DirectRemesh( aMesh, remesh )
 	amrLoopCounter = 0
 	counters = 0
 	
-	call LogMesage(log, DEBUG_LOGGING_LEVEL, 'DirectRemesh : ', 'entering.')
+	call LogMessage(log, DEBUG_LOGGING_LEVEL, 'DirectRemesh : ', 'entering.')
 	
 	!
 	! build a new uniform mesh
@@ -1074,7 +1074,7 @@ subroutine DirectRemesh( aMesh, remesh )
 	! set flow data on new mesh
 	!
 	if ( aMesh%nTracer > 0 ) then
-		call New(tracerSource, delTri, nTracer)
+		call New(tracerSource, delTri, aMesh%nTracer)
 		call SetSourceTracer(tracerSource, delTri)
 		
 		do k = 1, aMesh%nTracer
@@ -1093,17 +1093,17 @@ subroutine DirectRemesh( aMesh, remesh )
 	
 	if ( aMesh%problemKind == BVE_SOLVER) then
 		call New(absVortSource, delTri, .FALSE.)		
-		call SetSourceAbsVort(scalarSource, delTri)
+		call SetSourceAbsVort(absVortSource, delTri)
 		
 		do j = 1, newParticles%N
-			newParticles%absVort(j) = InterpolateScalar(newParticles%x(:,j), scalarSource, delTri)
+			newParticles%absVort(j) = InterpolateScalar(newParticles%x(:,j), absVortSource, delTri)
 			newParticles%relVort(j) = newParticles%absVort(j) - 2.0_kreal * OMEGA * newParticles%x(3,j)/EARTH_RADIUS
 		enddo
 		do j = 1, newPanels%N
 			if ( newPanels%hasChildren(j) ) then
 				newPanels%absVort(j) = 0.0_kreal
 			else
-				newPanels%absVort(j) = InterpolateScalar(newPanels%x(:,j), scalarSource, deltri)
+				newPanels%absVort(j) = InterpolateScalar(newPanels%x(:,j), absVortSource, deltri)
 				newPanels%relVort(j) = newPanels%absVort(j) - 2.0_kreal * OMEGA * newPanels%x(3,j)/EARTH_RADIUS
 			endif
 		enddo

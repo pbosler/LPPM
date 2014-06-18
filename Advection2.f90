@@ -33,6 +33,7 @@ public ZeroRK4
 public AdvectionRK4Timestep
 public LauritzenEtAlNonDivergentWind, LauritzenEtAlDivergentWind
 public TestCase1Velocity, SetAlpha
+public MovingVorticesVelocity
 
 !
 !----------------
@@ -40,7 +41,9 @@ public TestCase1Velocity, SetAlpha
 !----------------
 !
 
-real(kreal), save :: alpha = 0.0_kreal ! angle of inclination relative to z-axis
+real(kreal), save :: alpha = 0.0_kreal, & ! angle of inclination relative to z-axis
+					 rotLon0 = 3.0_kreal*PI/2.0_kreal, &
+					 rotLat0 = 0.0_kreal 
 
 type AdvRK4Data
 	! MPI load balancing indices
@@ -652,6 +655,79 @@ function TestCase1Velocity(xyz,t)
 	TestCase1Velocity(3) =  u0*xyz(2)*sin(alpha)
 end function
 
+function RotatedLongitude( xyz, lamP, thetaP)
+!	gives the rotated longitude of a vector located at cartesian coordinates xyz with respect to a sphere whose north pole
+!	has longitude lamP and latitude thetaP in an unrotated coordinate system.
+	real(kreal) :: RotatedLongitude
+	real(kreal), intent(in) :: xyz(3), lamP, thetaP
+	!
+	real(kreal) :: lat, lon
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
+	RotatedLongitude = atan4( cos(lat) * sin( lon - lamP), cos(lat) * sin(thetaP) * cos(lon-lamP) - cos(thetaP)*sin(lat) )
+end function
+
+function RotatedLatitude( xyz, lamP, thetaP)
+!	gives the rotated latitude of a vector located at cartesian coordinates xyz with respect to a sphere whose north pole
+!	has longitude lamP and latitude thetaP in an unrotated coordinate system.
+	real(kreal) :: RotatedLatitude
+	real(kreal), intent(in) :: xyz(3), lamP, thetaP
+	!
+	real(kreal) :: lat, lon
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
+	RotatedLatitude = asin( sin(lat)*sin(thetaP) + cos(lat)*cos(thetaP)*cos(lon-lamP))
+end function
+
+function UnrotatedLongitude(rotLon, rotLat, lamP, thetaP)
+	real(kreal) :: UnrotatedLongitude
+	real(kreal), intent(in) :: rotLon, rotLat, lamP, thetaP
+	UnrotatedLongitude = lamP + atan4( cos(rotLat)*sin(rotLon), sin(rotLat)*cos(thetaP) + cos(rotlat)*cos(rotLon)*sin(thetaP))
+end function
+
+function UnrotatedLatitude(rotLon, rotLat, lamP, thetaP)
+	real(kreal) :: UnrotatedLatitude
+	real(kreal), intent(in) :: rotLon, rotLat, lamP, thetaP
+	UnrotatedLatitude = asin(sin(rotLat)*sin(thetaP) - cos(rotLat)*cos(thetaP)*cos(rotLon))
+end function
+
+function MovingVorticesRho( xyz, rho0, lamP, thetaP)
+	real(kreal) :: MovingVorticesRho
+	real(kreal), intent(in) :: xyz(3), rho0, lamP, thetaP
+	MovingVorticesRho = rho0 * cos( RotatedLatitude(xyz, lamP, thetaP) )
+end function
+
+function MovingVorticesVelocity( xyz, t)
+	real(kreal) :: MovingVorticesVelocity(3)
+	real(kreal), intent(in) :: xyz(3), t
+	!
+	real(kreal) :: lamC1, thetaC1, lamC2, thetaC2, u, v, lat, lon, rho1, wr1, rho2, wr2
+	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY), &
+							  rho0 = 3.0_kreal
+	
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
+	
+	lamC1 = UnrotatedLongitude( PI + u0 * t , rotLat0, PI, PI/2.0_kreal - alpha)
+	thetaC1 = UnrotatedLatitude( PI + u0 * t, rotLat0, PI, PI/2.0_kreal - alpha)
+	lamC2 = UnrotatedLongitude( u0*t, rotLat0, 0.0_kreal, PI/2.0_kreal -alpha)
+	thetaC2 = UnrotatedLatitude( u0*t, rotLat0, 0.0_kreal, PI/2.0_kreal -alpha)
+	
+	rho1 = MovingVorticesRho( xyz, rho0, lamC1, thetaC1 )
+	wr1 = u0 * 0.5_kreal * 3.0_kreal * sqrt(3.0_kreal) * tanh( rho1 ) / cosh(rho1) / cosh(rho1)
+	rho2 = MovingVorticesRho(xyz, rho0, lamC2, thetaC2)
+	wr2 = u0 * 0.5_kreal * 3.0_kreal * sqrt(3.0_kreal ) * tanh(rho2) / cosh(rho2) / cosh(rho2)
+	
+	u = u0 * ( cos(lat)*cos(alpha) + sin(lat)*cos(lon)*sin(alpha) ) + ( rho1 / (rho1 + ZERO_TOL) / (RHO1 + ZERO_TOL) ) * wr1 * &
+			( sin(thetaC1)*cos(lat) - cos(thetaC1)*cos(lon-lamC1)*sin(lat) ) + &
+			( rho2 / (rho2 + ZERO_TOL) / (RHO2 + ZERO_TOL) ) * wr2 * &
+			( sin(thetaC2)*cos(lat) - cos(thetaC2)*cos(lon-lamC2)*sin(lat) )
+	v = -u0 * sin(lon)*sin(alpha) + wr1 * cos(thetaC1) * sin(lon-lamC1) + wr2 * cos(thetaC2) * sin(lon-lamC2)
+	
+	MovingVorticesVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
+	MovingVorticesVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
+	MovingVorticesVelocity(3) =  v*cos(lat)
+end function
 
 subroutine InitLogger(aLog,rank)
 	type(Logger), intent(inout) :: aLog
