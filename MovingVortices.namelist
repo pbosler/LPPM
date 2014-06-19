@@ -1,21 +1,22 @@
 &meshDefine
 	initNest = 4
-	AMR = 0
+	AMR = 3
 	panelKind = 4
-	amrLimit = 0
-	tracerMassTol = 0.1
-	tracerVarTol = 1.0
+	amrLimit = 4
+	tracerMassTol = 2.0
+	tracerVarTol = 0.25
+	lagVarTol = 1.0
 /
 
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
 	remeshInterval = 20
-	resetAlphaInterval = 2000
+	resetAlphaInterval = 4
 /
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'advectMovingVortices_test_'
+	jobPrefix = 'advectMovingVortices_AMR+reInitTest_'
 	frameOut = 1
 /

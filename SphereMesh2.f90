@@ -49,7 +49,8 @@ public LocatePoint
 public DividePanel
 public GetRossbyNumber
 public ResetLagrangianParameter
-public MaximumCirculation, MaximumVorticityVariation, AverageLagrangianParameterVariation
+public MaximumCirculation, MaximumVorticityVariation
+public MaximumLagrangianParameterVariation, AverageLagrangianParameterVariation
 public MaximumTracerMass, MaximumTracerVariation
 !
 !----------------
@@ -500,15 +501,15 @@ function MaximumTracerVariation(self, tracerID)
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
 	real(kreal) :: tmax, tmin
-	
+
 	aParticles => self%particles
 	aPanels => self%panels
-	
+
 	tmax = max( maxval(aParticles%tracer(1:aParticles%N, tracerID)), maxval( aPanels%tracer(1:aPanels%N, tracerID)) )
 	tmin = min( minval(aParticles%tracer(1:aParticles%N, tracerID)), minval( aPanels%tracer(1:aPanels%N, tracerID)) )
-	
-	MaximumTracerVariation = tmax - tmin	
-end function 
+
+	MaximumTracerVariation = tmax - tmin
+end function
 
 
 function MaximumVorticityVariation(self)
@@ -532,6 +533,40 @@ function AverageLagrangianParameterVariation(self)
 	real(kreal) :: AverageLagrangianParameterVariation
 	type(SphereMesh), intent(in) :: self
  	AverageLagrangianParameterVariation = sqrt( 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS / self%panels%N_Active )
+end function
+
+function MaximumLagrangianParameterVariation(self)
+	real(kreal) :: MaximumLagrangianParameterVariation
+	type(SphereMesh), intent(in) :: self
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j, k, edgeList(8), vertList(8), nVerts
+	real(kreal) :: maxx0(3), minx0(3)
+
+	MaximumLagrangianParameterVariation = 0.0_kreal
+
+	aParticles => self%particles
+	aPanels => self%panels
+
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			maxx0 = aPanels%x0(:,j)
+			minx0 = aPanels%x0(:,j)
+			call CCWEdgesAndParticlesAroundPanel(edgeList, vertList, nVerts, self, j)
+			do k = 1, nVerts
+				if ( aParticles%x0(1,vertLIst(k)) > maxx0(1) ) maxx0(1) = aParticles%x0(1,vertlist(k))
+				if ( aParticles%x0(1,vertList(k)) < minx0(1) ) minx0(1) = aParticles%x0(1,vertList(k))
+				if ( aParticles%x0(2,vertLIst(k)) > maxx0(2) ) maxx0(2) = aParticles%x0(2,vertlist(k))
+				if ( aParticles%x0(2,vertList(k)) < minx0(2) ) minx0(2) = aParticles%x0(2,vertList(k))
+				if ( aParticles%x0(3,vertLIst(k)) > maxx0(3) ) maxx0(3) = aParticles%x0(3,vertlist(k))
+				if ( aParticles%x0(3,vertList(k)) < minx0(3) ) minx0(3) = aParticles%x0(3,vertList(k))
+			enddo
+			if ( sum( maxx0 - minx0 ) > MaximumLagrangianParameterVariation ) &
+				MaximumLagrangianParameterVariation = sum(maxx0 - minx0)
+		endif
+	enddo
+
 end function
 
 !

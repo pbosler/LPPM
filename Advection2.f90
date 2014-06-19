@@ -43,7 +43,9 @@ public MovingVorticesVelocity
 
 real(kreal), save :: alpha = 0.0_kreal, & ! angle of inclination relative to z-axis
 					 rotLon0 = 3.0_kreal*PI/2.0_kreal, &
-					 rotLat0 = 0.0_kreal 
+					 rotLat0 = 0.0_kreal , &
+					 npLat = PI/2.0_kreal, &
+					 npLon = 0.0_kreal
 
 type AdvRK4Data
 	! MPI load balancing indices
@@ -701,29 +703,25 @@ function MovingVorticesVelocity( xyz, t)
 	real(kreal) :: MovingVorticesVelocity(3)
 	real(kreal), intent(in) :: xyz(3), t
 	!
-	real(kreal) :: lamC1, thetaC1, lamC2, thetaC2, u, v, lat, lon, rho1, wr1, rho2, wr2
+	real(kreal) :: lamC, thetaC, u, v, lat, lon, rho, wr
 	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY), &
 							  rho0 = 3.0_kreal
-	
+
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
-	
-	lamC1 = UnrotatedLongitude( PI + u0 * t , rotLat0, PI, PI/2.0_kreal - alpha)
-	thetaC1 = UnrotatedLatitude( PI + u0 * t, rotLat0, PI, PI/2.0_kreal - alpha)
-	lamC2 = UnrotatedLongitude( u0*t, rotLat0, 0.0_kreal, PI/2.0_kreal -alpha)
-	thetaC2 = UnrotatedLatitude( u0*t, rotLat0, 0.0_kreal, PI/2.0_kreal -alpha)
-	
-	rho1 = MovingVorticesRho( xyz, rho0, lamC1, thetaC1 )
-	wr1 = u0 * 0.5_kreal * 3.0_kreal * sqrt(3.0_kreal) * tanh( rho1 ) / cosh(rho1) / cosh(rho1)
-	rho2 = MovingVorticesRho(xyz, rho0, lamC2, thetaC2)
-	wr2 = u0 * 0.5_kreal * 3.0_kreal * sqrt(3.0_kreal ) * tanh(rho2) / cosh(rho2) / cosh(rho2)
-	
-	u = u0 * ( cos(lat)*cos(alpha) + sin(lat)*cos(lon)*sin(alpha) ) + ( rho1 / (rho1 + ZERO_TOL) / (RHO1 + ZERO_TOL) ) * wr1 * &
-			( sin(thetaC1)*cos(lat) - cos(thetaC1)*cos(lon-lamC1)*sin(lat) ) + &
-			( rho2 / (rho2 + ZERO_TOL) / (RHO2 + ZERO_TOL) ) * wr2 * &
-			( sin(thetaC2)*cos(lat) - cos(thetaC2)*cos(lon-lamC2)*sin(lat) )
-	v = -u0 * sin(lon)*sin(alpha) + wr1 * cos(thetaC1) * sin(lon-lamC1) + wr2 * cos(thetaC2) * sin(lon-lamC2)
-	
+
+!	thetaC = RotatedLatitude( xyz, npLon, npLat )
+!	lamC = RotatedLongitude( xyz, npLon, npLat)
+	thetaC = npLat
+	lamC = npLon
+
+	rho = rho0 * cos( lat )
+
+	wr = u0 * 0.5_kreal * 3.0_kreal * sqrt(3.0_kreal) * tanh(rho) / cosh(rho) / cosh(rho) * ( rho / (rho*rho + ZERO_TOL*ZERO_TOL) )
+
+	u = wr * ( sin(thetaC) * cos(lat) - cos(thetaC) * cos(lon - lamC)*sin(lat) )
+	v = wr * ( cos(thetaC) * sin(lon-lamC) )
+
 	MovingVorticesVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
 	MovingVorticesVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
 	MovingVorticesVelocity(3) =  v*cos(lat)

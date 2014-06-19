@@ -32,6 +32,7 @@ public New, Delete, NullTracer
 public InitCosineBellTracer, SetCosineBellTracerOnMesh, COS_BELL_NINT, COS_BELL_NREAL
 public SetFlowMapLatitudeTracerOnMesh
 public InitGaussianHillsTracer, SetGaussianHillsTracerOnMesh, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL
+public SetMovingVortsTracerOnMesh
 
 
 !
@@ -156,6 +157,40 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 	enddo
 end subroutine
 
+subroutine SetMovingVortsTracerOnMesh( aMesh, mvt)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(TracerSetup), intent(in) :: mvt
+	!
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	real(kreal) :: rho0, gamma, rho, wr, lat, lon, v0
+
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+
+	rho0 = 3.0_kreal
+	gamma = 5.0_kreal
+	v0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY)
+
+	do j = 1, aParticles%N
+		aParticles%tracer(j, 1 ) = MVTracer(aParticles%x0(:,j), rho0, gamma)
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%tracer(j,mvt%integers(1)) = 0.0_kreal
+		else
+			aPanels%tracer(j, 1 ) = MVTracer(aPanels%x0(:,j), rho0, gamma)
+		endif
+	enddo
+end subroutine
+
+function MVTracer(xyz, rho0, gamma)
+	real(kreal) :: MVTracer
+	real(kreal), intent(in) :: xyz(3), rho0, gamma
+	MVTracer = 1.0_kreal - tanh( rho0 * cos(Latitude(xyz)) * sin( Longitude(xyz) ) / gamma )
+end function
+
 subroutine InitGaussianHillsTracer(gHills, hmax, beta, tracerID)
 	type(TracerSetup), intent(inout) :: gHills
 	real(kreal), intent(in) :: hmax, beta
@@ -169,10 +204,10 @@ subroutine InitGaussianHillsTracer(gHills, hmax, beta, tracerID)
 		call LogMessage(log, ERROR_LOGGING_LEVEL,'tracerSetup ERROR : ',' integer array size incorrect')
 		return
 	endif
-	
+
 	gHills%reals(1) = hmax
 	gHills%reals(2) = beta
-	gHills%integers(1) = tracerID	
+	gHills%integers(1) = tracerID
 end subroutine
 
 subroutine SetGaussianHillsTracerOnMesh(aMesh, gHills)
@@ -183,13 +218,13 @@ subroutine SetGaussianHillsTracerOnMesh(aMesh, gHills)
 	integer(kint) :: j
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
-	
+
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
-	
+
 	xyzCent1 = [ cos(5.0_kreal * PI / 6.0_kreal), sin( 5.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
 	xyzCent2 = [ cos(7.0_kreal * PI / 6.0_kreal), sin( 7.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
-	
+
 	do j = 1, aParticles%N
 		aParticles%tracer(j, gHills%integers(1) ) = GaussianHillsTracer(aParticles%x0(:,j)/EARTH_RADIUS, xyzcent1, xyzcent2, gHills%reals(1), gHills%reals(2))
 	enddo
@@ -207,10 +242,10 @@ function GaussianHillsTracer(xyz, cent1, cent2, hmax, beta)
 	real(kreal), intent(in) :: xyz(3), cent1(3), cent2(3), hmax, beta
 	!
 	real(kreal) :: h1, h2
-	
+
 	h1 = hmax * exp( -beta * ( sum( (xyz-cent1) * (xyz-cent1) ) ) )
 	h2 = hmax * exp( -beta * ( sum( (xyz-cent2) * (xyz-cent2) ) ) )
-	
+
 	GaussianHillsTracer = h1 + h2
 end function
 
