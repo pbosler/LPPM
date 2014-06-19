@@ -35,9 +35,10 @@ public TotalArea
 public DividePanel
 public MaximumCirculation, MaximumVorticityVariation
 public MaximumLagrangianParameterVariation
+public MaximumTracerMass, MaximumTracerVariation
 public MinX, MaxX, MinY, MaxY
 public ResetLagrangianParameter
-public GetTotalCirculation, GetTotalKE, GetTotalEnstrophy
+public GetTotalCirculation, GetTotalKE, GetTotalEnstrophy, GetTotalMass
 
 !
 !----------------
@@ -478,6 +479,16 @@ function GetTotalCirculation(self)
 	GetTotalCirculation = sum( aPanels%relVort * aPanels%area)
 end function
 
+function GetTotalMass(self, tracerID)
+	real(kreal) :: GetTotalMass
+	type(PlaneMesh), intent(in) :: self
+	integer(kint), intent(in) :: tracerID
+	!
+	type(Panels), pointer :: aPanels
+	aPanels => self%panels
+	GetTotalMass = sum( aPanels%tracer(:,tracerID) * aPanels%area )
+end function 
+
 function GetTotalKE(self)
 	real(kreal) :: GetTotalKE
 	type(PlaneMesh), intent(in) :: self
@@ -499,6 +510,31 @@ function MaximumCirculation(self)
 	type(Panels), pointer :: aPanels
 	aPanels => self%panels
 	MaximumCirculation = maxval(abs(aPanels%relVort(1:aPanels%N))*aPanels%area(1:aPanels%N))
+end function
+
+function MaximumTracerMass(self, tracerID)
+	real(kreal) :: MaximumTracerMass
+	type(PlaneMesh), intent(in) :: self
+	integer(kint), intent(in) :: tracerID
+	!
+	type(Panels), pointer :: aPanels
+	aPanels => self%panels
+	MaximumTracerMass = maxval( aPanels%tracer(1:aPanels%N,tracerID) * aPanels%area(1:aPanels%N) )
+end function
+
+function MaximumTracerVariation(self, tracerID)
+	real(kreal) :: MaximumTracerVariation
+	type(PlaneMesh), intent(in) :: self
+	integer(kint), intent(in) :: tracerID
+	!
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	real(kreal) :: maxTracer, minTracer
+	aParticles => self%particles
+	aPanels => self%panels
+	minTracer = min( minval(aParticles%tracer(1:aParticles%N,tracerID)), minval(aPanels%tracer(1:aPanels%N,tracerID)) )
+	maxTracer = max( maxval(aParticles%tracer(1:aParticles%N,tracerID)), maxval(aPanels%tracer(1:aPanels%N,tracerID)) )
+	MaximumTracerVariation = maxTracer - minTracer
 end function
 
 function MaximumVorticityVariation(self)

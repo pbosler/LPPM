@@ -100,7 +100,7 @@ advectGaussHillsMPI.exe: AdvectGaussHills.o $(ADVECTION_OBJS)
 advectGaussHillsDirectMPI.exe: AdvectGaussHillsDirect.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
 advectMovingVorticesMPI.exe: AdvectMovingVortices.o $(ADVECTION_OBJS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
 solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)	
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 singleGaussianVortexMPI.exe: BVESingleGaussianVortex.o $(BVE_OBJS)
@@ -113,6 +113,8 @@ lambDipoleMPI.exe: LambDipole.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 twoDipolesMPI.exe: TwoDipoles.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
+planeAdvectRotationMPI.exe: PlaneRotationalAdvection.o $(PLANE_RUNS)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################
@@ -127,6 +129,7 @@ BVERH4.o: BVERH4.f90 $(BVE_OBJS)
 SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 LambDipole.o: LambDipole.f90 $(PLANE_RUNS)
 TwoDipoles.o: TwoDipoles.f90 $(PLANE_RUNS)
+PlaneRotationalAdvection.o: PlaneRotationalAdvection.f90 $(PLANE_RUNS)
 #############################################################
 ## UNIT TEST EXECUTABLES
 #############################################################
