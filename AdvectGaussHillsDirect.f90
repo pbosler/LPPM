@@ -64,9 +64,9 @@ type(OutputWriter) :: writer
 !
 ! test case variables
 !
-real(kreal), allocatable :: totalMassGHills(:)
+real(kreal), allocatable :: totalMassGHills(:), tracerVar(:)
 real(kreal) :: sphereL2, sphereLinf, panelsLinf, particlesLinf, phiMax, phiMin, deltaPhi, phimax0, phimin0
-real(kreal) :: mass0
+real(kreal) :: mass0, var0
 
 !
 ! logging
@@ -171,6 +171,9 @@ frameCounter = 1
 allocate(totalMassGHills(0:timesteps))
 totalMassGHills = 0.0_kreal
 mass0 = TotalMass(sphere, tracerID)
+allocate(tracerVar(0:timesteps))
+tracerVar = 0.0_kreal
+var0 = TracerVariation(sphere, tracerID)
 
 
 sphereParticles => sphere%particles
@@ -213,6 +216,7 @@ do timeJ = 0, timesteps - 1
 	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, LauritzenEtAlNonDivergentWind)
 
 	totalMassGHills(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
+	tracerVar(timeJ+1) = ( TracerVariation(sphere, tracerID) - var0 ) / var0
 
 	t = real( timeJ+1, kreal) * dt
 
@@ -274,7 +278,13 @@ enddo
 				write(WRITE_UNIT_1,'(F24.15,A)') totalMassGHills(j), ' ; ...'
 			enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') totalMassGHills(timesteps), ' ] ;'
-
+			
+			write(WRITE_UNIT_1,'(A,F24.15,A)') 'tracerVar = [ ', tracerVar(0), ' ; ...'
+			do j = 1, timesteps-1
+				write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(j), ' ; ...'
+			enddo
+			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
+			
 		endif
 		close(WRITE_UNIT_1)
 
@@ -290,6 +300,7 @@ if (associated(reference)) then
 	deallocate(reference)
 endif
 deallocate(totalMassGHills)
+deallocate(tracerVar)
 call Delete(timekeeper)
 call Delete(remesh)
 if ( procrank == 0 ) call Delete(vtkOut)
