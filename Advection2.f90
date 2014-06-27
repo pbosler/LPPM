@@ -34,6 +34,7 @@ public AdvectionRK4Timestep
 public LauritzenEtAlNonDivergentWind, LauritzenEtAlDivergentWind
 public TestCase1Velocity, SetAlpha
 public MovingVorticesVelocity
+public KentCascadeVelocity
 
 !
 !----------------
@@ -725,6 +726,23 @@ function MovingVorticesVelocity( xyz, t)
 	MovingVorticesVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
 	MovingVorticesVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
 	MovingVorticesVelocity(3) =  v*cos(lat)
+end function
+
+function KentCascadeVelocity(xyz, t)
+	real(kreal) :: KentCascadeVelocity(3)
+	real(kreal), intent(in) :: xyz(3), t
+	!
+	real(kreal) :: lat, lon, u, v
+	real(kreal), parameter :: TT = 12.0_kreal * ONE_DAY
+	
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
+	
+	u = 38.0_kreal * EARTH_RADIUS * sin( 0.5_kreal * lon) * sin( 0.5_kreal * lon ) * sin( 2.0_kreal * lat) / TT
+	v = 19.0_kreal * EARTH_RADIUS * sin( lon ) * cos( lat ) / TT
+	KentCascadeVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
+	KentCascadeVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
+	KentCascadeVelocity(3) =  v*cos(lat)
 end function
 
 subroutine InitLogger(aLog,rank)

@@ -65,9 +65,9 @@ type(OutputWriter) :: writer
 !
 ! test case variables
 !
-real(kreal), allocatable :: totalMasstestCaseTracer(:), sphereL2(:), sphereLinf(:), panelsLinf(:), particlesLinf(:), phiMax(:), phiMin(:)
+real(kreal), allocatable :: totalMasstestCaseTracer(:), sphereL2(:), sphereLinf(:), panelsLinf(:), particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:)
 real(kreal) :: deltaPhi, phimax0, phimin0
-real(kreal) :: mass0
+real(kreal) :: mass0, var0
 
 !
 ! logging
@@ -183,7 +183,9 @@ allocate(phiMax(0:timesteps))
 phiMax = 0.0_kreal
 allocate(phiMin(0:timesteps))
 phiMin = 0.0_kreal
-
+allocate(tracerVar(0:timesteps))
+tracerVar = 0.0_kreal
+var0 = TracerVariance(sphere, tracerID)
 
 sphereParticles => sphere%particles
 spherePanels => sphere%panels
@@ -270,6 +272,8 @@ do timeJ = 0, timesteps - 1
 		endif
 	enddo
 	totalMasstestCaseTracer(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
+	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
+	
 	particlesLinf(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(sphereParticles%tracer(1:sphereParticles%N,1))
 	panelsLinf(timeJ+1) = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( spherePanels%tracer(1:spherePanels%N,1) )
 
@@ -348,7 +352,12 @@ enddo
 				write(WRITE_UNIT_1,'(F24.15,A)') totalMasstestCaseTracer(j), ' ; ...'
 			enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') totalMasstestCaseTracer(timesteps), ' ] ;'
-
+		
+			write(WRITE_UNIT_1,'(A,F24.15,A)') 'tracerVar = [ ', tracerVar(0), ' ; ...'
+			do j = 1, timesteps-1
+				write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(j), ' ; ...'
+			enddo
+			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
 		endif
 		close(WRITE_UNIT_1)
 
@@ -364,6 +373,7 @@ if (associated(reference)) then
 	deallocate(reference)
 endif
 deallocate(totalMasstestCaseTracer)
+deallocate(tracerVar)
 deallocate(sphereL2)
 deallocate(sphereLinf)
 deallocate(particlesLinf)

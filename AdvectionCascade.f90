@@ -1,4 +1,4 @@
-program GaussianHillsAdvection
+program KentCascadeAdvection
 
 use NumberKindsModule
 use OutputWriterModule
@@ -28,10 +28,9 @@ type(Panels), pointer :: spherePanels
 !
 ! tracer variables
 !
-type(TracerSetup) :: gHills
+type(TracerSetup) :: gHill
 integer(kint) :: tracerID
 real(kreal) :: hmax, beta
-
 !
 ! vorticity placeholder
 !
@@ -64,8 +63,7 @@ type(OutputWriter) :: writer
 !
 ! test case variables
 !
-real(kreal), allocatable :: totalMassGHills(:), tracerVar(:)
-real(kreal) :: sphereL2, sphereLinf, panelsLinf, particlesLinf, phiMax, phiMin, deltaPhi, phimax0, phimin0
+real(kreal), allocatable :: totalMassGHill(:), tracerVar(:)
 real(kreal) :: mass0, var0
 
 !
@@ -85,11 +83,10 @@ integer(kint) :: j
 !
 ! namelists and user input
 !
-character(len=MAX_STRING_LENGTH) :: namelistFile = 'AdvectGaussianHills.namelist'
+character(len=MAX_STRING_LENGTH) :: namelistFile = 'AdvectionCascade.namelist'
 namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol 
 namelist /timestepping/ tfinal, dt, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
-
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	INITIALIZE COMPUTER, MESH, TEST CASE
@@ -103,9 +100,11 @@ call InitLogger(exeLog, procRank)
 
 wallclock = MPI_WTIME()
 
+nullify(reference)
+
 nTracer = 2
 tracerID = 1
-hmax = 0.95_kreal
+hmax = 1.0_kreal
 beta = 5.0_kreal
 
 !
@@ -116,15 +115,14 @@ call ReadNamelistFile(procRank)
 !
 ! define tracer
 !
-call New(gHills, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL)
-call InitGaussianHillsTracer(gHills, hmax, beta, tracerID)
+call New(gHill, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL)
+call InitOneGaussianHillTracer(gHill, hmax, beta, tracerID)
 
 !
 ! build initial mesh
 !
 call New(sphere, panelKind, initNest, AMR, nTracer, ADVECTION_SOLVER)
-call SetGaussianHillsTracerOnMesh(sphere, gHills)
-
+call SetOneGaussianHillTracerOnMesh(sphere, gHill)
 !
 ! initialize remeshing and refinement
 !
@@ -132,9 +130,9 @@ call ConvertFromRelativeTolerances(sphere, tracerMassTol, tracerVarTol, tracerID
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerMassTol = ', tracerMassTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerVarTol  = ', tracerVarTol )
 call New(remesh, tracerID, tracerMassTol, tracerVarTol, amrLimit)
-nullify(reference)
+
 if ( AMR > 0 ) then
-	call InitialRefinement(sphere, remesh, SetGaussianHillsTracerOnMesh, gHills, NullVorticity, nullvort)
+	call InitialRefinement(sphere, remesh, SetOneGaussianHillTracerOnMesh, gHill, NullVorticity, nullvort)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
 else
@@ -153,7 +151,7 @@ if ( procrank == 0 ) then
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
 	write(summaryFile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrString), '_summary.txt'
 	write(datafile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrstring), '_calculatedData.m'
-	call New(vtkOut, sphere, vtkFile, 'Gaussian hills advection')
+	call New(vtkOut, sphere, vtkFile, 'advection cascade')
 	call VTKOutput(vtkOut, sphere)
 endif
 
@@ -165,20 +163,15 @@ timesteps = floor(tfinal / dt)
 t = 0.0_kreal
 remeshCounter = 0
 frameCounter = 1
-allocate(totalMassGHills(0:timesteps))
-totalMassGHills = 0.0_kreal
+allocate(totalMassGHill(0:timesteps))
+totalMassGHill = 0.0_kreal
 mass0 = TotalMass(sphere, tracerID)
 allocate(tracerVar(0:timesteps))
 tracerVar = 0.0_kreal
-var0 = TracerVariance(sphere,tracerID)
-
+var0 = TracerVariance(sphere, tracerID)
 
 sphereParticles => sphere%particles
 spherePanels => sphere%panels
-phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
-phimin0 = 0.0_kreal
-deltaPhi = phimax0 - phimin0
-
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	RUN THE PROBLEM
@@ -197,13 +190,13 @@ do timeJ = 0, timesteps - 1
 			!
 			! remesh to t = 0
 			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetGaussianHillsTracerOnMesh, gHills)
+			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetOneGaussianHillTracerOnMesh, gHill)
 			
 		elseif ( remeshCounter == resetAlphaInterval ) then
 			!
 			! remesh to t = 0, create reference mesh to current time
 			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetGaussianHillsTracerOnMesh, gHills)
+			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetOneGaussianHillTracerOnMesh, gHill)
 			allocate(reference)
 			call New(reference, sphere)
 			call ResetLagrangianParameter(sphere)
@@ -240,10 +233,10 @@ do timeJ = 0, timesteps - 1
 	!
 	! advance time
 	!
-	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, LauritzenEtAlNonDivergentWind)
+	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, KentCascadeVelocity)
 	
-	totalMassGHills(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
-	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0) / var0
+	totalMassGHill(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
+	tracerVar(timeJ+1)  = ( TracerVariance(sphere, tracerID) - var0 ) / var0	
 	
 	t = real( timeJ+1, kreal) * dt
 	
@@ -257,66 +250,35 @@ do timeJ = 0, timesteps - 1
 		frameCounter = frameCounter + 1
 	endif	
 enddo
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	OUTPUT FINAL DATA
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	!
-	! calculate error : exact solution at final time should equal exact tracer from initial distribution
-	!
-	sphereParticles => sphere%particles
-	spherePanels => sphere%panels
-	do j = 1, sphereParticles%N
-		sphereParticles%tracer(j,2) = abs( GHillsExact(sphereParticles%x(:,j)/EARTH_RADIUS, hmax, beta) - sphereParticles%tracer(j,1))
-	enddo
-	do j = 1, spherePanels%N
-		if ( spherePanels%hasChildren(j) ) then
-			spherePanels%tracer(j,2) = 0.0_kreal
-		else
-			spherePanels%tracer(j,2) = abs( GHillsExact(spherePanels%x(:,j)/EARTH_RADIUS, hmax, beta) - spherePanels%tracer(j,1) )
-		endif
-	enddo
-
-	particlesLinf = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(sphereParticles%tracer(1:sphereParticles%N,1))
-	panelsLinf = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( spherePanels%tracer(1:spherePanels%N,1) )
-	
-	sphereLinf = max( particlesLinf, panelsLinf )
-	sphereL2 = sum( spherePanels%tracer(1:spherePanels%N,2) * spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
-	sphereL2 = sphereL2 / sum( spherePanels%tracer(1:spherePanels%N,1) * spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
-	sphereL2 = sqrt(sphereL2)
-	
-	phimax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
-	phimin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
-	if ( procRank == 0 ) then
-		open( unit = WRITE_UNIT_1, file = datafile, status = 'REPLACE', action = 'WRITE', iostat = readwritestat)
-		if ( readwritestat /= 0 ) then
-			call LogMessage(exeLog, ERROR_LOGGING_LEVEL, 'data file ERROR : ', ' failed to open data file.')
-		else
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'passiveLinf = ', particlesLinf, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'activeLinf = ', panelsLinf, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'sphereLinf = ', sphereLinf, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'sphereL2 = ', sphereL2, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'phi_max = ', phimax, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'phi_min = ', phimin, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'dt_day = ', dt / ONE_DAY, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'tfinal_day = ', tfinal / ONE_DAY, ' ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'mass = [ ', totalMassGHills(0), ' ; ...'
-			do j = 1, timesteps-1
-				write(WRITE_UNIT_1,'(F24.15,A)') totalMassGHills(j), ' ; ...'
-			enddo
-			write(WRITE_UNIT_1,'(F24.15,A)') totalMassGHills(timesteps), ' ] ;'
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'tracerVar = [ ', tracerVar(0), ' ; ...'
-			do j = 1, timesteps-1
-				write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(j), ' ; ...'
-			enddo
-			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
-		endif
-		close(WRITE_UNIT_1)
-		
-		write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
-		call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
-		
+if ( procRank == 0 ) then
+	open( unit = WRITE_UNIT_1, file = datafile, status = 'REPLACE', action = 'WRITE', iostat = readwritestat)
+	if ( readwritestat /= 0 ) then
+		call LogMessage(exeLog, ERROR_LOGGING_LEVEL, 'data file ERROR : ', ' failed to open data file.')
+	else
+		write(WRITE_UNIT_1,'(A,F24.15,A)') 'dt_day = ', dt / ONE_DAY, ' ;'
+		write(WRITE_UNIT_1,'(A,F24.15,A)') 'tfinal_day = ', tfinal / ONE_DAY, ' ;'
+		write(WRITE_UNIT_1,'(A,F24.15,A)') 'mass = [ ', totalMassGHill(0), ' ; ...'
+		do j = 1, timesteps-1
+			write(WRITE_UNIT_1,'(F24.15,A)') totalMassGHill(j), ' ; ...'
+		enddo
+		write(WRITE_UNIT_1,'(F24.15,A)') totalMassGHill(timesteps), ' ] ;'
+		write(WRITE_UNIT_1,'(A,F24.15,A)') 'tracerVar = [ ', tracerVar(0), ' ; ...'
+		do j = 1, timesteps-1
+			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(j), ' ; ...'
+		enddo
+		write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
 	endif
+	close(WRITE_UNIT_1)
+	
+	write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
+	call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
+endif
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	FREE MEMORY, CLEAN UP, FINALIZE
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -324,32 +286,18 @@ if (associated(reference)) then
 	call Delete(reference)
 	deallocate(reference)
 endif
-deallocate(totalMassGHills)
+deallocate(totalMassGHill)
 deallocate(tracerVar)
 call Delete(timekeeper)
 call Delete(remesh)
 if ( procrank == 0 ) call Delete(vtkOut)
 call Delete(sphere)
-call Delete(gHills)
+call Delete(gHill)
 call Delete(exeLog)
 
 call MPI_FINALIZE(errCode)
 
-contains
-
-function GHillsExact(xyz, hmax, beta)
-	real(kreal) :: GHillsExact
-	real(kreal), intent(in) :: xyz(3), hmax, beta
-	!
-	real(kreal) :: xc1(3), xc2(3), h1, h2
-	
-	xC1 = [ cos(5.0_kreal * PI / 6.0_kreal), sin( 5.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
-	xC2 = [ cos(7.0_kreal * PI / 6.0_kreal), sin( 7.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
-	
-	h1 = hmax * exp( -beta * ( sum( (xyz-xc1) * (xyz-xc1) ) ) )
-	h2 = hmax * exp( -beta * ( sum( (xyz-xc2) * (xyz-xc2) ) ) )
-	GHillsExact = h1 + h2
-end function
+contains 
 
 subroutine ConvertFromRelativeTolerances(aMesh, tracerMassTol, tracerVarTol, tracerID)
 	type(SphereMesh), intent(in) :: amesh

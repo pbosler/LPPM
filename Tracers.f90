@@ -33,6 +33,8 @@ public InitCosineBellTracer, SetCosineBellTracerOnMesh, COS_BELL_NINT, COS_BELL_
 public SetFlowMapLatitudeTracerOnMesh
 public InitGaussianHillsTracer, SetGaussianHillsTracerOnMesh, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL
 public SetMovingVortsTracerOnMesh
+public InitOneGaussianHillTracer, SetOneGaussianHillTracerOnMesh
+public TracerVariance
 
 
 !
@@ -191,6 +193,25 @@ function MVTracer(xyz, rho0, gamma)
 	MVTracer = 1.0_kreal - tanh( rho0 * cos(Latitude(xyz)) * sin( Longitude(xyz) ) / gamma )
 end function
 
+subroutine InitOneGaussianHillTracer(gHill, hMax, beta, tracerID)
+	type(TracerSetup), intent(inout) :: gHill
+	real(kreal), intent(in) :: hMax, beta
+	integer(kint), intent(in) :: tracerID
+	!
+	if ( size(gHill%reals) /= 2 ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,'tracerSetup ERROR : ',' real array size incorrect')
+		return
+	endif
+	if ( size(gHill%integers) /=1 ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,'tracerSetup ERROR : ',' integer array size incorrect')
+		return
+	endif
+
+	gHill%reals(1) = hmax
+	gHill%reals(2) = beta
+	gHill%integers(1) = tracerID
+end subroutine
+
 subroutine InitGaussianHillsTracer(gHills, hmax, beta, tracerID)
 	type(TracerSetup), intent(inout) :: gHills
 	real(kreal), intent(in) :: hmax, beta
@@ -237,6 +258,38 @@ subroutine SetGaussianHillsTracerOnMesh(aMesh, gHills)
 	enddo
 end subroutine
 
+subroutine SetOneGaussianHillTracerOnMesh(aMesh, gHill)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(TracerSetup), intent(in) :: gHill
+	!
+	real(kreal) :: xyzCent(3)
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+
+	xyzCent = [ 0.0_kreal, -1.0_kreal, 0.0_kreal ]
+
+	do j = 1, aParticles%N
+		aParticles%tracer(j, gHill%integers(1) ) = OneGaussianHillTracer(aParticles%x0(:,j)/EARTH_RADIUS, xyzcent, gHill%reals(1), gHill%reals(2))
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%tracer(j, gHill%integers(1) ) = 0.0_kreal
+		else
+			aPanels%tracer(j, gHill%integers(1) ) = OneGaussianHillTracer(aPanels%x0(:,j)/EARTH_RADIUS, xyzcent, gHill%reals(1), gHill%reals(2))
+		endif
+	enddo
+end subroutine
+
+function OneGaussianHillTracer(xyz, cent, hmax, beta)
+		real(kreal) :: OneGaussianHillTracer
+		real(kreal), intent(in) :: xyz(3), cent(3), hmax, beta
+		OneGaussianHillTracer = exp( -beta * ( sum( (xyz-cent)*(xyz-cent) ) ) )
+end function
+
 function GaussianHillsTracer(xyz, cent1, cent2, hmax, beta)
 	real(kreal) :: GaussianHillsTracer
 	real(kreal), intent(in) :: xyz(3), cent1(3), cent2(3), hmax, beta
@@ -272,6 +325,16 @@ subroutine NullTracer(aMesh,nullScalar)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(TracerSetup), intent(in) :: nullScalar
 end subroutine
+
+function TracerVariance(aMesh, tracerID)
+	real(kreal) :: TracerVariance
+	type(SphereMesh), intent(in) :: aMesh
+	integer(kint), intent(in) :: tracerID
+	!
+	type(Panels), pointer :: aPanels
+	aPanels => aMesh%panels
+	tracerVariance = sum( aPanels%tracer(1:aPanels%N,tracerID) * aPanels%tracer(1:aPanels%N,tracerID) * aPanels%area(1:aPanels%N) ) 
+end function
 
 !
 !----------------
