@@ -1,5 +1,5 @@
 &meshDefine
-	initNest = 6
+	initNest = 8
 	AMR = 0
 	panelKind = 4
 	amrLimit = 0
@@ -17,5 +17,5 @@
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
 	jobPrefix = 'advectGaussHills_'
-	frameOut = 1
+	frameOut = 200
 /

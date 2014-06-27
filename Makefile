@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-MACHINE='FERRARI'
-#MACHINE='TANK'
+#MACHINE='FERRARI'
+MACHINE='TANK'
 #MACHINE='VORTEX'
 #MACHINE='LING'
 
@@ -116,7 +116,10 @@ lambDipoleMPI.exe: LambDipole.o $(PLANE_RUNS)
 twoDipolesMPI.exe: TwoDipoles.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 planeAdvectRotationMPI.exe: PlaneRotationalAdvection.o $(PLANE_RUNS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`			
+
+
+
 #############################################################
 ## LPPM MODEL OBJECT FILES
 #############################################################

@@ -17,5 +17,5 @@
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
 	jobPrefix = 'advectGaussHills_DIRECT_test_'
-	frameOut = 1
+	frameOut = 200
 /
