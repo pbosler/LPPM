@@ -159,7 +159,7 @@ subroutine NewMesh(self,panelKind,initNest,AMR,nTracer,problemKind)
 	call New(self%panels,nPanels,panelKind,nTracer,problemKind)
 
 	if ( panelKind == TRI_PANEL) then
-! TO DO :		call InitIcosTriMesh(self,initNest)
+		call InitIcosTriMesh(self,initNest)
 	elseif ( panelKind == QUAD_PANEL) then
 		call InitCubedSphere(self,initNest)
 	endif
@@ -719,6 +719,233 @@ subroutine InitCubedSphere(self,initNest)
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'... uniform quadrilateral mesh ready.')
 end subroutine
 
+subroutine InitIcosTriMesh(self, initNest)
+	type(SphereMesh), intent(out) :: self
+	integer(kint), intent(in) :: initNest
+	!
+	integer(kint) :: j, k
+	type(Particles), pointer :: aparticles
+	type(Edges), pointer :: anEdges
+	type(Panels), pointer :: aPanels
+	
+	if ( initNest < 0 ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey, 'InitIcosTri ERROR : invalid initNest.')
+		return
+	endif
+	
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey," initializing icosTri grid.")
+	
+	aParticles => self%particles
+	anEdges => self%edges
+	aPanels => self%panels
+	
+	!
+	! set up root icosahedron
+	!
+	!	Particles
+	aParticles%N = 12
+	aParticles%x(:,1) = [0.0_kreal, 0.0_kreal, 1.0_kreal]
+	aParticles%x(:,2) = [0.723606797749978969640917366873_kreal,&
+						 0.525731112119133606025669084848_kreal,&
+						 0.447213595499957939281834733746_kreal]
+	aParticles%x(:,3) =[-0.276393202250021030359082633126_kreal,&
+						 0.850650808352039932181540497063_kreal,&
+						 0.447213595499957939281834733746_kreal]
+	aParticles%x(:,4) =[-0.894427190999915878563669467492_kreal,&
+						 0.0_kreal,&
+						 0.447213595499957939281834733746_kreal]
+	aParticles%x(:,5) =[-0.276393202250021030359082633127_kreal,&
+						-0.850650808352039932181540497063_kreal,&
+						 0.447213595499957939281834733746_kreal]
+	aParticles%x(:,6) = [0.723606797749978969640917366873_kreal,&
+						-0.525731112119133606025669084848_kreal,&
+						 0.447213595499957939281834733746_kreal]
+	aParticles%x(:,7) = [0.894427190999915878563669467492_kreal,&
+						 0.0_kreal,&
+						-0.447213595499957939281834733746_kreal]
+	aParticles%x(:,8) = [0.276393202250021030359082633127_kreal,&
+						 0.850650808352039932181540497063_kreal,&
+						-0.447213595499957939281834733746_kreal]
+	aParticles%x(:,9) =[-0.723606797749978969640917366873_kreal,&
+						 0.525731112119133606025669084848_kreal,&
+						-0.447213595499957939281834733746_kreal]
+	aParticles%x(:,10)=[-0.723606797749978969640917366873_kreal,&
+						-0.525731112119133606025669084848_kreal,&
+						-0.447213595499957939281834733746_kreal]
+	aParticles%x(:,11)= [0.276393202250021030359082633127_kreal,&
+						-0.850650808352039932181540497063_kreal,&
+						-0.447213595499957939281834733746_kreal]
+	aParticles%x(:,12)= [0.0_kreal,0.0_kreal,-1.0_kreal]
+	do j = 1, 12
+		aParticles%x(:,j) = aParticles%x(:,j) / sqrt( sum( aParticles%x(:,j) * aParticles%x(:,j) ) ) * EARTH_RADIUS
+		aParticles%x0(:,j) = aParticles%x(:,j)
+	enddo
+		
+	!	Edges
+	anEdges%N = 30
+	anEdges%verts(:,1) = [1,2]
+	anEdges%verts(:,2) = [2,3]
+	anEdges%verts(:,3) = [3,1]
+	anEdges%verts(:,4) = [3,4]
+	anEdges%verts(:,5) = [4,1]
+	anEdges%verts(:,6) = [4,5]
+	anEdges%verts(:,7) = [5,1]
+	anEdges%verts(:,8) = [5,6]
+	anEdges%verts(:,9) = [6,1]
+	anEdges%verts(:,10)= [6,2]
+	anEdges%verts(:,11)= [2,8]
+	anEdges%verts(:,12)= [8,3]
+	anEdges%verts(:,13)= [8,9]
+	anEdges%verts(:,14)= [9,3]
+	anEdges%verts(:,15)= [9,4]
+	anEdges%verts(:,16)= [9,10]
+	anEdges%verts(:,17)= [10,4]
+	anEdges%verts(:,18)= [10,5]
+	anEdges%verts(:,19)= [10,11]
+	anEdges%verts(:,20)= [11,5]
+	anEdges%verts(:,21)= [11,6]
+	anEdges%verts(:,22)= [11,7]
+	anEdges%verts(:,23)= [7,6]
+	anEdges%verts(:,24)= [7,2]
+	anEdges%verts(:,25)= [7,8]
+	anEdges%verts(:,26)= [8,12]
+	anEdges%verts(:,27)= [12,9]
+	anEdges%verts(:,28)= [12,10]
+	anEdges%verts(:,29)= [12,11]
+	anEdges%verts(:,30)= [12,7]
+	anEdges%leftPanel(1) = 1
+	anEdges%leftPanel(2) = 1
+	anEdges%leftPanel(3) = 1
+	anEdges%leftPanel(4) = 2
+	anEdges%leftPanel(5) = 2
+	anEdges%leftPanel(6) = 3
+	anEdges%leftPanel(7) = 3
+	anEdges%leftPanel(8) = 4
+	anEdges%leftPanel(9) = 4
+	anEdges%leftPanel(10)= 5
+	anEdges%leftPanel(11)= 6
+	anEdges%leftPanel(12)= 6
+	anEdges%leftPanel(13)= 7
+	anEdges%leftPanel(14)= 7
+	anEdges%leftPanel(15)= 8
+	anEdges%leftPanel(16)= 9
+	anEdges%leftPanel(17)= 9
+	anEdges%leftPanel(18)= 10
+	anEdges%leftPanel(19)= 11
+	anEdges%leftPanel(20)= 11
+	anEdges%leftPanel(21)= 12
+	anEdges%leftPanel(22)= 13
+	anEdges%leftPanel(23)= 13
+	anEdges%leftPanel(24)= 14
+	anEdges%leftPanel(25)= 15
+	anEdges%leftPanel(26)= 16
+	anEdges%leftPanel(27)= 16
+	anEdges%leftPanel(28)= 17
+	anEdges%leftPanel(29)= 18
+	anEdges%leftPanel(30)= 19
+	anEdges%rightPanel(1) = 5
+	anEdges%rightPanel(2) = 6
+	anEdges%rightPanel(3) = 2
+	anEdges%rightPanel(4) = 8
+	anEdges%rightPanel(5) = 3
+	anEdges%rightPanel(6) = 10
+	anEdges%rightPanel(7) = 4
+	anEdges%rightPanel(8) = 12
+	anEdges%rightPanel(9) = 5
+	anEdges%rightPanel(10)= 14
+	anEdges%rightPanel(11)= 15
+	anEdges%rightPanel(12)= 7
+	anEdges%rightPanel(13)= 16
+	anEdges%rightPanel(14)= 8
+	anEdges%rightPanel(15)= 9
+	anEdges%rightPanel(16)= 17
+	anEdges%rightPanel(17)= 10
+	anEdges%rightPanel(18)= 11
+	anEdges%rightPanel(19)= 18
+	anEdges%rightPanel(20)= 12
+	anEdges%rightPanel(21)= 13
+	anEdges%rightPanel(22)= 19
+	anEdges%rightPanel(23)= 14
+	anEdges%rightPanel(24)= 15
+	anEdges%rightPanel(25)= 20
+	anEdges%rightPanel(26)= 20
+	anEdges%rightPanel(27)= 17
+	anEdges%rightPanel(28)= 18
+	anEdges%rightPanel(29)= 19
+	anEdges%rightPanel(30)= 20
+	
+	! Panels
+	aPanels%N = 20
+	aPanels%N_Active = 20
+	aPanels%edges(:,1) = [1,2,3]
+	aPanels%edges(:,2) = [3,4,5]
+	aPanels%edges(:,3) = [5,6,7]
+	aPanels%edges(:,4) = [7,8,9]
+	aPanels%edges(:,5) = [9,10,1]
+	aPanels%edges(:,6) = [12,2,11]
+	aPanels%edges(:,7) = [12,13,14]
+	aPanels%edges(:,8) = [15,4,14]
+	aPanels%edges(:,9) = [15,16,17]
+	aPanels%edges(:,10)= [18,6,17]
+	aPanels%edges(:,11)= [18,19,20]
+	aPanels%edges(:,12)= [21,8,20]
+	aPanels%edges(:,13)= [21,22,23]
+	aPanels%edges(:,14)= [24,10,23]
+	aPanels%edges(:,15)= [24,25,11]
+	aPanels%edges(:,16)= [27,13,26]
+	aPanels%edges(:,17)= [28,16,27]
+	aPanels%edges(:,18)= [29,19,28]
+	aPanels%edges(:,19)= [30,22,29]
+	aPanels%edges(:,20)= [26,25,30]
+	aPanels%vertices(:,1) = [1,2,3]
+	aPanels%vertices(:,2) = [1,3,4]
+	aPanels%vertices(:,3) = [1,4,5]
+	aPanels%vertices(:,4) = [1,5,6]
+	aPanels%vertices(:,5) = [1,6,2]
+	aPanels%vertices(:,6) = [8,3,2]
+	aPanels%vertices(:,7) = [3,8,9]
+	aPanels%vertices(:,8) = [9,4,3]
+	aPanels%vertices(:,9) = [4,9,10]
+	aPanels%vertices(:,10)= [10,5,4]
+	aPanels%vertices(:,11)= [5,10,11]
+	aPanels%vertices(:,12)= [11,6,5]
+	aPanels%vertices(:,13)= [6,11,7]
+	aPanels%vertices(:,14)= [7,2,6]
+	aPanels%vertices(:,15)= [2,7,8]
+	aPanels%vertices(:,16)= [12,9,8]
+	aPanels%vertices(:,17)= [12,10,9]
+	aPanels%vertices(:,18)= [12,11,10]
+	aPanels%vertices(:,19)= [12,7,11]
+	aPanels%vertices(:,20)= [12,8,7]
+	
+	do j = 1, 20
+		aPanels%x(:,j) = SphereTriCenter( aParticles%x(:, aPanels%vertices(j,1) ), &
+										  aParticles%x(:, aPanels%vertices(j,2) ), &
+										  aParticles%x(:, aPanels%vertices(j,3) ) )
+		aPanels%x0(:,j) = aPanels%x(:,j)
+		do k = 1, 3
+			aPanels%area(j) = aPanels%area(j) + SphereTriArea( aParticles%x(:,aPanels%vertices(j, k)), &
+															   aPanels%x(:, j), &
+															   aParticles%x(:,aPanels%vertices(j, mod(k+1,3) + 1)) ) 
+		enddo
+	enddo
+	aPanels%nest(1:20) = 0
+	
+	! Divide root cube until desired initial nest level
+	if ( initNest > 0 ) then
+		startIndex = 1
+		do k=1,initNest
+			nOldPanels = aPanels%N
+			do j=startIndex,nOldPanels
+				if (.NOT. aPanels%hasChildren(j) ) then
+					call DivideQuadPanel(self,j)
+				endif
+			enddo
+			startIndex = nOldPanels
+		enddo
+	endif
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'... uniform quadrilateral mesh ready.')
+end subroutine
 
 subroutine DividePanel(self,panelIndex)
 ! Interface to call the appropriate DividePanel subroutine.
@@ -727,6 +954,8 @@ subroutine DividePanel(self,panelIndex)
 
 	if (self%panelKind == QUAD_PANEL ) then
 		call DivideQuadPanel(self,panelIndex)
+	elseif ( self%panelKind == TRI_PANEL ) then
+		call DivideTriPanel(self, panelIndex)	
 	else
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'DividePanel ERROR : ','invalid panelKind.')
 	endif
@@ -1100,6 +1329,36 @@ subroutine DivideQuadPanel(self,panelIndex)
 	enddo
 
 end subroutine
+
+subroutine DivideTriPanel(self, panelIndex) 
+	type(SphereMesh), intent(inout) :: self
+	integer(kint), intent(in) :: panelIndex
+	!
+	type(Particles), pointer :: aParticles
+	type(Edges), pointer :: anEdges
+	type(Panels), pointer :: aPanels
+	logical(klog) :: edgeOrientation(3), alreadyDivided(3)
+	
+	!
+	if ( aPanels%N_Max - aPanels%N < 4 ) then
+		call LogMessage(log, WARNING_LOGGING_LEVEL, logkey, 'DivideTriPanel WARNING : ', 'not enough memory.')
+		return
+	endif
+	if ( panelIndex <=0 .OR. panelIndex > aPanels%N ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, logKey, 'DivideTriPanel ERROR : ', ' invalid panel index.')
+		return
+	endif
+	if ( aPanels%hasChildren(panelIndex) ) then
+		call LogMessage(log, WARNING_LOGGING_LEVEL, logKey, 'DivideTriPanel WARNING : ', ' panel already has children.')
+		return
+	endif
+	
+	do j = 1, 3
+		if ( anEdges%hasChildren( aPanels%edges(j, panelIndex) ) ) alreadyDivided(j) = .TRUE.
+		if ( anEdges%leftPanel( aPanels%edges(j, panelIndex) ) == panelIndex ) edgeOrientation(j) = .TRUE.
+	enddo
+	
+end subroutine 
 
 
 function QuadPanelArea(self,panelIndex)
