@@ -723,7 +723,7 @@ subroutine InitIcosTriMesh(self, initNest)
 	type(SphereMesh), intent(out) :: self
 	integer(kint), intent(in) :: initNest
 	!
-	integer(kint) :: j, k
+	integer(kint) :: j, k, startIndex, nOldPanels
 	type(Particles), pointer :: aparticles
 	type(Edges), pointer :: anEdges
 	type(Panels), pointer :: aPanels
@@ -1338,26 +1338,281 @@ subroutine DivideTriPanel(self, panelIndex)
 	type(Edges), pointer :: anEdges
 	type(Panels), pointer :: aPanels
 	logical(klog) :: edgeOrientation(3), alreadyDivided(3)
+	integer(kint) :: nPanels, nParticles, nEdges, parentVertices(3), parentEdges(3), parentNest, childEdges(2)
+	integer(kint) :: j, k
 	
 	!
 	if ( aPanels%N_Max - aPanels%N < 4 ) then
-		call LogMessage(log, WARNING_LOGGING_LEVEL, logkey, 'DivideTriPanel WARNING : ', 'not enough memory.')
+		call LogMessage(log, WARNING_LOGGING_LEVEL, logkey, 'DivideTriPanel WARNING : not enough memory.')
 		return
 	endif
 	if ( panelIndex <=0 .OR. panelIndex > aPanels%N ) then
-		call LogMessage(log, ERROR_LOGGING_LEVEL, logKey, 'DivideTriPanel ERROR : ', ' invalid panel index.')
+		call LogMessage(log, ERROR_LOGGING_LEVEL, logKey, 'DivideTriPanel ERROR : invalid panel index.')
 		return
 	endif
 	if ( aPanels%hasChildren(panelIndex) ) then
-		call LogMessage(log, WARNING_LOGGING_LEVEL, logKey, 'DivideTriPanel WARNING : ', ' panel already has children.')
+		call LogMessage(log, WARNING_LOGGING_LEVEL, logKey, 'DivideTriPanel WARNING : panel already has children.')
 		return
 	endif
 	
+	!
+	! get current state
+	!
+	nPanels = aPanels%N
+	nParticles = aParticles%N
+	nEdges = anEdges%N
+	parentNest = aPanels%nest(panelIndex)
+	parentVertices = aPanels%vertices(:,panelIndex)
+	parentEdges = aPanels%edges(:,panelINdex)
+	
 	do j = 1, 3
-		if ( anEdges%hasChildren( aPanels%edges(j, panelIndex) ) ) alreadyDivided(j) = .TRUE.
-		if ( anEdges%leftPanel( aPanels%edges(j, panelIndex) ) == panelIndex ) edgeOrientation(j) = .TRUE.
+		if ( anEdges%hasChildren( parentEdges(j) ) ) alreadyDivided(j) = .TRUE.
+		if ( anEdges%leftPanel( parentEdges(j) ) == panelIndex ) edgeOrientation(j) = .TRUE.
 	enddo
 	
+	!
+	! connect parent vertices to child panels
+	!
+	aPanels%vertices(1, nPanels + 1) = parentVertices(1) 
+	aPanels%vertices(2, nPanels + 2) = parentVertices(2)
+	aPanels%vertices(3, nPanels + 3) = parentVertices(3)
+	
+	!
+	! parent edge 1, subpanels nPanels + 1 and nPanels + 2
+	!
+	if ( alreadyDivided(1) ) then
+		!
+		! connect subpanels to existing child edges
+		!
+		childEdges = anEdges%children(:,parentEdges(1))
+		if ( edgeOrientation(1) ) then
+			aPanels%edges(1, nPanels+1) = childEdges(1)
+			aPanels%vertices(2, nPanels+1) = anEdges%verts(2, childEdges(1))
+			anEdges%leftPanel(childEdges(1)) = nPanels+1
+			
+			aPanels%edges(1, nPanels+2) = childEdges(2)
+			aPanels%vertices(1, nPanels+2) = anEdges%verts(2,childEdges(1))
+			anEdges%leftPanel(childEdges(2)) = nPanels+2
+		else
+			aPanels%edges(1, nPanels+1) = childEdges(2)
+			aPanels%vertices(2, nPanels+1) = anEdges%verts(2,childEdges(1))
+			anEdges%rightPanel(childEdges(2)) = nPanels+1
+			
+			aPanels%edges(1,nPanels+2) = childEdges(1)
+			aPanels%vertices(1,nPanels+2) = anEdges%verts(2,childEdges(1))
+			anEdges%rightPanel(childEdges(1)) = nPanels+2
+		endif	
+	else
+		!
+		! divide parent edge 1
+		!
+		anEdges%hasChildren(parentEdges(1)) = .TRUE.
+		anEdges%children(:,parentEdges(1)) = [ nEdges+1, nEdges + 2]
+		
+		aParticles%x(:, nParticles+1) = SphereMidpoint( aParticles%x(:, parentVertices(1)), aParticles%x(:, parentVertices(2)) )
+		aParticles%x0(:,nParticles+1) = SphereMidpoint( aParticles%x0(:,parentVertices(1)), aParticles%x0(:,parentVertices(2)) )
+		
+		aPanels%vertices(2, nPanels+1) = nParticles+1
+		aPanels%vertices(1, nPanels+2) = nParticles+1
+		
+		if ( edgeOrientation(1) ) then
+			anEdges%verts(:, nEdges+1) = [ parentVertices(1), nParticles+1]
+			anEdges%leftPanel(nEdges+1) = nPanels+1
+			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(1))
+			aPanels%edges(1, nPanels+1) = nEdges+1
+			
+			anEdges%verts(:, nEdges+2) = [ nParticles+1, parentVertices(2)] 
+			anEdges%leftPanel(nEdges+2) = nPanels+2
+			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(1))
+			aPanels%edges(1, nPanels+2) = nEdges+2
+		else
+			anEdges%verts(:, nEdges+1) = [ parentVertices(2), nParticles+1]
+			anEdges%leftPanel(nEdges+1) = anEdges%leftPanel(parentEdges(1))
+			anEdges%rightPanel(nEdges+1) = nPanels+2
+			aPanels%edges(1,nPanels+2) = nEdges+1
+			
+			anEdges%verts(:, nEdges+2) = [ nParticles+1, parentVertices(1)]
+			anEdges%leftPanel(nEdges+2) = anEdges%leftPanel(parentEdges(1))
+			anEdges%rightPanel(nEdges+2) = nPanels+1
+			aPanels%edges(1, nPanels+1) = nEdges+2
+		endif
+		
+		nEdges = nEdges+2
+		nParticles = nParticles + 1
+	endif
+	!
+	! parent edge 2, subpanels nPanels + 2 and nPanels + 3
+	!
+	if ( alreadyDivided(2) ) then
+		!
+		! connect subpanels to existing child edges
+		!
+		childEdges = anEdges%children(:,parentEdges(2))
+		aPanels%vertices(3, nPanels+2) = anEdges%verts(2, childEdges(1))
+		aPanels%vertices(2, nPanels+3) = anEdges%verts(2, childEdges(1))
+		if ( edgeOrientation(2) ) then
+			aPanels%edges(2,nPanels+2) = childEdges(1)
+			anEdges%leftPanel(childEdges(1)) = nPanels+2
+			
+			aPanels%edges(2, nPanels+3) = childEdges(2)
+			anEdges%leftPanel(childEdges(2)) = nPanels+3
+		else
+			aPanels%edges(2, nPanels+2) = childEdges(2)
+			anEdges%rightPanel(childEdges(2)) = nPanels+2
+			
+			aPanels%edges(2, nPanels+3) = childEdges(1)
+			anEdges%rightPanel(childEdges(1)) = nPanels+3
+		endif
+	else
+		!
+		! divide parent edge 2
+		! 
+		anEdges%hasChildren(parentEdges(2)) = .TRUE.
+		anEdges%children(:, parentEdges(2)) = [nEdges+1, nEdges+2]
+		
+		aParticles%x(:, nParticles+1) = SphereMidpoint( aParticles%x(:, parentVertices(2)), aParticles%x(:, parentVertices(3)) )
+		aParticles%x0(:,nParticles+1) = SphereMidpoint( aParticles%x0(:, parentVertices(2)),aParticles%x0(:, parentVertices(3)))
+		
+		aPanels%vertices(3, nPanels+2) = nParticles+1
+		aPanels%vertices(2, nPanels+3) = nParticles+1
+		if ( edgeOrientation(2) ) then
+			anEdges%verts(:,nEdges+1) = [parentVertices(2), nParticles+1]
+			anEdges%leftPanel(nEdges+1) = nPanels+2
+			anEdges%rightPanel(nEdges+1) = anEdges%rightPanel(parentEdges(2))
+			aPanels%edges(2, nPanels+2) = nEdges+1
+			
+			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(3)]		
+			anEdges%leftPanel(nEdges+2) = nPanels+3
+			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(2))
+			aPanels%edges(2,nPanels+3) = nEdges+2
+		else
+			anEdges%verts(:, nEdges+1) = [parentVertices(3), nParticles+1]
+			anEdges%leftPanel(nEdges+1)= anEdges%leftPanel(parentEdges(2))
+			anEdges%rightPanel(nEdges+1) = nPanels+3
+			aPanels%edges(2, nPanels+3) = nEdges+1
+			
+			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(2)]
+			anEdges%leftPanel(nEdges+2) = anEdges%leftPanel(parentEdges(2))
+			anEdges%rightPanel(nEdges+2) = nPanels+2
+			aPanels%edges(2,nPanels+2) = nEdges+1
+		endif
+		nParticles = nParticles+1
+		nEdges = nEdges+2
+	endif	
+	
+	!
+	! parent edge 3, subpanels nPanels + 3 and nPanels + 1
+	!
+	if ( alreadyDivided(3) ) then
+		!
+		! connect subpanels to existing child edges
+		!
+		childEdges = anEdges%children(:, parentEdges(3))
+		if ( edgeOrientation(3) ) then
+			aPanels%edges(3, nPanels+3) = childEdges(1)
+			anEdges%leftPanel(childEdges(1)) = nPanels+3
+			aPanels%vertices(1,nPanels+3) = anEdges%verts(2,childEdges(1))
+			
+			aPanels%edges(3, nPanels+1) = childEdges(2)
+			anEdges%leftPanel(childEdges(2)) = nPanels+1
+			aPanels%vertices(3,nPanels+1) = anEdges%verts(2,childEdges(1))
+		else
+			aPanels%edges(3,nPanels+3) = childEdges(2)
+			aPanels%vertices(1,nPanels+3) = anEdges%verts(2,childEdges(1))
+			anEdges%rightPanel(childEdges(2)) = nPanels+3
+			
+			aPanels%edges(3, nPanels+1) = childEdges(1)
+			aPanels%vertices(3, nPanels+1) = anEdges%verts(2, childEdges(1))
+			anEdges%rightPanel(childEdges(2)) = nPanels+1
+		endif
+	else
+		!
+		! divide parent edge 3
+		! 
+		anEdges%hasChildren(parentEdges(3)) = .TRUE.
+		anEdges%children(:,parentEdges(3)) = [nEdges+1, nEdges+2]
+		
+		aParticles%x(:,nParticles+1) = SphereMidpoint( aParticles%x(:, parentVertices(3)), aParticles%x(:, parentVertices(1)) )
+		aParticles%x0(:,nParticles+1) = SphereMidpoint( aParticles%x0(:, parentVertices(3)), aParticles%x0(:, parentVertices(1)) )
+		
+		aPanels%vertices(1, nPanels+3) = nParticles+1
+		apanels%vertices(3, nPanels+1) = nParticles+1
+		
+		if ( edgeOrientation(3) ) then
+			anEdges%verts(:, nEdges+1) = [parentVertices(3), nParticles+1]
+			anEdges%leftPanel(nEdges+1) = nPanels+3
+			anEdges%rightPanel(nEdges+1) = anEdges%rightPanel(parentEdges(3))
+			aPanels%edges(3,nPanels+3) = nEdges+1
+			
+			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(1)]
+			anEdges%leftPanel(nEdges+2) = nPanels+1
+			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(3))
+			aPanels%edges(3,nPanels+1) = nEdges+2
+		else
+			anEdges%verts(:, nEdges+1) = [parentVertices(1), nParticles+1]
+			anEdges%leftPanel(nEdges+1) = anEdges%leftPanel(parentEdges(3))
+			anEdges%rightPanel(nEdges+1)= nPanels+1
+			aPanels%edges(3,nPanels+1) = nEdges+1
+			
+			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(3)]
+			anEdges%leftPanel(nEdges+2) = anEdges%leftPanel(parentEdges(3))
+			anEdges%rightPanel(nEdges+2) = nPanels+3
+			aPanels%edges(3,nPanels+3) = nEdges+2
+		endif
+		nEdges = nEdges+2
+		nParticles = nParticles+1
+	endif
+	
+	aPanels%vertices(:, nPanels+4) = [aPanels%vertices(2, nPanels+2), aPanels%vertices(1, nPanels+3), aPanels%vertices(2, nPanels+1)]
+	aPanels%edges(:, nPanels+4) = [ nEdges+1, nEdges+2, nEdges+3]
+
+	anEdges%verts(:, nEdges+1) = [aPanels%vertices(1,nPanels+4), aPanels%vertices(2,nPanels+4)]
+	anEdges%leftPanel(nEdges+1) = nPanels+4
+	anEdges%rightPanel(nEdges+1) = nPanels+3
+	
+	anEdges%verts(:, nEdges+2) = [aPanels%vertices(2,nPanels+4), aPanels%vertices(3,nPanels+4)]
+	anEdges%leftPanel(nEdges+2) = nPanels+4
+	anEdges%rightPanel(nEdges+2) = nPanels+1
+	
+	anEdges%verts(:, nEdges+3) = [aPanels%vertices(3,nPanels+4), aPanels%vertices(1,nPanels+4)]
+	anEdges%leftPanel(nEdges+3) = nPanels+4
+	anEdges%rightPanel(nEdges+3) = nPanels+2
+	
+	nEdges = nEdges + 3
+	do j = 1, 4
+		aPanels%x(:, nPanels+j) = SphereTriCenter( aParticles%x(:, aPanels%vertices(1, nPanels+j)), &
+												   aParticles%x(:, aPanels%vertices(2, nPanels+j)), &
+												   aParticles%x(:, aPanels%vertices(3, nPanels+j)) )
+		aPanels%x0(:, nPanels+j) = SphereTriCenter( aParticles%x0(:, aPanels%vertices(1, nPanels+j)), &
+												   aParticles%x0(:, aPanels%vertices(2, nPanels+j)), &
+												   aParticles%x0(:, aPanels%vertices(3, nPanels+j)) )
+		aPanels%area(nPanels+j) = 0.0_kreal		
+		aPanels%nest(nPanels+j) = parentNest + 1										   
+		do k = 1, 3
+			aPanels%area( nPanels+j ) = aPanels%area( nPanels + j) + SphereTriArea( aParticles%x(:, aPanels%vertices(k, nPanels+j)), &
+																					aPanels%x(:, nPanels+j), &
+																					aParticles%x(:, aPanels%vertices(mod(k,3)+1, nPanels+j) ))
+		enddo											   										   
+	enddo
+	
+	!
+	! share parent active particle with subpanel 4
+	!	
+	aPanels%x(:,panelIndex) = aPanels%x(:, nPanels+4)
+	aPanels%x0(:,panelIndex) = aPanels%x0(:, nPanels+4)
+	
+	!
+	! update data structures
+	!
+	aPanels%area(panelIndex) = 0.0_kreal
+	aPanels%hasChildren(panelIndex) = .TRUE.
+	aPanels%children(:,panelIndex) = [1,2,3,4] + nPanels
+	aPanels%N = nPanels + 4
+	aPanels%N_Active = aPanels%N_Active + 3
+	
+	anEdges%N = nEdges
+	
+	aParticles%N = nParticles
 end subroutine 
 
 
