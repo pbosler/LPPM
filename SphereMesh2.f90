@@ -78,7 +78,7 @@ end type
 logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
 character(len=28), save :: logKey = 'SphereMesh'
-integer(kint), parameter :: logLevel = TRACE_LOGGING_LEVEL
+integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
 character(len=128) :: logString
 character(len=24) :: formatString
 !
@@ -299,7 +299,9 @@ subroutine CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,self,panelIn
 			return
 		endif
 	endif
-
+	
+	!call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//" finding CCW lists around panel ",panelIndex)
+	
 	edgelist = 0
 	vertlist = 0
 	edgeK = 0
@@ -720,7 +722,7 @@ subroutine InitCubedSphere(self,initNest)
 end subroutine
 
 subroutine InitIcosTriMesh(self, initNest)
-	type(SphereMesh), intent(out) :: self
+	type(SphereMesh), intent(inout) :: self
 	integer(kint), intent(in) :: initNest
 	!
 	integer(kint) :: j, k, startIndex, nOldPanels
@@ -918,33 +920,38 @@ subroutine InitIcosTriMesh(self, initNest)
 	aPanels%vertices(:,19)= [12,7,11]
 	aPanels%vertices(:,20)= [12,8,7]
 	
+	!call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey,'root icosahedron data set.')
+	
 	do j = 1, 20
-		aPanels%x(:,j) = SphereTriCenter( aParticles%x(:, aPanels%vertices(j,1) ), &
-										  aParticles%x(:, aPanels%vertices(j,2) ), &
-										  aParticles%x(:, aPanels%vertices(j,3) ) )
+		aPanels%x(:,j) = SphereTriCenter( aParticles%x(:, aPanels%vertices(1,j) ), &
+										  aParticles%x(:, aPanels%vertices(2,j) ), &
+										  aParticles%x(:, aPanels%vertices(3,j) ) )
 		aPanels%x0(:,j) = aPanels%x(:,j)
 		do k = 1, 3
-			aPanels%area(j) = aPanels%area(j) + SphereTriArea( aParticles%x(:,aPanels%vertices(j, k)), &
+			aPanels%area(j) = aPanels%area(j) + SphereTriArea( aParticles%x(:,aPanels%vertices(k,j)), &
 															   aPanels%x(:, j), &
-															   aParticles%x(:,aPanels%vertices(j, mod(k+1,3) + 1)) ) 
+															   aParticles%x(:,aPanels%vertices(mod(k,3)+1,j)) ) 
 		enddo
 	enddo
 	aPanels%nest(1:20) = 0
+	anEdges%hasChildren(1:30) = .FALSE.
 	
-	! Divide root cube until desired initial nest level
+	!call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey,'root icosahedron ready.')
+	
+	! Divide root icosahedron until desired initial nest level
 	if ( initNest > 0 ) then
 		startIndex = 1
 		do k=1,initNest
 			nOldPanels = aPanels%N
 			do j=startIndex,nOldPanels
 				if (.NOT. aPanels%hasChildren(j) ) then
-					call DivideQuadPanel(self,j)
+					call DivideTriPanel(self,j)
 				endif
 			enddo
 			startIndex = nOldPanels
 		enddo
 	endif
-	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'... uniform quadrilateral mesh ready.')
+	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'... uniform triangular mesh ready.')
 end subroutine
 
 subroutine DividePanel(self,panelIndex)
@@ -1341,7 +1348,11 @@ subroutine DivideTriPanel(self, panelIndex)
 	integer(kint) :: nPanels, nParticles, nEdges, parentVertices(3), parentEdges(3), parentNest, childEdges(2)
 	integer(kint) :: j, k
 	
-	!
+	
+	aParticles => self%particles
+	anEdges => self%edges
+	aPanels => self%panels
+	
 	if ( aPanels%N_Max - aPanels%N < 4 ) then
 		call LogMessage(log, WARNING_LOGGING_LEVEL, logkey, 'DivideTriPanel WARNING : not enough memory.')
 		return
@@ -1354,7 +1365,9 @@ subroutine DivideTriPanel(self, panelIndex)
 		call LogMessage(log, WARNING_LOGGING_LEVEL, logKey, 'DivideTriPanel WARNING : panel already has children.')
 		return
 	endif
-	
+
+	!call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//' DivideTriPanel j = ', panelIndex)
+
 	!
 	! get current state
 	!
@@ -1365,10 +1378,17 @@ subroutine DivideTriPanel(self, panelIndex)
 	parentVertices = aPanels%vertices(:,panelIndex)
 	parentEdges = aPanels%edges(:,panelINdex)
 	
+	childEdges = 0
+	alreadyDivided = .FALSE.
+	edgeOrientation = .FALSE.
 	do j = 1, 3
 		if ( anEdges%hasChildren( parentEdges(j) ) ) alreadyDivided(j) = .TRUE.
 		if ( anEdges%leftPanel( parentEdges(j) ) == panelIndex ) edgeOrientation(j) = .TRUE.
 	enddo
+	
+!	print *, count(anEdges%hasChildren(1:30))
+!	print *, parentEdges
+!	print *, alreadyDivided
 	
 	!
 	! connect parent vertices to child panels
@@ -1385,21 +1405,19 @@ subroutine DivideTriPanel(self, panelIndex)
 		! connect subpanels to existing child edges
 		!
 		childEdges = anEdges%children(:,parentEdges(1))
+		aPanels%vertices(2, nPanels+1) = anEdges%verts(2, childEdges(1))
+		aPanels%vertices(1, nPanels+2) = anEdges%verts(2,childEdges(1))
 		if ( edgeOrientation(1) ) then
 			aPanels%edges(1, nPanels+1) = childEdges(1)
-			aPanels%vertices(2, nPanels+1) = anEdges%verts(2, childEdges(1))
 			anEdges%leftPanel(childEdges(1)) = nPanels+1
 			
 			aPanels%edges(1, nPanels+2) = childEdges(2)
-			aPanels%vertices(1, nPanels+2) = anEdges%verts(2,childEdges(1))
 			anEdges%leftPanel(childEdges(2)) = nPanels+2
 		else
 			aPanels%edges(1, nPanels+1) = childEdges(2)
-			aPanels%vertices(2, nPanels+1) = anEdges%verts(2,childEdges(1))
 			anEdges%rightPanel(childEdges(2)) = nPanels+1
 			
 			aPanels%edges(1,nPanels+2) = childEdges(1)
-			aPanels%vertices(1,nPanels+2) = anEdges%verts(2,childEdges(1))
 			anEdges%rightPanel(childEdges(1)) = nPanels+2
 		endif	
 	else
@@ -1494,7 +1512,7 @@ subroutine DivideTriPanel(self, panelIndex)
 			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(2)]
 			anEdges%leftPanel(nEdges+2) = anEdges%leftPanel(parentEdges(2))
 			anEdges%rightPanel(nEdges+2) = nPanels+2
-			aPanels%edges(2,nPanels+2) = nEdges+1
+			aPanels%edges(2,nPanels+2) = nEdges+2
 		endif
 		nParticles = nParticles+1
 		nEdges = nEdges+2
@@ -1508,22 +1526,20 @@ subroutine DivideTriPanel(self, panelIndex)
 		! connect subpanels to existing child edges
 		!
 		childEdges = anEdges%children(:, parentEdges(3))
+		aPanels%vertices(1,nPanels+3) = anEdges%verts(2,childEdges(1))
+		aPanels%vertices(3,nPanels+1) = anEdges%verts(2,childEdges(1))
 		if ( edgeOrientation(3) ) then
 			aPanels%edges(3, nPanels+3) = childEdges(1)
 			anEdges%leftPanel(childEdges(1)) = nPanels+3
-			aPanels%vertices(1,nPanels+3) = anEdges%verts(2,childEdges(1))
 			
 			aPanels%edges(3, nPanels+1) = childEdges(2)
 			anEdges%leftPanel(childEdges(2)) = nPanels+1
-			aPanels%vertices(3,nPanels+1) = anEdges%verts(2,childEdges(1))
 		else
 			aPanels%edges(3,nPanels+3) = childEdges(2)
-			aPanels%vertices(1,nPanels+3) = anEdges%verts(2,childEdges(1))
 			anEdges%rightPanel(childEdges(2)) = nPanels+3
 			
 			aPanels%edges(3, nPanels+1) = childEdges(1)
-			aPanels%vertices(3, nPanels+1) = anEdges%verts(2, childEdges(1))
-			anEdges%rightPanel(childEdges(2)) = nPanels+1
+			anEdges%rightPanel(childEdges(1)) = nPanels+1
 		endif
 	else
 		!
@@ -1563,20 +1579,23 @@ subroutine DivideTriPanel(self, panelIndex)
 		nParticles = nParticles+1
 	endif
 	
-	aPanels%vertices(:, nPanels+4) = [aPanels%vertices(2, nPanels+2), aPanels%vertices(1, nPanels+3), aPanels%vertices(2, nPanels+1)]
+	aPanels%vertices(:, nPanels+4) = [aPanels%vertices(3, nPanels+2), aPanels%vertices(1, nPanels+3), aPanels%vertices(2, nPanels+1)]
 	aPanels%edges(:, nPanels+4) = [ nEdges+1, nEdges+2, nEdges+3]
 
 	anEdges%verts(:, nEdges+1) = [aPanels%vertices(1,nPanels+4), aPanels%vertices(2,nPanels+4)]
 	anEdges%leftPanel(nEdges+1) = nPanels+4
 	anEdges%rightPanel(nEdges+1) = nPanels+3
+	aPanels%edges(1,nPanels+3) = nEdges+1
 	
 	anEdges%verts(:, nEdges+2) = [aPanels%vertices(2,nPanels+4), aPanels%vertices(3,nPanels+4)]
 	anEdges%leftPanel(nEdges+2) = nPanels+4
 	anEdges%rightPanel(nEdges+2) = nPanels+1
+	aPanels%edges(2,nPanels+1) = nEdges+2
 	
 	anEdges%verts(:, nEdges+3) = [aPanels%vertices(3,nPanels+4), aPanels%vertices(1,nPanels+4)]
 	anEdges%leftPanel(nEdges+3) = nPanels+4
 	anEdges%rightPanel(nEdges+3) = nPanels+2
+	aPanels%edges(3,nPanels+2) = nEdges+3
 	
 	nEdges = nEdges + 3
 	do j = 1, 4

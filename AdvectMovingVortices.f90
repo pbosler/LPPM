@@ -125,6 +125,9 @@ testCaseTracer%integers(1) = tracerID
 ! build initial mesh
 !
 call New(sphere, panelKind, initNest, AMR, nTracer, ADVECTION_SOLVER)
+
+call LogStats( sphere, exeLog, 'DEBUG')
+
 call SetMovingVortsTracerOnMesh(sphere, testCaseTracer)
 
 !
@@ -156,7 +159,7 @@ if ( procrank == 0 ) then
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
 	write(summaryFile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrString), '_summary.txt'
 	write(datafile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrstring), '_calculatedData.m'
-	call New(vtkOut, sphere, vtkFile, 'Gaussian hills advection')
+	call New(vtkOut, sphere, vtkFile, 'moving vortices')
 	call VTKOutput(vtkOut, sphere)
 endif
 

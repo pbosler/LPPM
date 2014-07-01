@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-#MACHINE='FERRARI'
-MACHINE='TANK'
+MACHINE='FERRARI'
+#MACHINE='TANK'
 #MACHINE='VORTEX'
 #MACHINE='LING'
 
@@ -13,8 +13,8 @@ MACHINE='TANK'
 ifeq ($(MACHINE),'FERRARI') 
 # FERRARI LAPTOP #	
   FF = ifort
-  #FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-  FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
+  FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  #FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
   VTK_INCLUDE=/usr/local/include/vtk-5.8
   VTK_LIB_DIR=/usr/local/lib/vtk-5.8
   MKLROOT=/opt/intel/mkl
@@ -141,6 +141,8 @@ PlaneRotationalAdvection.o: PlaneRotationalAdvection.f90 $(PLANE_RUNS)
 #############################################################
 
 cubedSphereTestSerial.exe: CubedSphereTest2.o $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS) Advection2.o
+	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)
+icosTriTestMPI.exe: IcosTriTest2.o	$(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
 	$(FF) $(FF_FLAGS) -o $@  $^ `mpif90 -showme:link` $(MKL_COMPILE)	
 planeTestMPI.exe: planeTester.o $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS) $(TEST_CASE_OBJS) PlaneDirectSum.o PlaneRemesh.o bivar.o BIVARInterface.o
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
@@ -152,6 +154,7 @@ sweDivergenceTerms.exe: SWEDivergenceEqnTerms.o $(BASE_OBJS) $(MESH_OBJS) $(OUTP
 #############################################################
 
 CubedSphereTest2.o: CubedSphereTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
+IcosTriTest2.o: IcosTriTest2.f90 $(BASE_OBJS) $(MESH_OBJS) $(INTERP_OBJS) $(OUTPUT_OBJS)
 planeTester.o: planeTester.f90 $(PLANE_RUNS)
 SWEDivergenceEqnTerms.o: SWEDivergenceEqnTerms.f90 $(BASE_OBJS) $(MESH_OBJS) $(OUTPUT_OBJS)
 	$(FF) $(FF_FLAGS) -c $< $(MKL_COMPILE) `mpif90 -showme:compile`
