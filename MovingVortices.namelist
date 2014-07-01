@@ -12,11 +12,11 @@
 	dt = 0.03			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
 	remeshInterval = 20
-	resetAlphaInterval = 4
+	resetAlphaInterval = 40000
 /
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'advectMovingVortices_AMR+reInitTest_'
+	jobPrefix = 'advectMovingVortices_AMRonly_'
 	frameOut = 1
 /
