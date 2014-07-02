@@ -1,7 +1,7 @@
 SHELL = /bin/bash
 
-MACHINE='FERRARI'
-#MACHINE='TANK'
+#MACHINE='FERRARI'
+MACHINE='TANK'
 #MACHINE='VORTEX'
 #MACHINE='LING'
 
@@ -115,6 +115,8 @@ lambDipoleMPI.exe: LambDipole.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
 twoDipolesMPI.exe: TwoDipoles.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link` 
+reversibleDipolesMPI.exe: ReversibleDipoles.o $(PLANE_RUNS)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
 planeAdvectRotationMPI.exe: PlaneRotationalAdvection.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`			
 
@@ -136,6 +138,7 @@ SWETestCase2.o: SWETestCase2.f90 $(SWE_OBJS)
 LambDipole.o: LambDipole.f90 $(PLANE_RUNS)
 TwoDipoles.o: TwoDipoles.f90 $(PLANE_RUNS)
 PlaneRotationalAdvection.o: PlaneRotationalAdvection.f90 $(PLANE_RUNS)
+ReversibleDipoles.o: ReversibleDipoles.f90 $(PLANE_RUNS)
 #############################################################
 ## UNIT TEST EXECUTABLES
 #############################################################

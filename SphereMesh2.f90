@@ -78,7 +78,7 @@ end type
 logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
 character(len=28), save :: logKey = 'SphereMesh'
-integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
+integer(kint), parameter :: logLevel = TRACE_LOGGING_LEVEL
 character(len=128) :: logString
 character(len=24) :: formatString
 !
@@ -299,9 +299,9 @@ subroutine CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,self,panelIn
 			return
 		endif
 	endif
-	
+
 	!call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//" finding CCW lists around panel ",panelIndex)
-	
+
 	edgelist = 0
 	vertlist = 0
 	edgeK = 0
@@ -729,18 +729,18 @@ subroutine InitIcosTriMesh(self, initNest)
 	type(Particles), pointer :: aparticles
 	type(Edges), pointer :: anEdges
 	type(Panels), pointer :: aPanels
-	
+
 	if ( initNest < 0 ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey, 'InitIcosTri ERROR : invalid initNest.')
 		return
 	endif
-	
+
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey," initializing icosTri grid.")
-	
+
 	aParticles => self%particles
 	anEdges => self%edges
 	aPanels => self%panels
-	
+
 	!
 	! set up root icosahedron
 	!
@@ -782,7 +782,7 @@ subroutine InitIcosTriMesh(self, initNest)
 		aParticles%x(:,j) = aParticles%x(:,j) / sqrt( sum( aParticles%x(:,j) * aParticles%x(:,j) ) ) * EARTH_RADIUS
 		aParticles%x0(:,j) = aParticles%x(:,j)
 	enddo
-		
+
 	!	Edges
 	anEdges%N = 30
 	anEdges%verts(:,1) = [1,2]
@@ -875,7 +875,7 @@ subroutine InitIcosTriMesh(self, initNest)
 	anEdges%rightPanel(28)= 18
 	anEdges%rightPanel(29)= 19
 	anEdges%rightPanel(30)= 20
-	
+
 	! Panels
 	aPanels%N = 20
 	aPanels%N_Active = 20
@@ -919,9 +919,9 @@ subroutine InitIcosTriMesh(self, initNest)
 	aPanels%vertices(:,18)= [12,11,10]
 	aPanels%vertices(:,19)= [12,7,11]
 	aPanels%vertices(:,20)= [12,8,7]
-	
+
 	!call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey,'root icosahedron data set.')
-	
+
 	do j = 1, 20
 		aPanels%x(:,j) = SphereTriCenter( aParticles%x(:, aPanels%vertices(1,j) ), &
 										  aParticles%x(:, aPanels%vertices(2,j) ), &
@@ -930,14 +930,14 @@ subroutine InitIcosTriMesh(self, initNest)
 		do k = 1, 3
 			aPanels%area(j) = aPanels%area(j) + SphereTriArea( aParticles%x(:,aPanels%vertices(k,j)), &
 															   aPanels%x(:, j), &
-															   aParticles%x(:,aPanels%vertices(mod(k,3)+1,j)) ) 
+															   aParticles%x(:,aPanels%vertices(mod(k,3)+1,j)) )
 		enddo
 	enddo
 	aPanels%nest(1:20) = 0
 	anEdges%hasChildren(1:30) = .FALSE.
-	
+
 	!call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey,'root icosahedron ready.')
-	
+
 	! Divide root icosahedron until desired initial nest level
 	if ( initNest > 0 ) then
 		startIndex = 1
@@ -962,7 +962,7 @@ subroutine DividePanel(self,panelIndex)
 	if (self%panelKind == QUAD_PANEL ) then
 		call DivideQuadPanel(self,panelIndex)
 	elseif ( self%panelKind == TRI_PANEL ) then
-		call DivideTriPanel(self, panelIndex)	
+		call DivideTriPanel(self, panelIndex)
 	else
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'DividePanel ERROR : ','invalid panelKind.')
 	endif
@@ -1337,7 +1337,7 @@ subroutine DivideQuadPanel(self,panelIndex)
 
 end subroutine
 
-subroutine DivideTriPanel(self, panelIndex) 
+subroutine DivideTriPanel(self, panelIndex)
 	type(SphereMesh), intent(inout) :: self
 	integer(kint), intent(in) :: panelIndex
 	!
@@ -1347,12 +1347,12 @@ subroutine DivideTriPanel(self, panelIndex)
 	logical(klog) :: edgeOrientation(3), alreadyDivided(3)
 	integer(kint) :: nPanels, nParticles, nEdges, parentVertices(3), parentEdges(3), parentNest, childEdges(2)
 	integer(kint) :: j, k
-	
-	
+
+
 	aParticles => self%particles
 	anEdges => self%edges
 	aPanels => self%panels
-	
+
 	if ( aPanels%N_Max - aPanels%N < 4 ) then
 		call LogMessage(log, WARNING_LOGGING_LEVEL, logkey, 'DivideTriPanel WARNING : not enough memory.')
 		return
@@ -1377,7 +1377,7 @@ subroutine DivideTriPanel(self, panelIndex)
 	parentNest = aPanels%nest(panelIndex)
 	parentVertices = aPanels%vertices(:,panelIndex)
 	parentEdges = aPanels%edges(:,panelINdex)
-	
+
 	childEdges = 0
 	alreadyDivided = .FALSE.
 	edgeOrientation = .FALSE.
@@ -1385,18 +1385,18 @@ subroutine DivideTriPanel(self, panelIndex)
 		if ( anEdges%hasChildren( parentEdges(j) ) ) alreadyDivided(j) = .TRUE.
 		if ( anEdges%leftPanel( parentEdges(j) ) == panelIndex ) edgeOrientation(j) = .TRUE.
 	enddo
-	
+
 !	print *, count(anEdges%hasChildren(1:30))
 !	print *, parentEdges
 !	print *, alreadyDivided
-	
+
 	!
 	! connect parent vertices to child panels
 	!
-	aPanels%vertices(1, nPanels + 1) = parentVertices(1) 
+	aPanels%vertices(1, nPanels + 1) = parentVertices(1)
 	aPanels%vertices(2, nPanels + 2) = parentVertices(2)
 	aPanels%vertices(3, nPanels + 3) = parentVertices(3)
-	
+
 	!
 	! parent edge 1, subpanels nPanels + 1 and nPanels + 2
 	!
@@ -1410,36 +1410,36 @@ subroutine DivideTriPanel(self, panelIndex)
 		if ( edgeOrientation(1) ) then
 			aPanels%edges(1, nPanels+1) = childEdges(1)
 			anEdges%leftPanel(childEdges(1)) = nPanels+1
-			
+
 			aPanels%edges(1, nPanels+2) = childEdges(2)
 			anEdges%leftPanel(childEdges(2)) = nPanels+2
 		else
 			aPanels%edges(1, nPanels+1) = childEdges(2)
 			anEdges%rightPanel(childEdges(2)) = nPanels+1
-			
+
 			aPanels%edges(1,nPanels+2) = childEdges(1)
 			anEdges%rightPanel(childEdges(1)) = nPanels+2
-		endif	
+		endif
 	else
 		!
 		! divide parent edge 1
 		!
 		anEdges%hasChildren(parentEdges(1)) = .TRUE.
 		anEdges%children(:,parentEdges(1)) = [ nEdges+1, nEdges + 2]
-		
+
 		aParticles%x(:, nParticles+1) = SphereMidpoint( aParticles%x(:, parentVertices(1)), aParticles%x(:, parentVertices(2)) )
 		aParticles%x0(:,nParticles+1) = SphereMidpoint( aParticles%x0(:,parentVertices(1)), aParticles%x0(:,parentVertices(2)) )
-		
+
 		aPanels%vertices(2, nPanels+1) = nParticles+1
 		aPanels%vertices(1, nPanels+2) = nParticles+1
-		
+
 		if ( edgeOrientation(1) ) then
 			anEdges%verts(:, nEdges+1) = [ parentVertices(1), nParticles+1]
 			anEdges%leftPanel(nEdges+1) = nPanels+1
 			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(1))
 			aPanels%edges(1, nPanels+1) = nEdges+1
-			
-			anEdges%verts(:, nEdges+2) = [ nParticles+1, parentVertices(2)] 
+
+			anEdges%verts(:, nEdges+2) = [ nParticles+1, parentVertices(2)]
 			anEdges%leftPanel(nEdges+2) = nPanels+2
 			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(1))
 			aPanels%edges(1, nPanels+2) = nEdges+2
@@ -1448,13 +1448,13 @@ subroutine DivideTriPanel(self, panelIndex)
 			anEdges%leftPanel(nEdges+1) = anEdges%leftPanel(parentEdges(1))
 			anEdges%rightPanel(nEdges+1) = nPanels+2
 			aPanels%edges(1,nPanels+2) = nEdges+1
-			
+
 			anEdges%verts(:, nEdges+2) = [ nParticles+1, parentVertices(1)]
 			anEdges%leftPanel(nEdges+2) = anEdges%leftPanel(parentEdges(1))
 			anEdges%rightPanel(nEdges+2) = nPanels+1
 			aPanels%edges(1, nPanels+1) = nEdges+2
 		endif
-		
+
 		nEdges = nEdges+2
 		nParticles = nParticles + 1
 	endif
@@ -1471,26 +1471,26 @@ subroutine DivideTriPanel(self, panelIndex)
 		if ( edgeOrientation(2) ) then
 			aPanels%edges(2,nPanels+2) = childEdges(1)
 			anEdges%leftPanel(childEdges(1)) = nPanels+2
-			
+
 			aPanels%edges(2, nPanels+3) = childEdges(2)
 			anEdges%leftPanel(childEdges(2)) = nPanels+3
 		else
 			aPanels%edges(2, nPanels+2) = childEdges(2)
 			anEdges%rightPanel(childEdges(2)) = nPanels+2
-			
+
 			aPanels%edges(2, nPanels+3) = childEdges(1)
 			anEdges%rightPanel(childEdges(1)) = nPanels+3
 		endif
 	else
 		!
 		! divide parent edge 2
-		! 
+		!
 		anEdges%hasChildren(parentEdges(2)) = .TRUE.
 		anEdges%children(:, parentEdges(2)) = [nEdges+1, nEdges+2]
-		
+
 		aParticles%x(:, nParticles+1) = SphereMidpoint( aParticles%x(:, parentVertices(2)), aParticles%x(:, parentVertices(3)) )
 		aParticles%x0(:,nParticles+1) = SphereMidpoint( aParticles%x0(:, parentVertices(2)),aParticles%x0(:, parentVertices(3)))
-		
+
 		aPanels%vertices(3, nPanels+2) = nParticles+1
 		aPanels%vertices(2, nPanels+3) = nParticles+1
 		if ( edgeOrientation(2) ) then
@@ -1498,8 +1498,8 @@ subroutine DivideTriPanel(self, panelIndex)
 			anEdges%leftPanel(nEdges+1) = nPanels+2
 			anEdges%rightPanel(nEdges+1) = anEdges%rightPanel(parentEdges(2))
 			aPanels%edges(2, nPanels+2) = nEdges+1
-			
-			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(3)]		
+
+			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(3)]
 			anEdges%leftPanel(nEdges+2) = nPanels+3
 			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(2))
 			aPanels%edges(2,nPanels+3) = nEdges+2
@@ -1508,7 +1508,7 @@ subroutine DivideTriPanel(self, panelIndex)
 			anEdges%leftPanel(nEdges+1)= anEdges%leftPanel(parentEdges(2))
 			anEdges%rightPanel(nEdges+1) = nPanels+3
 			aPanels%edges(2, nPanels+3) = nEdges+1
-			
+
 			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(2)]
 			anEdges%leftPanel(nEdges+2) = anEdges%leftPanel(parentEdges(2))
 			anEdges%rightPanel(nEdges+2) = nPanels+2
@@ -1516,8 +1516,8 @@ subroutine DivideTriPanel(self, panelIndex)
 		endif
 		nParticles = nParticles+1
 		nEdges = nEdges+2
-	endif	
-	
+	endif
+
 	!
 	! parent edge 3, subpanels nPanels + 3 and nPanels + 1
 	!
@@ -1531,35 +1531,35 @@ subroutine DivideTriPanel(self, panelIndex)
 		if ( edgeOrientation(3) ) then
 			aPanels%edges(3, nPanels+3) = childEdges(1)
 			anEdges%leftPanel(childEdges(1)) = nPanels+3
-			
+
 			aPanels%edges(3, nPanels+1) = childEdges(2)
 			anEdges%leftPanel(childEdges(2)) = nPanels+1
 		else
 			aPanels%edges(3,nPanels+3) = childEdges(2)
 			anEdges%rightPanel(childEdges(2)) = nPanels+3
-			
+
 			aPanels%edges(3, nPanels+1) = childEdges(1)
 			anEdges%rightPanel(childEdges(1)) = nPanels+1
 		endif
 	else
 		!
 		! divide parent edge 3
-		! 
+		!
 		anEdges%hasChildren(parentEdges(3)) = .TRUE.
 		anEdges%children(:,parentEdges(3)) = [nEdges+1, nEdges+2]
-		
+
 		aParticles%x(:,nParticles+1) = SphereMidpoint( aParticles%x(:, parentVertices(3)), aParticles%x(:, parentVertices(1)) )
 		aParticles%x0(:,nParticles+1) = SphereMidpoint( aParticles%x0(:, parentVertices(3)), aParticles%x0(:, parentVertices(1)) )
-		
+
 		aPanels%vertices(1, nPanels+3) = nParticles+1
 		apanels%vertices(3, nPanels+1) = nParticles+1
-		
+
 		if ( edgeOrientation(3) ) then
 			anEdges%verts(:, nEdges+1) = [parentVertices(3), nParticles+1]
 			anEdges%leftPanel(nEdges+1) = nPanels+3
 			anEdges%rightPanel(nEdges+1) = anEdges%rightPanel(parentEdges(3))
 			aPanels%edges(3,nPanels+3) = nEdges+1
-			
+
 			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(1)]
 			anEdges%leftPanel(nEdges+2) = nPanels+1
 			anEdges%rightPanel(nEdges+2) = anEdges%rightPanel(parentEdges(3))
@@ -1569,7 +1569,7 @@ subroutine DivideTriPanel(self, panelIndex)
 			anEdges%leftPanel(nEdges+1) = anEdges%leftPanel(parentEdges(3))
 			anEdges%rightPanel(nEdges+1)= nPanels+1
 			aPanels%edges(3,nPanels+1) = nEdges+1
-			
+
 			anEdges%verts(:, nEdges+2) = [nParticles+1, parentVertices(3)]
 			anEdges%leftPanel(nEdges+2) = anEdges%leftPanel(parentEdges(3))
 			anEdges%rightPanel(nEdges+2) = nPanels+3
@@ -1578,7 +1578,7 @@ subroutine DivideTriPanel(self, panelIndex)
 		nEdges = nEdges+2
 		nParticles = nParticles+1
 	endif
-	
+
 	aPanels%vertices(:, nPanels+4) = [aPanels%vertices(3, nPanels+2), aPanels%vertices(1, nPanels+3), aPanels%vertices(2, nPanels+1)]
 	aPanels%edges(:, nPanels+4) = [ nEdges+1, nEdges+2, nEdges+3]
 
@@ -1586,17 +1586,17 @@ subroutine DivideTriPanel(self, panelIndex)
 	anEdges%leftPanel(nEdges+1) = nPanels+4
 	anEdges%rightPanel(nEdges+1) = nPanels+3
 	aPanels%edges(1,nPanels+3) = nEdges+1
-	
+
 	anEdges%verts(:, nEdges+2) = [aPanels%vertices(2,nPanels+4), aPanels%vertices(3,nPanels+4)]
 	anEdges%leftPanel(nEdges+2) = nPanels+4
 	anEdges%rightPanel(nEdges+2) = nPanels+1
 	aPanels%edges(2,nPanels+1) = nEdges+2
-	
+
 	anEdges%verts(:, nEdges+3) = [aPanels%vertices(3,nPanels+4), aPanels%vertices(1,nPanels+4)]
 	anEdges%leftPanel(nEdges+3) = nPanels+4
 	anEdges%rightPanel(nEdges+3) = nPanels+2
 	aPanels%edges(3,nPanels+2) = nEdges+3
-	
+
 	nEdges = nEdges + 3
 	do j = 1, 4
 		aPanels%x(:, nPanels+j) = SphereTriCenter( aParticles%x(:, aPanels%vertices(1, nPanels+j)), &
@@ -1605,21 +1605,21 @@ subroutine DivideTriPanel(self, panelIndex)
 		aPanels%x0(:, nPanels+j) = SphereTriCenter( aParticles%x0(:, aPanels%vertices(1, nPanels+j)), &
 												   aParticles%x0(:, aPanels%vertices(2, nPanels+j)), &
 												   aParticles%x0(:, aPanels%vertices(3, nPanels+j)) )
-		aPanels%area(nPanels+j) = 0.0_kreal		
-		aPanels%nest(nPanels+j) = parentNest + 1										   
+		aPanels%area(nPanels+j) = 0.0_kreal
+		aPanels%nest(nPanels+j) = parentNest + 1
 		do k = 1, 3
 			aPanels%area( nPanels+j ) = aPanels%area( nPanels + j) + SphereTriArea( aParticles%x(:, aPanels%vertices(k, nPanels+j)), &
 																					aPanels%x(:, nPanels+j), &
 																					aParticles%x(:, aPanels%vertices(mod(k,3)+1, nPanels+j) ))
-		enddo											   										   
+		enddo
 	enddo
-	
+
 	!
 	! share parent active particle with subpanel 4
-	!	
+	!
 	aPanels%x(:,panelIndex) = aPanels%x(:, nPanels+4)
 	aPanels%x0(:,panelIndex) = aPanels%x0(:, nPanels+4)
-	
+
 	!
 	! update data structures
 	!
@@ -1628,11 +1628,11 @@ subroutine DivideTriPanel(self, panelIndex)
 	aPanels%children(:,panelIndex) = [1,2,3,4] + nPanels
 	aPanels%N = nPanels + 4
 	aPanels%N_Active = aPanels%N_Active + 3
-	
+
 	anEdges%N = nEdges
-	
+
 	aParticles%N = nParticles
-end subroutine 
+end subroutine
 
 
 function QuadPanelArea(self,panelIndex)

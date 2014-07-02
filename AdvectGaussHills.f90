@@ -86,7 +86,7 @@ integer(kint) :: j
 ! namelists and user input
 !
 character(len=MAX_STRING_LENGTH) :: namelistFile = 'AdvectGaussianHills.namelist'
-namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol 
+namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol
 namelist /timestepping/ tfinal, dt, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 
@@ -137,9 +137,13 @@ if ( AMR > 0 ) then
 	call InitialRefinement(sphere, remesh, SetGaussianHillsTracerOnMesh, gHills, NullVorticity, nullvort)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
+	if ( panelKind == TRI_PANEL ) &
+		write(amrstring,'(A,I1,A,I0.2,A)') 'triAMR_', initNest, 'to', initNest+amrLimit, '_'
 else
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A)') 'quadUnif_', initNest, '_'
+	if ( panelKind == TRI_PANEL ) &
+		write(amrstring,'(A,I1,A)') 'triUnif_', initNest, '_'
 endif
 
 !
@@ -148,7 +152,7 @@ endif
 if ( procrank == 0 ) then
 
 	call LogStats( sphere, exeLog)
-	
+
 	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
 	write(summaryFile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrString), '_summary.txt'
@@ -198,7 +202,7 @@ do timeJ = 0, timesteps - 1
 			! remesh to t = 0
 			!
 			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetGaussianHillsTracerOnMesh, gHills)
-			
+
 		elseif ( remeshCounter == resetAlphaInterval ) then
 			!
 			! remesh to t = 0, create reference mesh to current time
@@ -207,7 +211,7 @@ do timeJ = 0, timesteps - 1
 			allocate(reference)
 			call New(reference, sphere)
 			call ResetLagrangianParameter(sphere)
-			
+
 		elseif ( remeshCounter > resetAlphaInterval .AND. mod(remeshCounter, resetAlphaInterval) == 0 ) then
 			!
 			! remesh to existing reference, then create new reference to current time
@@ -221,7 +225,7 @@ do timeJ = 0, timesteps - 1
 			! remesh to existing reference
 			!
 			call LagrangianRemeshToReference(sphere, reference, remesh)
-			
+
 		endif
 		!
 		! delete objects associated with old mesh
@@ -236,26 +240,26 @@ do timeJ = 0, timesteps - 1
 		sphereParticles => sphere%particles
 		spherePanels => sphere%panels
 	endif ! remesh
-	
+
 	!
 	! advance time
 	!
 	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, LauritzenEtAlNonDivergentWind)
-	
+
 	totalMassGHills(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0) / var0
-	
+
 	t = real( timeJ+1, kreal) * dt
-	
+
 	if ( procRank == 0 .AND. mod( timeJ+1, frameOut) == 0 ) then
 		call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'day = ', t/ONE_DAY)
-		
+
 		write(vtkFile, '(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
 		call UpdateFilename(vtkOut, vtkFile)
 		call VTKOutput(vtkOut, sphere)
-		
+
 		frameCounter = frameCounter + 1
-	endif	
+	endif
 enddo
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	OUTPUT FINAL DATA
@@ -279,12 +283,12 @@ enddo
 
 	particlesLinf = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(sphereParticles%tracer(1:sphereParticles%N,1))
 	panelsLinf = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( spherePanels%tracer(1:spherePanels%N,1) )
-	
+
 	sphereLinf = max( particlesLinf, panelsLinf )
 	sphereL2 = sum( spherePanels%tracer(1:spherePanels%N,2) * spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
 	sphereL2 = sphereL2 / sum( spherePanels%tracer(1:spherePanels%N,1) * spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
 	sphereL2 = sqrt(sphereL2)
-	
+
 	phimax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
 	phimin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
 	if ( procRank == 0 ) then
@@ -312,15 +316,15 @@ enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
 		endif
 		close(WRITE_UNIT_1)
-		
+
 		write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
 		call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
-		
+
 	endif
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	FREE MEMORY, CLEAN UP, FINALIZE
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if (associated(reference)) then 
+if (associated(reference)) then
 	call Delete(reference)
 	deallocate(reference)
 endif
@@ -342,10 +346,10 @@ function GHillsExact(xyz, hmax, beta)
 	real(kreal), intent(in) :: xyz(3), hmax, beta
 	!
 	real(kreal) :: xc1(3), xc2(3), h1, h2
-	
+
 	xC1 = [ cos(5.0_kreal * PI / 6.0_kreal), sin( 5.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
 	xC2 = [ cos(7.0_kreal * PI / 6.0_kreal), sin( 7.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
-	
+
 	h1 = hmax * exp( -beta * ( sum( (xyz-xc1) * (xyz-xc1) ) ) )
 	h2 = hmax * exp( -beta * ( sum( (xyz-xc2) * (xyz-xc2) ) ) )
 	GHillsExact = h1 + h2
@@ -364,7 +368,7 @@ subroutine ReadNamelistFile(rank)
 	integer(kint), parameter :: BCAST_INT_SIZE = 6, BCAST_REAL_SIZE= 4
 	integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 	real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
-	
+
 	if ( rank == 0 ) then
 		open(unit=READ_UNIT, file=namelistfile, status='OLD', action='READ', iostat=readWriteStat)
 			if ( readWriteStat /= 0 ) stop 'cannot read namelist file.'
@@ -375,14 +379,14 @@ subroutine ReadNamelistFile(rank)
 			read(READ_UNIT, nml=fileIO)
 			rewind(READ_UNIT)
 		close(READ_UNIT)
-		
+
 		broadcastIntegers(1) = panelKind
 		broadcastIntegers(2) = initNest
 		broadcastIntegers(3) = AMR
 		broadcastIntegers(4) = amrLimit
 		broadcastIntegers(5) = remeshInterval
 		broadcastIntegers(6) = resetAlphaInterval
-		
+
 		broadcastReals(1) = tracerMassTol
 		broadcastReals(2) = tracerVarTol
 		broadcastReals(3) = dt
@@ -396,7 +400,7 @@ subroutine ReadNamelistFile(rank)
 	amrLimit = broadcastIntegers(4)
 	remeshInterval = broadcastIntegers(5)
 	resetAlphaInterval = broadcastIntegers(6)
-	
+
 	call MPI_BCAST(broadcastReals, BCAST_REAL_SIZE, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, errCode)
 	tracerMassTol = broadcastReals(1)
 	tracerVarTol = broadcastReals(2)
