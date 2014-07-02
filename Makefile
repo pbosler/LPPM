@@ -24,7 +24,7 @@ else ifeq ($(MACHINE),'VORTEX')
 # vortex.math.lsa.umich.edu
   FF = ifort
   #FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
-  FF_FLAGS= -O2 -openmp -warn all -opt_report 1
+  FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
   MKL_ROOT=/usr/local/intel/Compiler/11.1/056/mkl
   MKL_LINK=-L$(MKL_ROOT)/lib $(MKL_ROOT)/lib/libmkl_lapack95_lp64.a -lmkl_intel_lp64 -lmk_intel_thread -lmkl_core -lpthread -lm
   MKL_COMPILE=-openmp -I$(MKL_ROOT)/include/intel64/lp64 -I$(MKL_ROOT)/include
