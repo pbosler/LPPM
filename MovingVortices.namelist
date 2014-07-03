@@ -1,6 +1,6 @@
 &meshDefine
-	initNest = 1
-	AMR = 0
+	initNest = 4
+	AMR = 4
 	panelKind = 3
 	amrLimit = 4
 	tracerMassTol = 2.0
@@ -10,13 +10,13 @@
 
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
-	tfinal = 0.0		! days
+	tfinal = 12.0		! days
 	remeshInterval = 20
-	resetAlphaInterval = 40000
+	resetAlphaInterval = 5
 /
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'advect_triAMRonly_'
+	jobPrefix = 'advMovingVorts_triAMR_wReinit_'
 	frameOut = 1
 /

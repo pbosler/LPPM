@@ -65,7 +65,8 @@ type(OutputWriter) :: writer
 !
 ! test case variables
 !
-real(kreal), allocatable :: totalMasstestCaseTracer(:), sphereL2(:), sphereLinf(:), panelsLinf(:), particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:)
+real(kreal), allocatable :: totalMasstestCaseTracer(:), sphereL1(:), sphereL2(:), sphereLinf(:), panelsLinf(:),&
+						 	particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:)
 real(kreal) :: deltaPhi, phimax0, phimin0
 real(kreal) :: mass0, var0
 
@@ -126,8 +127,6 @@ testCaseTracer%integers(1) = tracerID
 !
 call New(sphere, panelKind, initNest, AMR, nTracer, ADVECTION_SOLVER)
 
-call LogStats( sphere, exeLog, 'DEBUG')
-
 call SetMovingVortsTracerOnMesh(sphere, testCaseTracer)
 
 !
@@ -143,9 +142,13 @@ if ( AMR > 0 ) then
 	call InitialRefinement(sphere, remesh, SetMovingVortsTracerOnMesh, testCaseTracer, NullVorticity, nullvort)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
+	if ( panelKind == TRI_PANEL ) &
+		write(amrstring,'(A,I1,A,I0.2,A)') 'triAMR_', initNest, 'to', initNest+amrLimit, '_'
 else
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A)') 'quadUnif_', initNest, '_'
+	if ( panelKind == TRI_PANEL ) &
+		write(amrstring,'(A,I1,A)') 'triUnif_', initNest, '_'
 endif
 
 !
@@ -189,6 +192,8 @@ phiMin = 0.0_kreal
 allocate(tracerVar(0:timesteps))
 tracerVar = 0.0_kreal
 var0 = TracerVariance(sphere, tracerID)
+allocate(sphereL1(0:timesteps))
+sphereL1 = 0.0_kreal
 
 sphereParticles => sphere%particles
 spherePanels => sphere%panels
@@ -276,7 +281,7 @@ do timeJ = 0, timesteps - 1
 	enddo
 	totalMasstestCaseTracer(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
-	
+
 	particlesLinf(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(sphereParticles%tracer(1:sphereParticles%N,1))
 	panelsLinf(timeJ+1) = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( spherePanels%tracer(1:spherePanels%N,1) )
 
@@ -284,6 +289,9 @@ do timeJ = 0, timesteps - 1
 	sphereL2(timeJ+1) = sum( spherePanels%tracer(1:spherePanels%N,2) * spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
 	sphereL2(timeJ+1) = sphereL2(timeJ+1) / sum( spherePanels%tracer(1:spherePanels%N,1) * spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
 	sphereL2(timeJ+1) = sqrt(sphereL2(timeJ+1))
+
+	sphereL1(timeJ+1) = sum( abs(spherePanels%tracer(1:spherePanels%N,2)) * spherePanels%area(1:spherePanels%N) )
+	sphereL1(timeJ+1) = sphereL1(timeJ+1) / sum( spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
 
 	phimax(timeJ+1) = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
 	phimin(timeJ+1) = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
@@ -334,6 +342,12 @@ enddo
 			enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') sphereL2(timesteps), ' ];'
 
+			write(WRITE_UNIT_1,'(A,F24.15,A)') 'sphereL1 = [', sphereL1(0), ' ;'
+			do j = 1, timesteps -1
+				write(WRITE_UNIT_1,'(F24.15,A)') sphereL1(j), ' ;'
+			enddo
+			write(WRITE_UNIT_1,'(F24.15,A)') sphereL1(timesteps), ' ];'
+
 			write(WRITE_UNIT_1,'(A,F24.15,A)') 'phi_max = [', phimax(0), ' ;'
 			do j = 1, timesteps -1
 				write(WRITE_UNIT_1,'(F24.15,A)') phimax(j), ' ;'
@@ -355,7 +369,7 @@ enddo
 				write(WRITE_UNIT_1,'(F24.15,A)') totalMasstestCaseTracer(j), ' ; ...'
 			enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') totalMasstestCaseTracer(timesteps), ' ] ;'
-		
+
 			write(WRITE_UNIT_1,'(A,F24.15,A)') 'tracerVar = [ ', tracerVar(0), ' ; ...'
 			do j = 1, timesteps-1
 				write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(j), ' ; ...'
@@ -377,6 +391,7 @@ if (associated(reference)) then
 endif
 deallocate(totalMasstestCaseTracer)
 deallocate(tracerVar)
+deallocate(sphereL1)
 deallocate(sphereL2)
 deallocate(sphereLinf)
 deallocate(particlesLinf)

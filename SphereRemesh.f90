@@ -995,15 +995,15 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 						call LogMessage(log, WARNING_LOGGING_LEVEL, 'LagRemeshToRef WARNING : ', 'refinement limit reached.')
 						call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshToRef N_Active = ', newPanels%N_Active)
 						write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
-						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 						write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
-						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 						write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
-						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 						write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
-						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 						write(logstring,'(A, I8, A)') 'tracer variation criterion triggered ', counters(5), ' times.'
-						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 					else
 						!
 						! apply refinement criteria to new panels
@@ -1033,29 +1033,29 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshToRef : ', ' refinement converged.')
 							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshToRef N_Active = ', newPanels%N_Active)
 							write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') 'tracer variation criterion triggered ', counters(5), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 						elseif ( spaceLeft / 4 < refineCount ) then
 							keepGoing = .FALSE.
 							call LogMessage(log, WARNING_LOGGING_LEVEL, 'LagRemeshToRef WARNING: ', ' not enough memory to continue AMR.')
 							call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshToRef N_Active = ', newPanels%N_Active)
 							write(logstring,'(A, I8, A)') ' max circulation criterion triggered ', counters(1), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 							write(logstring,'(A, I8, A)') 'tracer variation criterion triggered ', counters(5), ' times.'
-							call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshToRef : ',trim(logstring))
 						endif ! stopping criteria triggered
 					endif ! below refinement limit
 				enddo ! while keepgoing

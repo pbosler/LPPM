@@ -140,9 +140,13 @@ if ( AMR > 0 ) then
 	call InitialRefinement(sphere, remesh, SetGaussianHillsTracerOnMesh, gHills, NullVorticity, nullvort)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
+	if ( panelKind == TRI_PANEL ) &
+		write(amrstring,'(A,I1,A,I0.2,A)') 'triAMR_', initNest, 'to', initNest+amrLimit, '_'
 else
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A)') 'quadUnif_', initNest, '_'
+	if ( panelKind == TRI_PANEL ) &
+		write(amrstring,'(A,I1,A)') 'triUnif_', initNest, '_'
 endif
 
 !
