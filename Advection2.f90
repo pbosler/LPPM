@@ -704,24 +704,23 @@ function MovingVorticesVelocity( xyz, t)
 	real(kreal) :: MovingVorticesVelocity(3)
 	real(kreal), intent(in) :: xyz(3), t
 	!
-	real(kreal) :: lamC, thetaC, u, v, lat, lon, rho, wr
+	real(kreal) :: lamC, thetaC, u, v, lat, lon, rho, wr, lamP, thetaP
 	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY), &
 							  rho0 = 3.0_kreal
 
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
+        lamC = npLon + u0 * t
+        thetaC = npLat
+        lamP = atan4( cos(lat)*sin(lon - lamC), cos(lat)*sin(thetaC)*cos(lon-lamC) - cos(thetaC)*sin(lat))
+        thetaP = asin( sin(lat)*sin(thetaC)*cos(lon-lamC)-cos(thetaC)*sin(lat))
+ 
+	rho = rho0 * cos( thetaP )
 
-!	thetaC = RotatedLatitude( xyz, npLon, npLat )
-!	lamC = RotatedLongitude( xyz, npLon, npLat)
-	thetaC = npLat
-	lamC = npLon
+	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * / cosh(rho) / cosh(rho) * ( rho / ( rho*rho + ZERO_TOL*ZERO_TOL))
 
-	rho = rho0 * cos( lat )
-
-	wr = u0 * 0.5_kreal * 3.0_kreal * sqrt(3.0_kreal) * tanh(rho) / cosh(rho) / cosh(rho) * ( rho / (rho*rho + ZERO_TOL*ZERO_TOL) )
-
-	u = wr * ( sin(thetaC) * cos(lat) - cos(thetaC) * cos(lon - lamC)*sin(lat) )
-	v = wr * ( cos(thetaC) * sin(lon-lamC) )
+        u = u0 * cos(lat) + wr * ( sin(thetaC)*cos(lat) - cos(thetaC)*cos(lon-lamC)*sin(lat))
+        v = wr * cos(thetaC)*sin(lon-lamC)
 
 	MovingVorticesVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
 	MovingVorticesVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
