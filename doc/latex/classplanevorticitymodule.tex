@@ -1,0 +1,302 @@
+\hypertarget{classplanevorticitymodule}{\section{planevorticitymodule Module Reference}
+\label{classplanevorticitymodule}\index{planevorticitymodule@{planevorticitymodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classplanevorticitymodule_a792d9a7093210996abc80f424f85c7d6}{nullvorticity} (a\+Mesh, self)
+\item 
+subroutine, public \hyperlink{classplanevorticitymodule_a9b7b36b540cdde3dff4f595ee17fac91}{initrankinevortex} (self, x\+Cent, y\+Cent, radius, strength)
+\item 
+subroutine, public \hyperlink{classplanevorticitymodule_afd6c2846a65d4596cc18426a5caa598f}{setrankinevortexonmesh} (a\+Mesh, self)
+\item 
+real(kreal) function, public \hyperlink{classplanevorticitymodule_af0557ea6784c39805e01abbb4ee70991}{rankinevortex} (xy, xy\+Cent, radius, strength)
+\item 
+subroutine, public \hyperlink{classplanevorticitymodule_aab0e291683ba215bdd68fb624f9dbcfe}{initlambdipole} (self, lamb\+R, U0, x\+Cent, y\+Cent)
+\item 
+subroutine, public \hyperlink{classplanevorticitymodule_a8781b59d1db37580d3e49f91c06633a1}{setlambdipoleonmesh} (a\+Mesh, self)
+\item 
+real(kreal) function, public \hyperlink{classplanevorticitymodule_a5c84e5ec68efb64cf335e7e725739ac4}{lambdipole} (xy, lamb\+R, U0, xcent, ycent)
+\item 
+subroutine, public \hyperlink{classplanevorticitymodule_a5b26b74f091d010b645d0a2179cfc431}{inittwodipoles} (self, xc1, yc1, rad1, u1, xc2, yc2, rad2, u2)
+\item 
+subroutine, public \hyperlink{classplanevorticitymodule_a8cde7121f564c397cb43cbef1dbbe11a}{settwodipolesonmesh} (a\+Mesh, self)
+\item 
+real(kreal) function, public \hyperlink{classplanevorticitymodule_acd89b05d84d480879fc8eaa4e0875330}{twodipoles} (xy, xc1, yc1, rad1, u1, xc2, yc2, rad2, u2)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer(kint), parameter, public \hyperlink{classplanevorticitymodule_ae046028c791f2a4c56667abc8f962a03}{rankine\+\_\+n\+\_\+int} = 0
+\item 
+integer(kint), parameter, public \hyperlink{classplanevorticitymodule_a69fc6e3c83e0b264e371f5449f32d7e3}{rankine\+\_\+n\+\_\+real} = 4
+\item 
+integer(kint), parameter, public \hyperlink{classplanevorticitymodule_ae75950a48c6cd42486a209acdf9cd39f}{lamb\+\_\+dipole\+\_\+n\+\_\+int} = 0
+\item 
+integer(kint), parameter, public \hyperlink{classplanevorticitymodule_aa6d6634dd07803ab07d05ca7b8545536}{lamb\+\_\+dipole\+\_\+n\+\_\+real} = 4
+\item 
+integer(kint), parameter, public \hyperlink{classplanevorticitymodule_ab0fb928966a7599273db79fbfded8257}{two\+\_\+dipoles\+\_\+n\+\_\+int} = 0
+\item 
+integer(kint), parameter, public \hyperlink{classplanevorticitymodule_afa6ffc2e42f02af0d222cf41f8c89c6f}{two\+\_\+dipoles\+\_\+n\+\_\+real} = 8
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file Plane\+Vorticity.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classplanevorticitymodule_aab0e291683ba215bdd68fb624f9dbcfe}{\index{planevorticitymodule@{planevorticitymodule}!initlambdipole@{initlambdipole}}
+\index{initlambdipole@{initlambdipole}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{initlambdipole}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planevorticitymodule\+::initlambdipole (
+\begin{DoxyParamCaption}
+\item[{type(vorticitysetup), intent(inout)}]{self, }
+\item[{real(kreal), intent(in)}]{lamb\+R, }
+\item[{real(kreal), intent(in)}]{U0, }
+\item[{real(kreal), intent(in)}]{x\+Cent, }
+\item[{real(kreal), intent(in)}]{y\+Cent}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_aab0e291683ba215bdd68fb624f9dbcfe}
+
+
+Definition at line 185 of file Plane\+Vorticity.\+f90.
+
+
+
+Referenced by lambtest().
+
+\hypertarget{classplanevorticitymodule_a9b7b36b540cdde3dff4f595ee17fac91}{\index{planevorticitymodule@{planevorticitymodule}!initrankinevortex@{initrankinevortex}}
+\index{initrankinevortex@{initrankinevortex}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{initrankinevortex}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planevorticitymodule\+::initrankinevortex (
+\begin{DoxyParamCaption}
+\item[{type(vorticitysetup), intent(inout)}]{self, }
+\item[{real(kreal), intent(in)}]{x\+Cent, }
+\item[{real(kreal), intent(in)}]{y\+Cent, }
+\item[{real(kreal), intent(in)}]{radius, }
+\item[{real(kreal), intent(in)}]{strength}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_a9b7b36b540cdde3dff4f595ee17fac91}
+
+
+Definition at line 127 of file Plane\+Vorticity.\+f90.
+
+
+
+Referenced by planeunittest().
+
+\hypertarget{classplanevorticitymodule_a5b26b74f091d010b645d0a2179cfc431}{\index{planevorticitymodule@{planevorticitymodule}!inittwodipoles@{inittwodipoles}}
+\index{inittwodipoles@{inittwodipoles}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{inittwodipoles}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planevorticitymodule\+::inittwodipoles (
+\begin{DoxyParamCaption}
+\item[{type(vorticitysetup), intent(inout)}]{self, }
+\item[{real(kreal), intent(in)}]{xc1, }
+\item[{real(kreal), intent(in)}]{yc1, }
+\item[{real(kreal), intent(in)}]{rad1, }
+\item[{real(kreal), intent(in)}]{u1, }
+\item[{real(kreal), intent(in)}]{xc2, }
+\item[{real(kreal), intent(in)}]{yc2, }
+\item[{real(kreal), intent(in)}]{rad2, }
+\item[{real(kreal), intent(in)}]{u2}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_a5b26b74f091d010b645d0a2179cfc431}
+
+
+Definition at line 246 of file Plane\+Vorticity.\+f90.
+
+
+
+Referenced by reversibledipolesmain(), and twodipolesmain().
+
+\hypertarget{classplanevorticitymodule_a5c84e5ec68efb64cf335e7e725739ac4}{\index{planevorticitymodule@{planevorticitymodule}!lambdipole@{lambdipole}}
+\index{lambdipole@{lambdipole}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{lambdipole}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public planevorticitymodule\+::lambdipole (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy, }
+\item[{real(kreal), intent(in)}]{lamb\+R, }
+\item[{real(kreal), intent(in)}]{U0, }
+\item[{real(kreal), intent(in)}]{xcent, }
+\item[{real(kreal), intent(in)}]{ycent}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_a5c84e5ec68efb64cf335e7e725739ac4}
+
+
+Definition at line 223 of file Plane\+Vorticity.\+f90.
+
+
+
+References bessj0(), and bessj1().
+
+
+
+Referenced by setlambdipoleonmesh(), and twodipoles().
+
+\hypertarget{classplanevorticitymodule_a792d9a7093210996abc80f424f85c7d6}{\index{planevorticitymodule@{planevorticitymodule}!nullvorticity@{nullvorticity}}
+\index{nullvorticity@{nullvorticity}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{nullvorticity}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planevorticitymodule\+::nullvorticity (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(vorticitysetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_a792d9a7093210996abc80f424f85c7d6}
+
+
+Definition at line 121 of file Plane\+Vorticity.\+f90.
+
+\hypertarget{classplanevorticitymodule_af0557ea6784c39805e01abbb4ee70991}{\index{planevorticitymodule@{planevorticitymodule}!rankinevortex@{rankinevortex}}
+\index{rankinevortex@{rankinevortex}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{rankinevortex}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public planevorticitymodule\+::rankinevortex (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy, }
+\item[{real(kreal), dimension(2), intent(in)}]{xy\+Cent, }
+\item[{real(kreal), intent(in)}]{radius, }
+\item[{real(kreal), intent(in)}]{strength}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_af0557ea6784c39805e01abbb4ee70991}
+
+
+Definition at line 172 of file Plane\+Vorticity.\+f90.
+
+
+
+Referenced by setrankinevortexonmesh().
+
+\hypertarget{classplanevorticitymodule_a8781b59d1db37580d3e49f91c06633a1}{\index{planevorticitymodule@{planevorticitymodule}!setlambdipoleonmesh@{setlambdipoleonmesh}}
+\index{setlambdipoleonmesh@{setlambdipoleonmesh}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{setlambdipoleonmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planevorticitymodule\+::setlambdipoleonmesh (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(vorticitysetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_a8781b59d1db37580d3e49f91c06633a1}
+
+
+Definition at line 200 of file Plane\+Vorticity.\+f90.
+
+
+
+References lambdipole().
+
+
+
+Referenced by lambtest().
+
+\hypertarget{classplanevorticitymodule_afd6c2846a65d4596cc18426a5caa598f}{\index{planevorticitymodule@{planevorticitymodule}!setrankinevortexonmesh@{setrankinevortexonmesh}}
+\index{setrankinevortexonmesh@{setrankinevortexonmesh}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{setrankinevortexonmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planevorticitymodule\+::setrankinevortexonmesh (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(vorticitysetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_afd6c2846a65d4596cc18426a5caa598f}
+
+
+Definition at line 142 of file Plane\+Vorticity.\+f90.
+
+
+
+References rankinevortex().
+
+
+
+Referenced by planeunittest().
+
+\hypertarget{classplanevorticitymodule_a8cde7121f564c397cb43cbef1dbbe11a}{\index{planevorticitymodule@{planevorticitymodule}!settwodipolesonmesh@{settwodipolesonmesh}}
+\index{settwodipolesonmesh@{settwodipolesonmesh}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{settwodipolesonmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planevorticitymodule\+::settwodipolesonmesh (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(vorticitysetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_a8cde7121f564c397cb43cbef1dbbe11a}
+
+
+Definition at line 266 of file Plane\+Vorticity.\+f90.
+
+
+
+References twodipoles().
+
+
+
+Referenced by reversibledipolesmain(), and twodipolesmain().
+
+\hypertarget{classplanevorticitymodule_acd89b05d84d480879fc8eaa4e0875330}{\index{planevorticitymodule@{planevorticitymodule}!twodipoles@{twodipoles}}
+\index{twodipoles@{twodipoles}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{twodipoles}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public planevorticitymodule\+::twodipoles (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy, }
+\item[{real(kreal), intent(in)}]{xc1, }
+\item[{real(kreal), intent(in)}]{yc1, }
+\item[{real(kreal), intent(in)}]{rad1, }
+\item[{real(kreal), intent(in)}]{u1, }
+\item[{real(kreal), intent(in)}]{xc2, }
+\item[{real(kreal), intent(in)}]{yc2, }
+\item[{real(kreal), intent(in)}]{rad2, }
+\item[{real(kreal), intent(in)}]{u2}
+\end{DoxyParamCaption}
+)}}\label{classplanevorticitymodule_acd89b05d84d480879fc8eaa4e0875330}
+
+
+Definition at line 293 of file Plane\+Vorticity.\+f90.
+
+
+
+References bessj0(), bessj1(), and lambdipole().
+
+
+
+Referenced by settwodipolesonmesh().
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classplanevorticitymodule_ae75950a48c6cd42486a209acdf9cd39f}{\index{planevorticitymodule@{planevorticitymodule}!lamb\+\_\+dipole\+\_\+n\+\_\+int@{lamb\+\_\+dipole\+\_\+n\+\_\+int}}
+\index{lamb\+\_\+dipole\+\_\+n\+\_\+int@{lamb\+\_\+dipole\+\_\+n\+\_\+int}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{lamb\+\_\+dipole\+\_\+n\+\_\+int}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public planevorticitymodule\+::lamb\+\_\+dipole\+\_\+n\+\_\+int = 0}}\label{classplanevorticitymodule_ae75950a48c6cd42486a209acdf9cd39f}
+
+
+Definition at line 46 of file Plane\+Vorticity.\+f90.
+
+\hypertarget{classplanevorticitymodule_aa6d6634dd07803ab07d05ca7b8545536}{\index{planevorticitymodule@{planevorticitymodule}!lamb\+\_\+dipole\+\_\+n\+\_\+real@{lamb\+\_\+dipole\+\_\+n\+\_\+real}}
+\index{lamb\+\_\+dipole\+\_\+n\+\_\+real@{lamb\+\_\+dipole\+\_\+n\+\_\+real}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{lamb\+\_\+dipole\+\_\+n\+\_\+real}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public planevorticitymodule\+::lamb\+\_\+dipole\+\_\+n\+\_\+real = 4}}\label{classplanevorticitymodule_aa6d6634dd07803ab07d05ca7b8545536}
+
+
+Definition at line 46 of file Plane\+Vorticity.\+f90.
+
+\hypertarget{classplanevorticitymodule_ae046028c791f2a4c56667abc8f962a03}{\index{planevorticitymodule@{planevorticitymodule}!rankine\+\_\+n\+\_\+int@{rankine\+\_\+n\+\_\+int}}
+\index{rankine\+\_\+n\+\_\+int@{rankine\+\_\+n\+\_\+int}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{rankine\+\_\+n\+\_\+int}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public planevorticitymodule\+::rankine\+\_\+n\+\_\+int = 0}}\label{classplanevorticitymodule_ae046028c791f2a4c56667abc8f962a03}
+
+
+Definition at line 46 of file Plane\+Vorticity.\+f90.
+
+\hypertarget{classplanevorticitymodule_a69fc6e3c83e0b264e371f5449f32d7e3}{\index{planevorticitymodule@{planevorticitymodule}!rankine\+\_\+n\+\_\+real@{rankine\+\_\+n\+\_\+real}}
+\index{rankine\+\_\+n\+\_\+real@{rankine\+\_\+n\+\_\+real}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{rankine\+\_\+n\+\_\+real}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public planevorticitymodule\+::rankine\+\_\+n\+\_\+real = 4}}\label{classplanevorticitymodule_a69fc6e3c83e0b264e371f5449f32d7e3}
+
+
+Definition at line 46 of file Plane\+Vorticity.\+f90.
+
+\hypertarget{classplanevorticitymodule_ab0fb928966a7599273db79fbfded8257}{\index{planevorticitymodule@{planevorticitymodule}!two\+\_\+dipoles\+\_\+n\+\_\+int@{two\+\_\+dipoles\+\_\+n\+\_\+int}}
+\index{two\+\_\+dipoles\+\_\+n\+\_\+int@{two\+\_\+dipoles\+\_\+n\+\_\+int}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{two\+\_\+dipoles\+\_\+n\+\_\+int}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public planevorticitymodule\+::two\+\_\+dipoles\+\_\+n\+\_\+int = 0}}\label{classplanevorticitymodule_ab0fb928966a7599273db79fbfded8257}
+
+
+Definition at line 46 of file Plane\+Vorticity.\+f90.
+
+\hypertarget{classplanevorticitymodule_afa6ffc2e42f02af0d222cf41f8c89c6f}{\index{planevorticitymodule@{planevorticitymodule}!two\+\_\+dipoles\+\_\+n\+\_\+real@{two\+\_\+dipoles\+\_\+n\+\_\+real}}
+\index{two\+\_\+dipoles\+\_\+n\+\_\+real@{two\+\_\+dipoles\+\_\+n\+\_\+real}!planevorticitymodule@{planevorticitymodule}}
+\subsubsection[{two\+\_\+dipoles\+\_\+n\+\_\+real}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public planevorticitymodule\+::two\+\_\+dipoles\+\_\+n\+\_\+real = 8}}\label{classplanevorticitymodule_afa6ffc2e42f02af0d222cf41f8c89c6f}
+
+
+Definition at line 46 of file Plane\+Vorticity.\+f90.
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{PlaneVorticity_8f90}{Plane\+Vorticity.\+f90}\end{DoxyCompactItemize}

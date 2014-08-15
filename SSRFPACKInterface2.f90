@@ -1,20 +1,20 @@
 module SSRFPACKInterfaceModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Provides an interface for SphereMesh objects and SphereMeshOutput objects to
-!	use the Delaunay triangulation and Voronoi diagram procedures provided by ssrfpack.f.
+!> @defgroup SSRFPACKInterface SSRFPACK Interface Module
+!> Provides and object-oriented interface into the ssrfpack.f module @cite SSRFPACK .
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!	Renka, R. "Algorithm 773 : SSRFPACK : Interpolation of scattered data on the surface of a sphere with a surface under tension."
-!	ACM Transactions on Mathematical Software, 23 : 435-442. 1997.
-!----------------
+! DESCRIPTION:
+!> @file
+!> Provides and object-oriented interface into the ssrfpack.f module.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use SphereGeomModule

@@ -1,19 +1,20 @@
 module PlaneOutputModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the RK4 data structure used by SphereMesh.
+!> @defgroup PlaneOutput Planar output module
+!> Data types, subroutines, and functions for outputting data from planar LPPM simulations to various formats.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the barotropic vorticity equation on the sphere.
-!----------------
+! DESCRIPTION:
+!> @file
+!> Data types, subroutines, and functions for outputting data from planar LPPM simulations to various formats.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use PlaneGeomModule

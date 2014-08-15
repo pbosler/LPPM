@@ -1,19 +1,20 @@
 module SWEDirectSumModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the RK4 data structure and methods used by SphereMesh.
+!> @defgroup SWEDirectSum SWE Direct Sum RK4
+!> Provides RK4 time stepping for the shallow water equations using direct summation.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the shallow water equations on the sphere.
-!----------------
+! DESCRIPTION:
+!> @file
+!> Provides data structures and methods for RK4 time stepping of the shallow water equations using direct summation.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use SphereGeomModule
@@ -1397,8 +1398,8 @@ subroutine SWEVelocityPassive(u, x, xActive, relVort, div, area, indexStart, ind
 			dotProd = sum( x(:,j) * xActive(:,k) )
 			denomZeta = 4.0_kreal * PI * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd )
 			denomDelta = 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS * EARTH_RADIUS * ( EARTH_RADIUS * EARTH_RADIUS - dotProd)
-			u(1,j) = u(1,j) + ( x(2,j) * xActive(3,k) - x(3,j) * xActive(2,k) ) * relVort(k) * area(k) / denomZeta + &	
-			   ( x(1,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * xActive(1,k) ) * div(k) * area(k) / denomDelta 
+			u(1,j) = u(1,j) + ( x(2,j) * xActive(3,k) - x(3,j) * xActive(2,k) ) * relVort(k) * area(k) / denomZeta + &
+			   ( x(1,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * xActive(1,k) ) * div(k) * area(k) / denomDelta
 			u(2,j) = u(2,j) + ( x(3,j) * xActive(1,k) - x(1,j) * xActive(3,k) ) * relVort(k) * area(k) / denomZeta + &
 			   ( x(2,j) * dotProd - EARTH_RADIUS * EARTH_RADIUS * xActive(2,k) ) * div(k) * area(k) / denomDelta
 			u(3,j) = u(3,j) + ( x(1,j) * xActive(2,k) - x(2,j) * xActive(1,k) ) * relVort(k) * area(k) / denomZeta + &

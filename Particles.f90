@@ -1,22 +1,20 @@
 module ParticlesModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the passive particle data structure used by icosahedral triangle and cubed
-!	sphere Lagrangian meshes of the sphere.
+!> @defgroup Particles Particles module
+!> Provides the primitive Particles data structure that defines the passive particles of LPPM meshes.
 !
-!	No Dual : no information about the dual mesh is provided by this implementation.
 !
-!	No lists : Dynamic memory allocation is avoided by assuming constant polygonal structures
-!		 (i.e., quadrilaterals or triangles only), and not maintaining dual mesh methods.
+! DESCRIPTION:
+!> @file
+!> Provides the primitive Particles data structure that defines the passive particles of LPPM meshes.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
-!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 

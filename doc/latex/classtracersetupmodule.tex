@@ -1,0 +1,247 @@
+\hypertarget{classtracersetupmodule}{\section{tracersetupmodule Module Reference}
+\label{classtracersetupmodule}\index{tracersetupmodule@{tracersetupmodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_a20e092545b71ecb6dc10d7414ec03b61}{initcosinebelltracer} (cos\+Bell, lat0, lon0, rr, h0, tracer\+I\+D)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_aedac0798d66e1ec834a2996971177dc6}{setcosinebelltraceronmesh} (a\+Mesh, cos\+Bell)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_ac30ca4270fa366d7bcd76899c6f5e8c2}{setmovingvortstraceronmesh} (a\+Mesh, mvt)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_aa4126f1be402c40d33266316b37ec896}{initonegaussianhilltracer} (g\+Hill, h\+Max, beta, tracer\+I\+D)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_a2a7157a473fdc3bd4ee8a2d3b0641ed1}{initgaussianhillstracer} (g\+Hills, hmax, beta, tracer\+I\+D)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_a1001c1749600a4be18d9ecc91de26ace}{setgaussianhillstraceronmesh} (a\+Mesh, g\+Hills)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_a264b31eac8bb7bd2344d2c671d487727}{setonegaussianhilltraceronmesh} (a\+Mesh, g\+Hill)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_ad96445741d21de9d675c87ace9d540e5}{setflowmaplatitudetraceronmesh} (a\+Mesh, tracer\+I\+D)
+\item 
+subroutine, public \hyperlink{classtracersetupmodule_a9e0f459188493a18ff6c57cfb2d8bab8}{nulltracer} (a\+Mesh, null\+Scalar)
+\item 
+real(kreal) function, public \hyperlink{classtracersetupmodule_a9e384760bc19613212a17ea3a263ce02}{tracervariance} (a\+Mesh, tracer\+I\+D)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer(kint), parameter, public \hyperlink{classtracersetupmodule_a6a3ecc28d9e2aa6689bb12a1af92ab06}{cos\+\_\+bell\+\_\+nint} = 0
+\item 
+integer(kint), parameter, public \hyperlink{classtracersetupmodule_ae16b185d402e77f1d88346f78c2b68c3}{cos\+\_\+bell\+\_\+nreal} = 4
+\item 
+integer(kint), parameter, public \hyperlink{classtracersetupmodule_af21323b72b36ff76bf144154a20ef027}{gauss\+\_\+hills\+\_\+n\+\_\+int} = 1
+\item 
+integer(kint), parameter, public \hyperlink{classtracersetupmodule_a9a7a9e9cb8888b7269ea9b8336cd9360}{gauss\+\_\+hills\+\_\+n\+\_\+real} = 2
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file Tracers.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classtracersetupmodule_a20e092545b71ecb6dc10d7414ec03b61}{\index{tracersetupmodule@{tracersetupmodule}!initcosinebelltracer@{initcosinebelltracer}}
+\index{initcosinebelltracer@{initcosinebelltracer}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{initcosinebelltracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::initcosinebelltracer (
+\begin{DoxyParamCaption}
+\item[{type(tracersetup), intent(inout)}]{cos\+Bell, }
+\item[{real(kreal), intent(in)}]{lat0, }
+\item[{real(kreal), intent(in)}]{lon0, }
+\item[{real(kreal), intent(in)}]{rr, }
+\item[{real(kreal), intent(in)}]{h0, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_a20e092545b71ecb6dc10d7414ec03b61}
+
+
+Definition at line 120 of file Tracers.\+f90.
+
+
+
+Referenced by bvegaussvort(), bvesolidbody(), and testcase1().
+
+\hypertarget{classtracersetupmodule_a2a7157a473fdc3bd4ee8a2d3b0641ed1}{\index{tracersetupmodule@{tracersetupmodule}!initgaussianhillstracer@{initgaussianhillstracer}}
+\index{initgaussianhillstracer@{initgaussianhillstracer}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{initgaussianhillstracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::initgaussianhillstracer (
+\begin{DoxyParamCaption}
+\item[{type(tracersetup), intent(inout)}]{g\+Hills, }
+\item[{real(kreal), intent(in)}]{hmax, }
+\item[{real(kreal), intent(in)}]{beta, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_a2a7157a473fdc3bd4ee8a2d3b0641ed1}
+
+
+Definition at line 216 of file Tracers.\+f90.
+
+
+
+Referenced by gaussianhillsadvection(), and gaussianhillsadvectiondirect().
+
+\hypertarget{classtracersetupmodule_aa4126f1be402c40d33266316b37ec896}{\index{tracersetupmodule@{tracersetupmodule}!initonegaussianhilltracer@{initonegaussianhilltracer}}
+\index{initonegaussianhilltracer@{initonegaussianhilltracer}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{initonegaussianhilltracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::initonegaussianhilltracer (
+\begin{DoxyParamCaption}
+\item[{type(tracersetup), intent(inout)}]{g\+Hill, }
+\item[{real(kreal), intent(in)}]{h\+Max, }
+\item[{real(kreal), intent(in)}]{beta, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_aa4126f1be402c40d33266316b37ec896}
+
+
+Definition at line 197 of file Tracers.\+f90.
+
+
+
+Referenced by kentcascadeadvection().
+
+\hypertarget{classtracersetupmodule_a9e0f459188493a18ff6c57cfb2d8bab8}{\index{tracersetupmodule@{tracersetupmodule}!nulltracer@{nulltracer}}
+\index{nulltracer@{nulltracer}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{nulltracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::nulltracer (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{null\+Scalar}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_a9e0f459188493a18ff6c57cfb2d8bab8}
+
+
+Definition at line 325 of file Tracers.\+f90.
+
+\hypertarget{classtracersetupmodule_aedac0798d66e1ec834a2996971177dc6}{\index{tracersetupmodule@{tracersetupmodule}!setcosinebelltraceronmesh@{setcosinebelltraceronmesh}}
+\index{setcosinebelltraceronmesh@{setcosinebelltraceronmesh}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{setcosinebelltraceronmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::setcosinebelltraceronmesh (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{cos\+Bell}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_aedac0798d66e1ec834a2996971177dc6}
+
+
+Definition at line 138 of file Tracers.\+f90.
+
+
+
+Referenced by bvegaussvort(), bvesolidbody(), and testcase1().
+
+\hypertarget{classtracersetupmodule_ad96445741d21de9d675c87ace9d540e5}{\index{tracersetupmodule@{tracersetupmodule}!setflowmaplatitudetraceronmesh@{setflowmaplatitudetraceronmesh}}
+\index{setflowmaplatitudetraceronmesh@{setflowmaplatitudetraceronmesh}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{setflowmaplatitudetraceronmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::setflowmaplatitudetraceronmesh (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_ad96445741d21de9d675c87ace9d540e5}
+
+
+Definition at line 306 of file Tracers.\+f90.
+
+
+
+Referenced by bvegaussvort(), nonlinearsteadyswe(), and rh4wave().
+
+\hypertarget{classtracersetupmodule_a1001c1749600a4be18d9ecc91de26ace}{\index{tracersetupmodule@{tracersetupmodule}!setgaussianhillstraceronmesh@{setgaussianhillstraceronmesh}}
+\index{setgaussianhillstraceronmesh@{setgaussianhillstraceronmesh}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{setgaussianhillstraceronmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::setgaussianhillstraceronmesh (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{g\+Hills}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_a1001c1749600a4be18d9ecc91de26ace}
+
+
+Definition at line 235 of file Tracers.\+f90.
+
+
+
+Referenced by gaussianhillsadvection(), and gaussianhillsadvectiondirect().
+
+\hypertarget{classtracersetupmodule_ac30ca4270fa366d7bcd76899c6f5e8c2}{\index{tracersetupmodule@{tracersetupmodule}!setmovingvortstraceronmesh@{setmovingvortstraceronmesh}}
+\index{setmovingvortstraceronmesh@{setmovingvortstraceronmesh}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{setmovingvortstraceronmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::setmovingvortstraceronmesh (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{mvt}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_ac30ca4270fa366d7bcd76899c6f5e8c2}
+
+
+Definition at line 163 of file Tracers.\+f90.
+
+
+
+Referenced by movingvorticesadvection().
+
+\hypertarget{classtracersetupmodule_a264b31eac8bb7bd2344d2c671d487727}{\index{tracersetupmodule@{tracersetupmodule}!setonegaussianhilltraceronmesh@{setonegaussianhilltraceronmesh}}
+\index{setonegaussianhilltraceronmesh@{setonegaussianhilltraceronmesh}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{setonegaussianhilltraceronmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public tracersetupmodule\+::setonegaussianhilltraceronmesh (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{g\+Hill}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_a264b31eac8bb7bd2344d2c671d487727}
+
+
+Definition at line 262 of file Tracers.\+f90.
+
+
+
+Referenced by kentcascadeadvection().
+
+\hypertarget{classtracersetupmodule_a9e384760bc19613212a17ea3a263ce02}{\index{tracersetupmodule@{tracersetupmodule}!tracervariance@{tracervariance}}
+\index{tracervariance@{tracervariance}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{tracervariance}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public tracersetupmodule\+::tracervariance (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{a\+Mesh, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classtracersetupmodule_a9e384760bc19613212a17ea3a263ce02}
+
+
+Definition at line 330 of file Tracers.\+f90.
+
+
+
+Referenced by gaussianhillsadvection(), gaussianhillsadvectiondirect(), kentcascadeadvection(), and movingvorticesadvection().
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classtracersetupmodule_a6a3ecc28d9e2aa6689bb12a1af92ab06}{\index{tracersetupmodule@{tracersetupmodule}!cos\+\_\+bell\+\_\+nint@{cos\+\_\+bell\+\_\+nint}}
+\index{cos\+\_\+bell\+\_\+nint@{cos\+\_\+bell\+\_\+nint}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{cos\+\_\+bell\+\_\+nint}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public tracersetupmodule\+::cos\+\_\+bell\+\_\+nint = 0}}\label{classtracersetupmodule_a6a3ecc28d9e2aa6689bb12a1af92ab06}
+
+
+Definition at line 52 of file Tracers.\+f90.
+
+\hypertarget{classtracersetupmodule_ae16b185d402e77f1d88346f78c2b68c3}{\index{tracersetupmodule@{tracersetupmodule}!cos\+\_\+bell\+\_\+nreal@{cos\+\_\+bell\+\_\+nreal}}
+\index{cos\+\_\+bell\+\_\+nreal@{cos\+\_\+bell\+\_\+nreal}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{cos\+\_\+bell\+\_\+nreal}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public tracersetupmodule\+::cos\+\_\+bell\+\_\+nreal = 4}}\label{classtracersetupmodule_ae16b185d402e77f1d88346f78c2b68c3}
+
+
+Definition at line 52 of file Tracers.\+f90.
+
+\hypertarget{classtracersetupmodule_af21323b72b36ff76bf144154a20ef027}{\index{tracersetupmodule@{tracersetupmodule}!gauss\+\_\+hills\+\_\+n\+\_\+int@{gauss\+\_\+hills\+\_\+n\+\_\+int}}
+\index{gauss\+\_\+hills\+\_\+n\+\_\+int@{gauss\+\_\+hills\+\_\+n\+\_\+int}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{gauss\+\_\+hills\+\_\+n\+\_\+int}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public tracersetupmodule\+::gauss\+\_\+hills\+\_\+n\+\_\+int = 1}}\label{classtracersetupmodule_af21323b72b36ff76bf144154a20ef027}
+
+
+Definition at line 52 of file Tracers.\+f90.
+
+\hypertarget{classtracersetupmodule_a9a7a9e9cb8888b7269ea9b8336cd9360}{\index{tracersetupmodule@{tracersetupmodule}!gauss\+\_\+hills\+\_\+n\+\_\+real@{gauss\+\_\+hills\+\_\+n\+\_\+real}}
+\index{gauss\+\_\+hills\+\_\+n\+\_\+real@{gauss\+\_\+hills\+\_\+n\+\_\+real}!tracersetupmodule@{tracersetupmodule}}
+\subsubsection[{gauss\+\_\+hills\+\_\+n\+\_\+real}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public tracersetupmodule\+::gauss\+\_\+hills\+\_\+n\+\_\+real = 2}}\label{classtracersetupmodule_a9a7a9e9cb8888b7269ea9b8336cd9360}
+
+
+Definition at line 52 of file Tracers.\+f90.
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{Tracers_8f90}{Tracers.\+f90}\end{DoxyCompactItemize}

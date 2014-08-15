@@ -1,17 +1,20 @@
 module OutputWriterModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
+!
+!> @defgroup OutputWriter Console output writer
+!> Provides an object-oriented interface for writing output to the console
 !
 !
-! This module defines methods for formatting basic output to the screen or to a file unit, typically for logging purposes.
-! Adapted from
-!		McCormack, D. "Scientific software development with Fortran." www.mentalfaculty.com, 2009.
+! DESCRIPTION:
+!> @file
+!> Provides an object-oriented interface for writing output to the console
 !
+!------------------------------------------------------------------------------
 use NumberKindsModule
 
 implicit none

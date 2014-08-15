@@ -1,17 +1,20 @@
 module PanelsModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the combined active particle / panel data structure used by icosahedral triangle and cubed
-!	sphere Lagrangian meshes of the sphere.
+!> @defgroup Panels Panels module
+!> Provides the primitive Panels data structure that defines the passive particles of LPPM meshes.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
+! DESCRIPTION:
+!> @file
+!> Provides the primitive Panels data structure that defines the passive particles of LPPM meshes.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 

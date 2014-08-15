@@ -1,5 +1,20 @@
 module SWESetupModule
-
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
+!
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
+!
+!> @defgroup SWEVorticityAndDivergence SWE vorticity and divergence
+!> Provides data structures and methods for defining test cases for the shallow water equations
+!
+!
+! DESCRIPTION:
+!> @file
+!> Provides data structures and methods for defining test cases for the shallow water equations!
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use SphereGeomModule

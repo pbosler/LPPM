@@ -1,19 +1,20 @@
 module PlaneDirectSumModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the RK4 data structure and methods used by PlaneMesh.
+!> @defgroup PlaneDirectSum Planar Direct Sum RK4
+!> Provides RK4 time stepping for the 2d incompressible equations using direct summation.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the incompressible Euler equations in the plane.
-!----------------
+! DESCRIPTION:
+!> @file
+!> Provides RK4 time stepping for the 2d incompressible equations using direct summation.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use PlaneGeomModule
@@ -111,11 +112,11 @@ interface Delete
 	module procedure DeletePrivate
 end interface
 
-interface 
+interface
 	function AdvectionVelocity(xy, t)
 		real(8) :: AdvectionVelocity(2)
 		real(8), intent(in) :: xy(2), t
-	end function 
+	end function
 end interface
 
 
@@ -183,15 +184,15 @@ subroutine NewPrivate(self, aMesh, nProcs)
 	self%activePanels%N = nActive
 	self%activePanels%N_active = nActive
 	self%activeMap = 0
-	
+
 	allocate(self%passivePanels)
 	call New(self%passivePanels, nPassive, panelKind, nTracer, problemKind)
 	allocate(self%passiveMap(nPassive))
 	self%passivePanels%N = nPassive
 	self%passiveMap = 0
-	
+
 	call GatherPanels(aPanels, self%activePanels, self%activeMap, self%passivePanels, self%passiveMap)
-	
+
 	!
 	!	Allocate RK4 variables
 	!
@@ -304,30 +305,30 @@ subroutine RK4TimestepNoRotation(self, aMesh, dt, procRank, nProcs)
 	!
 	type(Particles), pointer :: aParticles
 	integer(kint) :: j, mpiErrCode
-	
+
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey,' entering rk4 timestep.')
-	
+
 	if ( self%rk4isReady .AND. self%mpiIsReady ) then
 		call ZeroRK4(self)
 	else
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey, ' RK4Timestep ERROR : data not ready.')
 		return
 	endif
-	
+
 	aParticles => aMesh%particles
-	
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 1       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! Set input arrays for stage 1
 	self%particlesInput = aParticles%x(:,1:aParticles%N)
-	
+
 	self%activePanelsInput = self%activePanels%x
 	self%activeVortInput = self%activePanels%relVort
 	self%area = self%activePanels%area
-	
+
 	self%passivePanelsInput = self%passivePanels%x
-	
+
 	call PlanePassiveVel_noRotation( self%particlesStage1, self%particlesInput, &
 		 	self%activePanelsInput, self%activeVortInput, self%area, &
 		 	self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
@@ -347,7 +348,7 @@ subroutine RK4TimestepNoRotation(self, aMesh, dt, procRank, nProcs)
 						2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, &
 						MPI_COMM_WORLD, mpiErrCode)
 	enddo
-	
+
 	!
 	!	STAGE 1 ONLY : store velocity and kinetic energy
 	!
@@ -359,20 +360,20 @@ subroutine RK4TimestepNoRotation(self, aMesh, dt, procRank, nProcs)
 		self%activePanels%ke(j) = sum( self%activePanelsStage1(:,j) * self%activePanelsStage1(:,j) )
 		self%activePanels%u(:,j) = self%activePanelsStage1(:,j)
 	enddo
-	
+
 	self%particlesStage1 = dt * self%particlesStage1
 	self%activePanelsStage1 = dt * self%activePanelsStage1
 	self%passivePanelsStage1 = dt * self%passivePanelsStage1
-	
-	
+
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 2       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! Set input arrays for stage 2
 	self%particlesInput = aParticles%x(:,1:aParticles%N) + 0.5_kreal*self%particlesStage1
 	self%activePanelsInput = self%activePanels%x + 0.5_kreal*self%activePanelsStage1
-	self%passivePanelsInput = self%passivePanels%x + 0.5_kreal*self%passivePanelsStage1	
-	
+	self%passivePanelsInput = self%passivePanels%x + 0.5_kreal*self%passivePanelsStage1
+
 	call PlanePassiveVel_noRotation( self%particlesStage2, self%particlesInput, &
 		 	self%activePanelsInput, self%activeVortInput, self%area, &
 		 	self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank))
@@ -391,11 +392,11 @@ subroutine RK4TimestepNoRotation(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST( self%passivePanelsStage2(:, self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 						2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, &
 						MPI_COMM_WORLD, mpiErrCode)
-	enddo		
+	enddo
 	self%particlesStage2 = dt * self%particlesStage2
 	self%activePanelsStage2 = dt * self%activePanelsStage2
 	self%passivePanelsStage2 = dt * self%passivePanelsStage2
-	
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 3       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -421,11 +422,11 @@ subroutine RK4TimestepNoRotation(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST( self%passivePanelsStage3(:, self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 						2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, &
 						MPI_COMM_WORLD, mpiErrCode)
-	enddo		
+	enddo
 	self%particlesStage3 = dt * self%particlesStage3
 	self%activePanelsStage3 = dt * self%activePanelsStage3
-	self%passivePanelsStage3 = dt * self%passivePanelsStage3	
-	
+	self%passivePanelsStage3 = dt * self%passivePanelsStage3
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 4       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -451,7 +452,7 @@ subroutine RK4TimestepNoRotation(self, aMesh, dt, procRank, nProcs)
 		call MPI_BCAST( self%passivePanelsStage4(:, self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 						2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, &
 						MPI_COMM_WORLD, mpiErrCode)
-	enddo		
+	enddo
 	self%particlesStage4 = dt * self%particlesStage4
 	self%activePanelsStage4 = dt * self%activePanelsStage4
 	self%passivePanelsStage4 = dt * self%passivePanelsStage4
@@ -470,10 +471,10 @@ subroutine RK4TimestepNoRotation(self, aMesh, dt, procRank, nProcs)
 	aParticles%x(:,1:aParticles%N) = self%newParticlesX
 	self%activePanels%x = self%newActivePanelsX
 	self%passivePanels%x = self%newPassivePanelsX
-	
+
 	call ScatterPanels( aMesh%panels, self%activePanels, self%activeMap, self%passivePanels, self%passiveMap)
-	
-	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, '... timestep complete.')	
+
+	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, '... timestep complete.')
 end subroutine
 
 subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nProcs, velocityFunction)
@@ -485,18 +486,18 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	!
 	type(Particles), pointer :: aParticles
 	integer(kint) :: j, errCode
-	
+
 	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, 'entering advection rk4 timestep.')
-	
+
 	if ( self%rk4isReady .AND. self%mpiIsReady ) then
 		call ZeroRK4(self)
 	else
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey, ' RK4Timestep ERROR : data not ready.')
 		return
 	endif
-	
+
 	aParticles => aMesh%particles
-	
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 1       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -504,7 +505,7 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	self%particlesInput = aParticles%x(:,1:aParticles%N)
 	self%activePanelsInput = self%activePanels%x
 	self%passivePanelsInput = self%passivePanels%x
-	
+
 	do j = self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank)
 		self%particlesStage1(:,j) = VelocityFunction(self%particlesInput(:,j), t)
 	enddo
@@ -514,16 +515,16 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	do j = self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank)
 		self%passivePanelsStage1(:,j) = VelocityFunction(self%passivePanelsInput(:,j), t)
 	enddo
-	
+
 	do j = 0, nProcs - 1
 		call MPI_BCAST(self%particlesStage1(:,self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
 				2*self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
-		call MPI_BCAST(self%activePanelsStage1(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), & 
+		call MPI_BCAST(self%activePanelsStage1(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 				2*self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
 		call MPI_BCAST(self%passivePanelsStage1(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 				2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
 	enddo
-	
+
 	!
 	!	STAGE 1 ONLY : store velocity and kinetic energy
 	!
@@ -535,20 +536,20 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 		self%activePanels%ke(j) = sum( self%activePanelsStage1(:,j) * self%activePanelsStage1(:,j) )
 		self%activePanels%u(:,j) = self%activePanelsStage1(:,j)
 	enddo
-	
+
 	self%particlesStage1 = dt * self%particlesStage1
 	self%activePanelsStage1 = dt * self%activePanelsStage1
 	self%passivePanelsStage1 = dt * self%passivePanelsStage1
-	
-	
+
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 2       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! Set input arrays for stage 2
 	self%particlesInput = aParticles%x(:,1:aParticles%N) + 0.5_kreal*self%particlesStage1
 	self%activePanelsInput = self%activePanels%x + 0.5_kreal*self%activePanelsStage1
-	self%passivePanelsInput = self%passivePanels%x + 0.5_kreal*self%passivePanelsStage1	
-	
+	self%passivePanelsInput = self%passivePanels%x + 0.5_kreal*self%passivePanelsStage1
+
 	do j = self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank)
 		self%particlesStage2(:,j) = VelocityFunction(self%particlesInput(:,j), t)
 	enddo
@@ -558,20 +559,20 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	do j = self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank)
 		self%passivePanelsStage2(:,j) = VelocityFunction(self%passivePanelsInput(:,j), t)
 	enddo
-	
+
 	do j = 0, nProcs - 1
 		call MPI_BCAST(self%particlesStage2(:,self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
 				2*self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
-		call MPI_BCAST(self%activePanelsStage2(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), & 
+		call MPI_BCAST(self%activePanelsStage2(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 				2*self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
 		call MPI_BCAST(self%passivePanelsStage2(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 				2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
 	enddo
-	
+
 	self%particlesStage2 = dt * self%particlesStage2
 	self%activePanelsStage2 = dt * self%activePanelsStage2
 	self%passivePanelsStage2 = dt * self%passivePanelsStage2
-	
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 3       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -579,7 +580,7 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	self%particlesInput = aParticles%x(:,1:aParticles%N) + 0.5_kreal*self%particlesStage2
 	self%activePanelsInput = self%activePanels%x + 0.5_kreal*self%activePanelsStage2
 	self%passivePanelsInput = self%passivePanels%x + 0.5_kreal*self%passivePanelsStage2
-	
+
 	do j = self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank)
 		self%particlesStage3(:,j) = VelocityFunction(self%particlesInput(:,j), t)
 	enddo
@@ -589,20 +590,20 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	do j = self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank)
 		self%passivePanelsStage3(:,j) = VelocityFunction(self%passivePanelsInput(:,j), t)
 	enddo
-	
+
 	do j = 0, nProcs - 1
 		call MPI_BCAST(self%particlesStage3(:,self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
 				2*self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
-		call MPI_BCAST(self%activePanelsStage3(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), & 
+		call MPI_BCAST(self%activePanelsStage3(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 				2*self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
 		call MPI_BCAST(self%passivePanelsStage3(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 				2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
 	enddo
-	
+
 	self%particlesStage3 = dt * self%particlesStage3
 	self%activePanelsStage3 = dt * self%activePanelsStage3
 	self%passivePanelsStage3 = dt * self%passivePanelsStage3
-	
+
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
 	! 		RK Stage 4       !
 	!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -610,7 +611,7 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	self%particlesInput = aParticles%x(:,1:aParticles%N) + self%particlesStage3
 	self%activePanelsInput = self%activePanels%x + self%activePanelsStage3
 	self%passivePanelsInput = self%passivePanels%x + self%passivePanelsStage3
-	
+
 	do j = self%particlesIndexStart(procRank), self%particlesIndexEnd(procRank)
 		self%particlesStage4(:,j) = VelocityFunction(self%particlesInput(:,j), t)
 	enddo
@@ -620,11 +621,11 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	do j = self%passivePanelsIndexStart(procRank), self%passivePanelsIndexEnd(procRank)
 		self%passivePanelsStage4(:,j) = VelocityFunction(self%passivePanelsInput(:,j), t)
 	enddo
-	
+
 	do j = 0, nProcs - 1
 		call MPI_BCAST(self%particlesStage4(:,self%particlesIndexStart(j):self%particlesIndexEnd(j)), &
 				2*self%particlesMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
-		call MPI_BCAST(self%activePanelsStage4(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), & 
+		call MPI_BCAST(self%activePanelsStage4(:,self%activePanelsIndexStart(j):self%activePanelsIndexEnd(j)), &
 				2*self%activePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
 		call MPI_BCAST(self%passivePanelsStage4(:,self%passivePanelsIndexStart(j):self%passivePanelsIndexEnd(j)), &
 				2*self%passivePanelsMessageSize(j), MPI_DOUBLE_PRECISION, j, MPI_COMM_WORLD, errCode)
@@ -646,10 +647,10 @@ subroutine RK4TimestepIncompressibleAdvection(self, aMesh, dt, t, procRank, nPro
 	aParticles%x(:,1:aParticles%N) = self%newParticlesX
 	self%activePanels%x = self%newActivePanelsX
 	self%passivePanels%x = self%newPassivePanelsX
-	
+
 	call ScatterPanels( aMesh%panels, self%activePanels, self%activeMap, self%passivePanels, self%passiveMap)
-	
-	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, '... timestep complete.')	
+
+	call LogMessage(log, DEBUG_LOGGING_LEVEL, logkey, '... timestep complete.')
 end subroutine
 
 subroutine SetVelocitySmoothingParameter(newSmooth)
@@ -747,9 +748,9 @@ subroutine PlaneActiveVel_noRotation(dX, x, vort, area, indexStart, indexEnd)
 	!
 	integer(kint) :: j, k, n
 	real(kreal) :: denom
-	
+
 	n = size(vort)
-	
+
 	dX = 0.0_kreal
 	do j = indexStart, indexEnd
 		do k = 1, j-1
@@ -772,9 +773,9 @@ subroutine PlanePassiveVel_noRotation(dxP, xP, xA, vort, area, indexStart, index
 	!
 	integer(kint) :: j, k, n
 	real(kreal) :: denom
-	
+
 	n = size(vort)
-	
+
 	dxP = 0.0_kreal
 	do j = indexStart, indexEnd
 		do k = 1, n
@@ -792,16 +793,16 @@ subroutine PlaneSmoothVel_noRotation(dxP, xP, xA, vort, area, indexStart, indexE
 	!
 	integer(kint) :: j, k, n
 	real(kreal) :: denom
-	
+
 	n = size(vort)
-	
+
 	do j = indexStart, indexEnd
 		do k = 1, n
 			denom = 2.0_kreal * PI * ( sum( (xP(:,j) - xA(:,k)) * (xP(:,j) - xA(:,k))) + VELOCITY_SMOOTH * VELOCITY_SMOOTH)
 			dxP(1,j) = dxP(1,j) - ( xp(2,j) - xA(2,k) ) * vort(k) * area(k) / denom
 			dxP(2,j) = dxP(2,j) + ( xP(1,j) - xa(1,k) ) * vort(k) * area(k) / denom
 		enddo
-	enddo	
+	enddo
 end subroutine
 
 function LeVeque93(xy, t)

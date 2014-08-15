@@ -12,11 +12,11 @@
 	dt = 0.03			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
 	remeshInterval = 20
-	resetAlphaInterval = 5
+	resetAlphaInterval = 5000
 /
 
 &fileIO
 	outputDir = '/Users/pbosler/Desktop/modelData/'
-	jobPrefix = 'advMovingVorts_triAMR_wReinit_'
+	jobPrefix = 'advMovingVorts_triAMR_'
 	frameOut = 1
 /

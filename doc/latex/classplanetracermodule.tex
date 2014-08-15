@@ -1,0 +1,283 @@
+\hypertarget{classplanetracermodule}{\section{planetracermodule Module Reference}
+\label{classplanetracermodule}\index{planetracermodule@{planetracermodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classplanetracermodule_ad51498af761543349dc9ec1e2135d238}{nulltracer} (a\+Mesh, self)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_a6cf107fcca7855aead1dd5129f514c07}{initthreetracers} (self, tracer\+I\+D)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_a45228fd6c64c690fad54d401dbd77e08}{setthreetracersonmesh} (a\+Mesh, self)
+\item 
+real(kreal) function, public \hyperlink{classplanetracermodule_ae385dd82024d289fd1e1832ca2817f2b}{threetracers} (xy)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_a7dedf32ac5e18e8617f21853ec61529f}{initgaussianhill} (self, tracer\+I\+D, x\+Cent, y\+Cent, beta\+Sq, amp)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_a24b704ba1ff490dd5495caefa02c3b9f}{setgaussianhillonmesh} (a\+Mesh, self)
+\item 
+real(kreal) function, public \hyperlink{classplanetracermodule_a9dd192681848ae654d8cb215fca5762d}{gaussianhill} (xy, xcent, ycent, betasq, amp)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_a4c7acdd3c9f752375810b745d49d26c6}{initslottedcylinder} (self, tracer\+I\+D, xcent, ycent, r, slot\+L, slot\+R, slot\+Top)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_a776d10a5567de5c0a0c874f3134c8d45}{setslottedcylinderonmesh} (a\+Mesh, self)
+\item 
+real(kreal) function, public \hyperlink{classplanetracermodule_ac108fd2441f0acefbe3b4f0398452c2a}{slottedcylinder} (xy, xcent, ycent, r, slot\+L, slot\+R, slot\+Top)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_a0166fc147ae02a69fa856b826ce7d889}{initdipoleidtracer} (self, xc1, yc1, rad1, xc2, yc2, rad2, tracer\+I\+D)
+\item 
+real(kreal) function, public \hyperlink{classplanetracermodule_ab4a56614d794accc516d49052fc3688d}{dipoleid} (xy, xc1, yc1, rad1, xc2, yc2, rad2)
+\item 
+subroutine, public \hyperlink{classplanetracermodule_acb6df401cce54121b007b0a828d32e7b}{setdipoleidtraceronmesh} (a\+Mesh, tsetup)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file Plane\+Tracer.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classplanetracermodule_ab4a56614d794accc516d49052fc3688d}{\index{planetracermodule@{planetracermodule}!dipoleid@{dipoleid}}
+\index{dipoleid@{dipoleid}!planetracermodule@{planetracermodule}}
+\subsubsection[{dipoleid}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public planetracermodule\+::dipoleid (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy, }
+\item[{real(kreal), intent(in)}]{xc1, }
+\item[{real(kreal), intent(in)}]{yc1, }
+\item[{real(kreal), intent(in)}]{rad1, }
+\item[{real(kreal), intent(in)}]{xc2, }
+\item[{real(kreal), intent(in)}]{yc2, }
+\item[{real(kreal), intent(in)}]{rad2}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_ab4a56614d794accc516d49052fc3688d}
+
+
+Definition at line 310 of file Plane\+Tracer.\+f90.
+
+
+
+Referenced by setdipoleidtraceronmesh().
+
+\hypertarget{classplanetracermodule_a9dd192681848ae654d8cb215fca5762d}{\index{planetracermodule@{planetracermodule}!gaussianhill@{gaussianhill}}
+\index{gaussianhill@{gaussianhill}!planetracermodule@{planetracermodule}}
+\subsubsection[{gaussianhill}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public planetracermodule\+::gaussianhill (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy, }
+\item[{real(kreal), intent(in)}]{xcent, }
+\item[{real(kreal), intent(in)}]{ycent, }
+\item[{real(kreal), intent(in)}]{betasq, }
+\item[{real(kreal), intent(in)}]{amp}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a9dd192681848ae654d8cb215fca5762d}
+
+
+Definition at line 224 of file Plane\+Tracer.\+f90.
+
+
+
+Referenced by setgaussianhillonmesh().
+
+\hypertarget{classplanetracermodule_a0166fc147ae02a69fa856b826ce7d889}{\index{planetracermodule@{planetracermodule}!initdipoleidtracer@{initdipoleidtracer}}
+\index{initdipoleidtracer@{initdipoleidtracer}!planetracermodule@{planetracermodule}}
+\subsubsection[{initdipoleidtracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::initdipoleidtracer (
+\begin{DoxyParamCaption}
+\item[{type(tracersetup), intent(inout)}]{self, }
+\item[{real(kreal), intent(in)}]{xc1, }
+\item[{real(kreal), intent(in)}]{yc1, }
+\item[{real(kreal), intent(in)}]{rad1, }
+\item[{real(kreal), intent(in)}]{xc2, }
+\item[{real(kreal), intent(in)}]{yc2, }
+\item[{real(kreal), intent(in)}]{rad2, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a0166fc147ae02a69fa856b826ce7d889}
+
+
+Definition at line 294 of file Plane\+Tracer.\+f90.
+
+
+
+Referenced by reversibledipolesmain(), and twodipolesmain().
+
+\hypertarget{classplanetracermodule_a7dedf32ac5e18e8617f21853ec61529f}{\index{planetracermodule@{planetracermodule}!initgaussianhill@{initgaussianhill}}
+\index{initgaussianhill@{initgaussianhill}!planetracermodule@{planetracermodule}}
+\subsubsection[{initgaussianhill}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::initgaussianhill (
+\begin{DoxyParamCaption}
+\item[{type(tracersetup), intent(inout)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D, }
+\item[{real(kreal), intent(in)}]{x\+Cent, }
+\item[{real(kreal), intent(in)}]{y\+Cent, }
+\item[{real(kreal), intent(in)}]{beta\+Sq, }
+\item[{real(kreal), intent(in)}]{amp}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a7dedf32ac5e18e8617f21853ec61529f}
+
+
+Definition at line 181 of file Plane\+Tracer.\+f90.
+
+\hypertarget{classplanetracermodule_a4c7acdd3c9f752375810b745d49d26c6}{\index{planetracermodule@{planetracermodule}!initslottedcylinder@{initslottedcylinder}}
+\index{initslottedcylinder@{initslottedcylinder}!planetracermodule@{planetracermodule}}
+\subsubsection[{initslottedcylinder}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::initslottedcylinder (
+\begin{DoxyParamCaption}
+\item[{type(tracersetup), intent(inout)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D, }
+\item[{real(kreal), intent(in)}]{xcent, }
+\item[{real(kreal), intent(in)}]{ycent, }
+\item[{real(kreal), intent(in)}]{r, }
+\item[{real(kreal), intent(in)}]{slot\+L, }
+\item[{real(kreal), intent(in)}]{slot\+R, }
+\item[{real(kreal), intent(in)}]{slot\+Top}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a4c7acdd3c9f752375810b745d49d26c6}
+
+
+Definition at line 230 of file Plane\+Tracer.\+f90.
+
+\hypertarget{classplanetracermodule_a6cf107fcca7855aead1dd5129f514c07}{\index{planetracermodule@{planetracermodule}!initthreetracers@{initthreetracers}}
+\index{initthreetracers@{initthreetracers}!planetracermodule@{planetracermodule}}
+\subsubsection[{initthreetracers}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::initthreetracers (
+\begin{DoxyParamCaption}
+\item[{type(tracersetup), intent(inout)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a6cf107fcca7855aead1dd5129f514c07}
+
+
+Definition at line 119 of file Plane\+Tracer.\+f90.
+
+
+
+Referenced by planerotateadvection().
+
+\hypertarget{classplanetracermodule_ad51498af761543349dc9ec1e2135d238}{\index{planetracermodule@{planetracermodule}!nulltracer@{nulltracer}}
+\index{nulltracer@{nulltracer}!planetracermodule@{planetracermodule}}
+\subsubsection[{nulltracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::nulltracer (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_ad51498af761543349dc9ec1e2135d238}
+
+
+Definition at line 114 of file Plane\+Tracer.\+f90.
+
+
+
+Referenced by lambtest(), planeunittest(), and rh4wave().
+
+\hypertarget{classplanetracermodule_acb6df401cce54121b007b0a828d32e7b}{\index{planetracermodule@{planetracermodule}!setdipoleidtraceronmesh@{setdipoleidtraceronmesh}}
+\index{setdipoleidtraceronmesh@{setdipoleidtraceronmesh}!planetracermodule@{planetracermodule}}
+\subsubsection[{setdipoleidtraceronmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::setdipoleidtraceronmesh (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{tsetup}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_acb6df401cce54121b007b0a828d32e7b}
+
+
+Definition at line 325 of file Plane\+Tracer.\+f90.
+
+
+
+References dipoleid().
+
+
+
+Referenced by reversibledipolesmain(), and twodipolesmain().
+
+\hypertarget{classplanetracermodule_a24b704ba1ff490dd5495caefa02c3b9f}{\index{planetracermodule@{planetracermodule}!setgaussianhillonmesh@{setgaussianhillonmesh}}
+\index{setgaussianhillonmesh@{setgaussianhillonmesh}!planetracermodule@{planetracermodule}}
+\subsubsection[{setgaussianhillonmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::setgaussianhillonmesh (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a24b704ba1ff490dd5495caefa02c3b9f}
+
+
+Definition at line 195 of file Plane\+Tracer.\+f90.
+
+
+
+References gaussianhill().
+
+\hypertarget{classplanetracermodule_a776d10a5567de5c0a0c874f3134c8d45}{\index{planetracermodule@{planetracermodule}!setslottedcylinderonmesh@{setslottedcylinderonmesh}}
+\index{setslottedcylinderonmesh@{setslottedcylinderonmesh}!planetracermodule@{planetracermodule}}
+\subsubsection[{setslottedcylinderonmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::setslottedcylinderonmesh (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a776d10a5567de5c0a0c874f3134c8d45}
+
+
+Definition at line 246 of file Plane\+Tracer.\+f90.
+
+
+
+References slottedcylinder().
+
+\hypertarget{classplanetracermodule_a45228fd6c64c690fad54d401dbd77e08}{\index{planetracermodule@{planetracermodule}!setthreetracersonmesh@{setthreetracersonmesh}}
+\index{setthreetracersonmesh@{setthreetracersonmesh}!planetracermodule@{planetracermodule}}
+\subsubsection[{setthreetracersonmesh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planetracermodule\+::setthreetracersonmesh (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(tracersetup), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_a45228fd6c64c690fad54d401dbd77e08}
+
+
+Definition at line 127 of file Plane\+Tracer.\+f90.
+
+
+
+References threetracers().
+
+
+
+Referenced by planerotateadvection().
+
+\hypertarget{classplanetracermodule_ac108fd2441f0acefbe3b4f0398452c2a}{\index{planetracermodule@{planetracermodule}!slottedcylinder@{slottedcylinder}}
+\index{slottedcylinder@{slottedcylinder}!planetracermodule@{planetracermodule}}
+\subsubsection[{slottedcylinder}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public planetracermodule\+::slottedcylinder (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy, }
+\item[{real(kreal), intent(in)}]{xcent, }
+\item[{real(kreal), intent(in)}]{ycent, }
+\item[{real(kreal), intent(in)}]{r, }
+\item[{real(kreal), intent(in)}]{slot\+L, }
+\item[{real(kreal), intent(in)}]{slot\+R, }
+\item[{real(kreal), intent(in)}]{slot\+Top}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_ac108fd2441f0acefbe3b4f0398452c2a}
+
+
+Definition at line 271 of file Plane\+Tracer.\+f90.
+
+
+
+Referenced by setslottedcylinderonmesh().
+
+\hypertarget{classplanetracermodule_ae385dd82024d289fd1e1832ca2817f2b}{\index{planetracermodule@{planetracermodule}!threetracers@{threetracers}}
+\index{threetracers@{threetracers}!planetracermodule@{planetracermodule}}
+\subsubsection[{threetracers}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public planetracermodule\+::threetracers (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy}
+\end{DoxyParamCaption}
+)}}\label{classplanetracermodule_ae385dd82024d289fd1e1832ca2817f2b}
+
+
+Definition at line 150 of file Plane\+Tracer.\+f90.
+
+
+
+Referenced by setthreetracersonmesh().
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{PlaneTracer_8f90}{Plane\+Tracer.\+f90}\end{DoxyCompactItemize}

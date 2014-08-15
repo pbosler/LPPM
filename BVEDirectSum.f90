@@ -1,19 +1,20 @@
 module BVEDirectSumModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - spherical
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the RK4 data structure and methods used by SphereMesh.
+!> @defgroup BVEDirectSum Barotropic Vorticity Equation Direct Sum RK4
+!> Provides RK4 time stepping for the barotropic vorticity equations on the sphere using direct summation.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the barotropic vorticity equation on the sphere.
-!----------------
+! DESCRIPTION:
+!> @file
+!> Provides RK4 time stepping for the barotropic vorticity equations on the sphere using direct summation.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use SphereGeomModule
@@ -37,8 +38,14 @@ public VELOCITY_SMOOTH
 ! Types and module constants
 !----------------
 !
-real(kreal), protected, save :: VELOCITY_SMOOTH = 0.01_kreal
+real(kreal), protected, save :: VELOCITY_SMOOTH = 0.01_kreal !> @param VELOCITY_SMOOTH smoothing parameter for regularized integral kernels
 
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @class BVERK4Data
+!> @brief handles memory for 4th order Runge-Kutta timestepping of advection problems for spherical meshes.
+!! @ingroup BVEDirectSum
+!------------------------------------------------------------------------------
 type BVERK4Data
 	! MPI load balancing
 	integer(kint), pointer :: particlesIndexStart(:) => null(), &

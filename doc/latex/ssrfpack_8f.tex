@@ -1,0 +1,692 @@
+\hypertarget{ssrfpack_8f}{\section{ssrfpack.\+f File Reference}
+\label{ssrfpack_8f}\index{ssrfpack.\+f@{ssrfpack.\+f}}
+}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{ssrfpack_8f_a7af2b05f5f39a731eaa445835b3ae222}{aplyr} (X, Y, Z, C\+X, S\+X, C\+Y, S\+Y, X\+P, Y\+P, Z\+P)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a5920dabba1201b7456ea9d596798ce55}{aplyrt} (G1\+P, G2\+P, C\+X, S\+X, C\+Y, S\+Y, G)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a45a8de2e9c38a5cc5f45f97849df4255}{arcint} (P, P1, P2, F1, F2, G1, G2, S\+I\+G\+M\+A, F, G, G\+N)
+\item 
+real(kind=8) function \hyperlink{ssrfpack_8f_a4e8193a569c3c5332f0698c3fafd3b72}{arclen} (P, Q)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a1dc81986d498464b334b7c40ce4780d7}{constr} (X\+K, Y\+K, Z\+K, C\+X, S\+X, C\+Y, S\+Y)
+\item 
+real(kind=8) function \hyperlink{ssrfpack_8f_a1f102b1ccb6483cd32eb912fee1d8851}{fval} (B1, B2, B3, V1, V2, V3, F1, F2, F3, G1, G2, G3, S\+I\+G1, S\+I\+G2, S\+I\+G3)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a733c51bf1be25175f21051cee9759312}{getsig} (N, X, Y, Z, H, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, G\+R\+A\+D, T\+O\+L, S\+I\+G\+M\+A, D\+S\+M\+A\+X, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a909dfda233ff73d5abda9f22e401bd83}{givens} (A, B, C, S)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a52dd5752fd3d5974fa1e213c5913cd72}{gradg} (N, X, Y, Z, F, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, I\+F\+L\+G\+S, S\+I\+G\+M\+A, N\+I\+T, D\+G\+M\+A\+X, G\+R\+A\+D, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a635256785689ea4bc34812b361083a74}{gradl} (N, K, X, Y, Z, W, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, G, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a42b93aa164cecdff6abe438048ba8038}{grcoef} (S\+I\+G\+M\+A, D, S\+D)
+\item 
+real(kind=8) function \hyperlink{ssrfpack_8f_a7f8cb60d2016b09d2fbfee9f7a144378}{hval} (B, H1, H2, H\+P1, H\+P2, S\+I\+G\+M\+A)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a347c75fb6a5533d28f208049a6b8b9df}{intrc0} (N, P\+L\+A\+T, P\+L\+O\+N, X, Y, Z, W, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, I\+S\+T, P\+W, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_aa8e7466a7f7559b6150bbe2c19967b16}{intrc1} (N, P\+L\+A\+T, P\+L\+O\+N, X, Y, Z, F, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, I\+F\+L\+G\+S, S\+I\+G\+M\+A, I\+F\+L\+G\+G, G\+R\+A\+D, I\+S\+T, F\+P, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a320320a847275dbab4d0049e94772364}{rotate} (N, C, S, X, Y)
+\item 
+subroutine \hyperlink{ssrfpack_8f_aa76325c7e9c8f92bd7260245aeb1b8a1}{setup} (X\+I, Y\+I, W\+I, W\+K, S1, S2, W\+T, R\+O\+W)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a3e1f75d113af677f02865437d7c2d58b}{sgprnt} (N, L\+U\+N\+I\+T, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, S\+I\+G\+M\+A)
+\item 
+real(kind=8) function \hyperlink{ssrfpack_8f_a2de759653fe7b41789705813e8c6cce8}{sig0} (N1, N2, N, X, Y, Z, H, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, G\+R\+A\+D, I\+F\+L\+G\+B, H\+B\+N\+D, T\+O\+L, I\+F\+L\+G\+S, S\+I\+G\+M\+A, I\+E\+R)
+\item 
+real(kind=8) function \hyperlink{ssrfpack_8f_adc80f9fac0f9a7a8509094a3dcf7dba9}{sig1} (N1, N2, N, X, Y, Z, H, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, G\+R\+A\+D, I\+F\+L\+G\+B, H\+P\+B\+N\+D, T\+O\+L, I\+F\+L\+G\+S, S\+I\+G\+M\+A, I\+E\+R)
+\item 
+real(kind=8) function \hyperlink{ssrfpack_8f_a58ec66bca9583e579ffa3a3312d9dd9f}{sig2} (N1, N2, N, X, Y, Z, H, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, G\+R\+A\+D, T\+O\+L, I\+F\+L\+G\+S, S\+I\+G\+M\+A, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_ad3518f9cb2353207b0563724003e595d}{smsgs} (N, X, Y, Z, U, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, I\+F\+L\+G\+S, S\+I\+G\+M\+A, W, P, N\+I\+T, D\+F\+M\+A\+X, F, G\+R\+A\+D, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_adffd665ec153b2a42e485618e110dc97}{smsurf} (N, X, Y, Z, U, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, I\+F\+L\+G\+S, S\+I\+G\+M\+A, W, S\+M, S\+M\+T\+O\+L, G\+S\+T\+O\+L, L\+P\+R\+N\+T, F, G\+R\+A\+D, I\+E\+R)
+\item 
+subroutine \hyperlink{ssrfpack_8f_ab50c1a1c28a6c038677ae85439b3c8d8}{snhcsh} (X, S\+I\+N\+H\+M, C\+O\+S\+H\+M, C\+O\+S\+H\+M\+M)
+\item 
+subroutine \hyperlink{ssrfpack_8f_a32bbda3cba4354ae5d4859ece33f4827}{unif} (N, X, Y, Z, F, L\+I\+S\+T, L\+P\+T\+R, L\+E\+N\+D, I\+F\+L\+G\+S, S\+I\+G\+M\+A, N\+R\+O\+W, N\+I, N\+J, P\+L\+A\+T, P\+L\+O\+N, I\+F\+L\+G\+G, G\+R\+A\+D, F\+F, I\+E\+R)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{ssrfpack_8f_a7af2b05f5f39a731eaa445835b3ae222}{\index{ssrfpack.\+f@{ssrfpack.\+f}!aplyr@{aplyr}}
+\index{aplyr@{aplyr}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{aplyr}]{\setlength{\rightskip}{0pt plus 5cm}subroutine aplyr (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{X, }
+\item[{real(kind=8)}]{Y, }
+\item[{real(kind=8)}]{Z, }
+\item[{real(kind=8)}]{C\+X, }
+\item[{real(kind=8)}]{S\+X, }
+\item[{real(kind=8)}]{C\+Y, }
+\item[{real(kind=8)}]{S\+Y, }
+\item[{real(kind=8)}]{X\+P, }
+\item[{real(kind=8)}]{Y\+P, }
+\item[{real(kind=8)}]{Z\+P}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a7af2b05f5f39a731eaa445835b3ae222}
+
+
+Definition at line 1 of file ssrfpack.\+f.
+
+
+
+Referenced by gradl().
+
+\hypertarget{ssrfpack_8f_a5920dabba1201b7456ea9d596798ce55}{\index{ssrfpack.\+f@{ssrfpack.\+f}!aplyrt@{aplyrt}}
+\index{aplyrt@{aplyrt}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{aplyrt}]{\setlength{\rightskip}{0pt plus 5cm}subroutine aplyrt (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{G1\+P, }
+\item[{real(kind=8)}]{G2\+P, }
+\item[{real(kind=8)}]{C\+X, }
+\item[{real(kind=8)}]{S\+X, }
+\item[{real(kind=8)}]{C\+Y, }
+\item[{real(kind=8)}]{S\+Y, }
+\item[{real(kind=8), dimension(3)}]{G}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a5920dabba1201b7456ea9d596798ce55}
+
+
+Definition at line 71 of file ssrfpack.\+f.
+
+
+
+Referenced by gradg(), gradl(), and smsgs().
+
+\hypertarget{ssrfpack_8f_a45a8de2e9c38a5cc5f45f97849df4255}{\index{ssrfpack.\+f@{ssrfpack.\+f}!arcint@{arcint}}
+\index{arcint@{arcint}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{arcint}]{\setlength{\rightskip}{0pt plus 5cm}subroutine arcint (
+\begin{DoxyParamCaption}
+\item[{real(kind=8), dimension(3)}]{P, }
+\item[{real(kind=8), dimension(3)}]{P1, }
+\item[{real(kind=8), dimension(3)}]{P2, }
+\item[{real(kind=8)}]{F1, }
+\item[{real(kind=8)}]{F2, }
+\item[{real(kind=8), dimension(3)}]{G1, }
+\item[{real(kind=8), dimension(3)}]{G2, }
+\item[{real(kind=8)}]{S\+I\+G\+M\+A, }
+\item[{real(kind=8)}]{F, }
+\item[{real(kind=8), dimension(3)}]{G, }
+\item[{real(kind=8)}]{G\+N}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a45a8de2e9c38a5cc5f45f97849df4255}
+
+
+Definition at line 121 of file ssrfpack.\+f.
+
+
+
+References arclen(), and snhcsh().
+
+
+
+Referenced by fval(), and intrc1().
+
+\hypertarget{ssrfpack_8f_a4e8193a569c3c5332f0698c3fafd3b72}{\index{ssrfpack.\+f@{ssrfpack.\+f}!arclen@{arclen}}
+\index{arclen@{arclen}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{arclen}]{\setlength{\rightskip}{0pt plus 5cm}real(kind=8) function arclen (
+\begin{DoxyParamCaption}
+\item[{real(kind=8), dimension(3)}]{P, }
+\item[{real(kind=8), dimension(3)}]{Q}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a4e8193a569c3c5332f0698c3fafd3b72}
+
+
+Definition at line 333 of file ssrfpack.\+f.
+
+
+
+Referenced by arcint(), getsig(), intrc1(), sig0(), sig1(), and sig2().
+
+\hypertarget{ssrfpack_8f_a1dc81986d498464b334b7c40ce4780d7}{\index{ssrfpack.\+f@{ssrfpack.\+f}!constr@{constr}}
+\index{constr@{constr}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{constr}]{\setlength{\rightskip}{0pt plus 5cm}subroutine constr (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{X\+K, }
+\item[{real(kind=8)}]{Y\+K, }
+\item[{real(kind=8)}]{Z\+K, }
+\item[{real(kind=8)}]{C\+X, }
+\item[{real(kind=8)}]{S\+X, }
+\item[{real(kind=8)}]{C\+Y, }
+\item[{real(kind=8)}]{S\+Y}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a1dc81986d498464b334b7c40ce4780d7}
+
+
+Definition at line 394 of file ssrfpack.\+f.
+
+
+
+Referenced by gradg(), gradl(), and smsgs().
+
+\hypertarget{ssrfpack_8f_a1f102b1ccb6483cd32eb912fee1d8851}{\index{ssrfpack.\+f@{ssrfpack.\+f}!fval@{fval}}
+\index{fval@{fval}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{fval}]{\setlength{\rightskip}{0pt plus 5cm}real(kind=8) function fval (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{B1, }
+\item[{real(kind=8)}]{B2, }
+\item[{real(kind=8)}]{B3, }
+\item[{real(kind=8), dimension(3)}]{V1, }
+\item[{real(kind=8), dimension(3)}]{V2, }
+\item[{real(kind=8), dimension(3)}]{V3, }
+\item[{real(kind=8)}]{F1, }
+\item[{real(kind=8)}]{F2, }
+\item[{real(kind=8)}]{F3, }
+\item[{real(kind=8), dimension(3)}]{G1, }
+\item[{real(kind=8), dimension(3)}]{G2, }
+\item[{real(kind=8), dimension(3)}]{G3, }
+\item[{real(kind=8)}]{S\+I\+G1, }
+\item[{real(kind=8)}]{S\+I\+G2, }
+\item[{real(kind=8)}]{S\+I\+G3}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a1f102b1ccb6483cd32eb912fee1d8851}
+
+
+Definition at line 447 of file ssrfpack.\+f.
+
+
+
+References arcint(), hval(), sig1(), and sig2().
+
+
+
+Referenced by intrc1().
+
+\hypertarget{ssrfpack_8f_a733c51bf1be25175f21051cee9759312}{\index{ssrfpack.\+f@{ssrfpack.\+f}!getsig@{getsig}}
+\index{getsig@{getsig}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{getsig}]{\setlength{\rightskip}{0pt plus 5cm}subroutine getsig (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{H, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{real(kind=8)}]{T\+O\+L, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{real(kind=8)}]{D\+S\+M\+A\+X, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a733c51bf1be25175f21051cee9759312}
+
+
+Definition at line 664 of file ssrfpack.\+f.
+
+
+
+References arclen(), lstptr(), snhcsh(), and store().
+
+
+
+Referenced by ssrfpackinterfacemodule\+::setsourceabsvort(), ssrfpackinterfacemodule\+::setsourcekineticenergy(), ssrfpackinterfacemodule\+::setsourcelagrangianparameter(), ssrfpackinterfacemodule\+::setsourcerelvort(), and ssrfpackinterfacemodule\+::setsourcetracer().
+
+\hypertarget{ssrfpack_8f_a909dfda233ff73d5abda9f22e401bd83}{\index{ssrfpack.\+f@{ssrfpack.\+f}!givens@{givens}}
+\index{givens@{givens}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{givens}]{\setlength{\rightskip}{0pt plus 5cm}subroutine givens (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{A, }
+\item[{real(kind=8)}]{B, }
+\item[{real(kind=8)}]{C, }
+\item[{real(kind=8)}]{S}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a909dfda233ff73d5abda9f22e401bd83}
+
+
+Definition at line 1121 of file ssrfpack.\+f.
+
+
+
+Referenced by gradl().
+
+\hypertarget{ssrfpack_8f_a52dd5752fd3d5974fa1e213c5913cd72}{\index{ssrfpack.\+f@{ssrfpack.\+f}!gradg@{gradg}}
+\index{gradg@{gradg}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{gradg}]{\setlength{\rightskip}{0pt plus 5cm}subroutine gradg (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{F, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{integer}]{N\+I\+T, }
+\item[{real(kind=8)}]{D\+G\+M\+A\+X, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a52dd5752fd3d5974fa1e213c5913cd72}
+
+
+Definition at line 1223 of file ssrfpack.\+f.
+
+
+
+References aplyrt(), constr(), and grcoef().
+
+\hypertarget{ssrfpack_8f_a635256785689ea4bc34812b361083a74}{\index{ssrfpack.\+f@{ssrfpack.\+f}!gradl@{gradl}}
+\index{gradl@{gradl}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{gradl}]{\setlength{\rightskip}{0pt plus 5cm}subroutine gradl (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{integer}]{K, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{W, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{real(kind=8), dimension(3)}]{G, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a635256785689ea4bc34812b361083a74}
+
+
+Definition at line 1558 of file ssrfpack.\+f.
+
+
+
+References aplyr(), aplyrt(), constr(), getnp(), givens(), rotate(), and setup().
+
+
+
+Referenced by intrc1(), ssrfpackinterfacemodule\+::setsourceabsvort(), ssrfpackinterfacemodule\+::setsourcekineticenergy(), ssrfpackinterfacemodule\+::setsourcelagrangianparameter(), ssrfpackinterfacemodule\+::setsourcerelvort(), ssrfpackinterfacemodule\+::setsourcetracer(), swedirectsummodule\+::setvelocitysmoothingparameter(), ssrfpackapproximations(), and unif().
+
+\hypertarget{ssrfpack_8f_a42b93aa164cecdff6abe438048ba8038}{\index{ssrfpack.\+f@{ssrfpack.\+f}!grcoef@{grcoef}}
+\index{grcoef@{grcoef}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{grcoef}]{\setlength{\rightskip}{0pt plus 5cm}subroutine grcoef (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{S\+I\+G\+M\+A, }
+\item[{real(kind=8)}]{D, }
+\item[{real(kind=8)}]{S\+D}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a42b93aa164cecdff6abe438048ba8038}
+
+
+Definition at line 1881 of file ssrfpack.\+f.
+
+
+
+References snhcsh().
+
+
+
+Referenced by gradg(), and smsgs().
+
+\hypertarget{ssrfpack_8f_a7f8cb60d2016b09d2fbfee9f7a144378}{\index{ssrfpack.\+f@{ssrfpack.\+f}!hval@{hval}}
+\index{hval@{hval}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{hval}]{\setlength{\rightskip}{0pt plus 5cm}real(kind=8) function hval (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{B, }
+\item[{real(kind=8)}]{H1, }
+\item[{real(kind=8)}]{H2, }
+\item[{real(kind=8)}]{H\+P1, }
+\item[{real(kind=8)}]{H\+P2, }
+\item[{real(kind=8)}]{S\+I\+G\+M\+A}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a7f8cb60d2016b09d2fbfee9f7a144378}
+
+
+Definition at line 1955 of file ssrfpack.\+f.
+
+
+
+References snhcsh().
+
+
+
+Referenced by fval().
+
+\hypertarget{ssrfpack_8f_a347c75fb6a5533d28f208049a6b8b9df}{\index{ssrfpack.\+f@{ssrfpack.\+f}!intrc0@{intrc0}}
+\index{intrc0@{intrc0}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{intrc0}]{\setlength{\rightskip}{0pt plus 5cm}subroutine intrc0 (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8)}]{P\+L\+A\+T, }
+\item[{real(kind=8)}]{P\+L\+O\+N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{W, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{integer}]{I\+S\+T, }
+\item[{real(kind=8)}]{P\+W, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a347c75fb6a5533d28f208049a6b8b9df}
+
+
+Definition at line 2057 of file ssrfpack.\+f.
+
+
+
+References trfind().
+
+\hypertarget{ssrfpack_8f_aa8e7466a7f7559b6150bbe2c19967b16}{\index{ssrfpack.\+f@{ssrfpack.\+f}!intrc1@{intrc1}}
+\index{intrc1@{intrc1}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{intrc1}]{\setlength{\rightskip}{0pt plus 5cm}subroutine intrc1 (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8)}]{P\+L\+A\+T, }
+\item[{real(kind=8)}]{P\+L\+O\+N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{F, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{integer}]{I\+F\+L\+G\+G, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{integer}]{I\+S\+T, }
+\item[{real(kind=8)}]{F\+P, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_aa8e7466a7f7559b6150bbe2c19967b16}
+
+
+Definition at line 2282 of file ssrfpack.\+f.
+
+
+
+References arcint(), arclen(), fval(), gradl(), lstptr(), and trfind().
+
+
+
+Referenced by ssrfpackinterfacemodule\+::interpolatescalar(), ssrfpackinterfacemodule\+::interpolatetracer(), ssrfpackinterfacemodule\+::interpolatevector(), and unif().
+
+\hypertarget{ssrfpack_8f_a320320a847275dbab4d0049e94772364}{\index{ssrfpack.\+f@{ssrfpack.\+f}!rotate@{rotate}}
+\index{rotate@{rotate}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{rotate}]{\setlength{\rightskip}{0pt plus 5cm}subroutine rotate (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8)}]{C, }
+\item[{real(kind=8)}]{S, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a320320a847275dbab4d0049e94772364}
+
+
+Definition at line 2686 of file ssrfpack.\+f.
+
+
+
+Referenced by gradl().
+
+\hypertarget{ssrfpack_8f_aa76325c7e9c8f92bd7260245aeb1b8a1}{\index{ssrfpack.\+f@{ssrfpack.\+f}!setup@{setup}}
+\index{setup@{setup}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{setup}]{\setlength{\rightskip}{0pt plus 5cm}subroutine setup (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{X\+I, }
+\item[{real(kind=8)}]{Y\+I, }
+\item[{real(kind=8)}]{W\+I, }
+\item[{real(kind=8)}]{W\+K, }
+\item[{real(kind=8)}]{S1, }
+\item[{real(kind=8)}]{S2, }
+\item[{real(kind=8)}]{W\+T, }
+\item[{real(kind=8), dimension(6)}]{R\+O\+W}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_aa76325c7e9c8f92bd7260245aeb1b8a1}
+
+
+Definition at line 2741 of file ssrfpack.\+f.
+
+
+
+Referenced by gradl().
+
+\hypertarget{ssrfpack_8f_a3e1f75d113af677f02865437d7c2d58b}{\index{ssrfpack.\+f@{ssrfpack.\+f}!sgprnt@{sgprnt}}
+\index{sgprnt@{sgprnt}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{sgprnt}]{\setlength{\rightskip}{0pt plus 5cm}subroutine sgprnt (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{integer}]{L\+U\+N\+I\+T, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a3e1f75d113af677f02865437d7c2d58b}
+
+
+Definition at line 2803 of file ssrfpack.\+f.
+
+
+
+References lstptr().
+
+\hypertarget{ssrfpack_8f_a2de759653fe7b41789705813e8c6cce8}{\index{ssrfpack.\+f@{ssrfpack.\+f}!sig0@{sig0}}
+\index{sig0@{sig0}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{sig0}]{\setlength{\rightskip}{0pt plus 5cm}real(kind=8) function sig0 (
+\begin{DoxyParamCaption}
+\item[{integer}]{N1, }
+\item[{integer}]{N2, }
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{H, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{integer}]{I\+F\+L\+G\+B, }
+\item[{real(kind=8)}]{H\+B\+N\+D, }
+\item[{real(kind=8)}]{T\+O\+L, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a2de759653fe7b41789705813e8c6cce8}
+
+
+Definition at line 2963 of file ssrfpack.\+f.
+
+
+
+References arclen(), snhcsh(), and store().
+
+\hypertarget{ssrfpack_8f_adc80f9fac0f9a7a8509094a3dcf7dba9}{\index{ssrfpack.\+f@{ssrfpack.\+f}!sig1@{sig1}}
+\index{sig1@{sig1}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{sig1}]{\setlength{\rightskip}{0pt plus 5cm}real(kind=8) function sig1 (
+\begin{DoxyParamCaption}
+\item[{integer}]{N1, }
+\item[{integer}]{N2, }
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{H, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{integer}]{I\+F\+L\+G\+B, }
+\item[{real(kind=8)}]{H\+P\+B\+N\+D, }
+\item[{real(kind=8)}]{T\+O\+L, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_adc80f9fac0f9a7a8509094a3dcf7dba9}
+
+
+Definition at line 3398 of file ssrfpack.\+f.
+
+
+
+References arclen(), snhcsh(), and store().
+
+
+
+Referenced by fval().
+
+\hypertarget{ssrfpack_8f_a58ec66bca9583e579ffa3a3312d9dd9f}{\index{ssrfpack.\+f@{ssrfpack.\+f}!sig2@{sig2}}
+\index{sig2@{sig2}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{sig2}]{\setlength{\rightskip}{0pt plus 5cm}real(kind=8) function sig2 (
+\begin{DoxyParamCaption}
+\item[{integer}]{N1, }
+\item[{integer}]{N2, }
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{H, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{real(kind=8)}]{T\+O\+L, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a58ec66bca9583e579ffa3a3312d9dd9f}
+
+
+Definition at line 3795 of file ssrfpack.\+f.
+
+
+
+References arclen(), snhcsh(), and store().
+
+
+
+Referenced by fval().
+
+\hypertarget{ssrfpack_8f_ad3518f9cb2353207b0563724003e595d}{\index{ssrfpack.\+f@{ssrfpack.\+f}!smsgs@{smsgs}}
+\index{smsgs@{smsgs}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{smsgs}]{\setlength{\rightskip}{0pt plus 5cm}subroutine smsgs (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{U, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{real(kind=8), dimension(n)}]{W, }
+\item[{real(kind=8)}]{P, }
+\item[{integer}]{N\+I\+T, }
+\item[{real(kind=8)}]{D\+F\+M\+A\+X, }
+\item[{real(kind=8), dimension(n)}]{F, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_ad3518f9cb2353207b0563724003e595d}
+
+
+Definition at line 4076 of file ssrfpack.\+f.
+
+
+
+References aplyrt(), constr(), and grcoef().
+
+
+
+Referenced by smsurf().
+
+\hypertarget{ssrfpack_8f_adffd665ec153b2a42e485618e110dc97}{\index{ssrfpack.\+f@{ssrfpack.\+f}!smsurf@{smsurf}}
+\index{smsurf@{smsurf}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{smsurf}]{\setlength{\rightskip}{0pt plus 5cm}subroutine smsurf (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{U, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{real(kind=8), dimension(n)}]{W, }
+\item[{real(kind=8)}]{S\+M, }
+\item[{real(kind=8)}]{S\+M\+T\+O\+L, }
+\item[{real(kind=8)}]{G\+S\+T\+O\+L, }
+\item[{integer}]{L\+P\+R\+N\+T, }
+\item[{real(kind=8), dimension(n)}]{F, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_adffd665ec153b2a42e485618e110dc97}
+
+
+Definition at line 4341 of file ssrfpack.\+f.
+
+
+
+References smsgs().
+
+\hypertarget{ssrfpack_8f_ab50c1a1c28a6c038677ae85439b3c8d8}{\index{ssrfpack.\+f@{ssrfpack.\+f}!snhcsh@{snhcsh}}
+\index{snhcsh@{snhcsh}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{snhcsh}]{\setlength{\rightskip}{0pt plus 5cm}subroutine snhcsh (
+\begin{DoxyParamCaption}
+\item[{real(kind=8)}]{X, }
+\item[{real(kind=8)}]{S\+I\+N\+H\+M, }
+\item[{real(kind=8)}]{C\+O\+S\+H\+M, }
+\item[{real(kind=8)}]{C\+O\+S\+H\+M\+M}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_ab50c1a1c28a6c038677ae85439b3c8d8}
+
+
+Definition at line 4658 of file ssrfpack.\+f.
+
+
+
+Referenced by arcint(), getsig(), grcoef(), hval(), sig0(), sig1(), and sig2().
+
+\hypertarget{ssrfpack_8f_a32bbda3cba4354ae5d4859ece33f4827}{\index{ssrfpack.\+f@{ssrfpack.\+f}!unif@{unif}}
+\index{unif@{unif}!ssrfpack.\+f@{ssrfpack.\+f}}
+\subsubsection[{unif}]{\setlength{\rightskip}{0pt plus 5cm}subroutine unif (
+\begin{DoxyParamCaption}
+\item[{integer}]{N, }
+\item[{real(kind=8), dimension(n)}]{X, }
+\item[{real(kind=8), dimension(n)}]{Y, }
+\item[{real(kind=8), dimension(n)}]{Z, }
+\item[{real(kind=8), dimension(n)}]{F, }
+\item[{integer, dimension($\ast$)}]{L\+I\+S\+T, }
+\item[{integer, dimension($\ast$)}]{L\+P\+T\+R, }
+\item[{integer, dimension(n)}]{L\+E\+N\+D, }
+\item[{integer}]{I\+F\+L\+G\+S, }
+\item[{real(kind=8), dimension($\ast$)}]{S\+I\+G\+M\+A, }
+\item[{integer}]{N\+R\+O\+W, }
+\item[{integer}]{N\+I, }
+\item[{integer}]{N\+J, }
+\item[{real(kind=8), dimension(ni)}]{P\+L\+A\+T, }
+\item[{real(kind=8), dimension(nj)}]{P\+L\+O\+N, }
+\item[{integer}]{I\+F\+L\+G\+G, }
+\item[{real(kind=8), dimension(3,n)}]{G\+R\+A\+D, }
+\item[{real(kind=8), dimension(nrow,nj)}]{F\+F, }
+\item[{integer}]{I\+E\+R}
+\end{DoxyParamCaption}
+)}}\label{ssrfpack_8f_a32bbda3cba4354ae5d4859ece33f4827}
+
+
+Definition at line 4731 of file ssrfpack.\+f.
+
+
+
+References gradl(), and intrc1().
+

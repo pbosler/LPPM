@@ -1,0 +1,108 @@
+\hypertarget{classplanedirectsummodule}{\section{planedirectsummodule Module Reference}
+\label{classplanedirectsummodule}\index{planedirectsummodule@{planedirectsummodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classplanedirectsummodule_a2bf00997645e24b8cd75fbdbc7c6cd2e}{rk4timestepnorotation} (self, a\+Mesh, dt, proc\+Rank, n\+Procs)
+\item 
+subroutine, public \hyperlink{classplanedirectsummodule_aff2006ee7a13ce54962e7dd6ec8e0a3e}{rk4timestepincompressibleadvection} (self, a\+Mesh, dt, t, proc\+Rank, n\+Procs, velocity\+Function)
+\item 
+real(kreal) function, \\*
+dimension(2), public \hyperlink{classplanedirectsummodule_ab094545467c4964297c3040de058b338}{leveque93} (xy, t)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+real(kreal), save, public, \\*
+protected \hyperlink{classplanedirectsummodule_a9348d367de092462c7f25b1481991990}{velocity\+\_\+smooth} = 0.\+01\+\_\+kreal
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file Plane\+Direct\+Sum.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classplanedirectsummodule_ab094545467c4964297c3040de058b338}{\index{planedirectsummodule@{planedirectsummodule}!leveque93@{leveque93}}
+\index{leveque93@{leveque93}!planedirectsummodule@{planedirectsummodule}}
+\subsubsection[{leveque93}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, dimension(2), public planedirectsummodule\+::leveque93 (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(2), intent(in)}]{xy, }
+\item[{real(kreal), intent(in)}]{t}
+\end{DoxyParamCaption}
+)}}\label{classplanedirectsummodule_ab094545467c4964297c3040de058b338}
+
+
+Definition at line 808 of file Plane\+Direct\+Sum.\+f90.
+
+
+
+Referenced by planerotateadvection().
+
+\hypertarget{classplanedirectsummodule_aff2006ee7a13ce54962e7dd6ec8e0a3e}{\index{planedirectsummodule@{planedirectsummodule}!rk4timestepincompressibleadvection@{rk4timestepincompressibleadvection}}
+\index{rk4timestepincompressibleadvection@{rk4timestepincompressibleadvection}!planedirectsummodule@{planedirectsummodule}}
+\subsubsection[{rk4timestepincompressibleadvection}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planedirectsummodule\+::rk4timestepincompressibleadvection (
+\begin{DoxyParamCaption}
+\item[{type(planerk4directsum), intent(inout)}]{self, }
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{real(kreal), intent(in)}]{dt, }
+\item[{real(kreal), intent(in)}]{t, }
+\item[{integer(kint), intent(in)}]{proc\+Rank, }
+\item[{integer(kint), intent(in)}]{n\+Procs, }
+\item[{procedure(advectionvelocity)}]{velocity\+Function}
+\end{DoxyParamCaption}
+)}}\label{classplanedirectsummodule_aff2006ee7a13ce54962e7dd6ec8e0a3e}
+
+
+Definition at line 480 of file Plane\+Direct\+Sum.\+f90.
+
+
+
+References panelsmodule\+::scatterpanels(), and advectionmodule\+::zerork4().
+
+
+
+Referenced by planerotateadvection().
+
+\hypertarget{classplanedirectsummodule_a2bf00997645e24b8cd75fbdbc7c6cd2e}{\index{planedirectsummodule@{planedirectsummodule}!rk4timestepnorotation@{rk4timestepnorotation}}
+\index{rk4timestepnorotation@{rk4timestepnorotation}!planedirectsummodule@{planedirectsummodule}}
+\subsubsection[{rk4timestepnorotation}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public planedirectsummodule\+::rk4timestepnorotation (
+\begin{DoxyParamCaption}
+\item[{type(planerk4directsum), intent(inout)}]{self, }
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{real(kreal), intent(in)}]{dt, }
+\item[{integer(kint), intent(in)}]{proc\+Rank, }
+\item[{integer(kint), intent(in)}]{n\+Procs}
+\end{DoxyParamCaption}
+)}}\label{classplanedirectsummodule_a2bf00997645e24b8cd75fbdbc7c6cd2e}
+
+
+Definition at line 300 of file Plane\+Direct\+Sum.\+f90.
+
+
+
+References panelsmodule\+::scatterpanels(), and advectionmodule\+::zerork4().
+
+
+
+Referenced by lambtest(), planeunittest(), reversibledipolesmain(), and twodipolesmain().
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classplanedirectsummodule_a9348d367de092462c7f25b1481991990}{\index{planedirectsummodule@{planedirectsummodule}!velocity\+\_\+smooth@{velocity\+\_\+smooth}}
+\index{velocity\+\_\+smooth@{velocity\+\_\+smooth}!planedirectsummodule@{planedirectsummodule}}
+\subsubsection[{velocity\+\_\+smooth}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal), save, public, protected planedirectsummodule\+::velocity\+\_\+smooth = 0.\+01\+\_\+kreal}}\label{classplanedirectsummodule_a9348d367de092462c7f25b1481991990}
+
+
+Definition at line 42 of file Plane\+Direct\+Sum.\+f90.
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{PlaneDirectSum_8f90}{Plane\+Direct\+Sum.\+f90}\end{DoxyCompactItemize}

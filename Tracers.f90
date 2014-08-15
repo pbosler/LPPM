@@ -1,19 +1,20 @@
 module TracerSetupModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines tracer distributions used by SphereMesh.
+!> @defgroup Tracers Spherical geometry tracer distributions
+!> defines passive tracer distributions for flows in spherical geometry
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the barotropic vorticity equation on the sphere.
-!----------------
+! DESCRIPTION:
+!> @file
+!> defines passive tracer distributions for flows in spherical geometry
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use SphereGeomModule
@@ -333,7 +334,7 @@ function TracerVariance(aMesh, tracerID)
 	!
 	type(Panels), pointer :: aPanels
 	aPanels => aMesh%panels
-	tracerVariance = sum( aPanels%tracer(1:aPanels%N,tracerID) * aPanels%tracer(1:aPanels%N,tracerID) * aPanels%area(1:aPanels%N) ) 
+	tracerVariance = sum( aPanels%tracer(1:aPanels%N,tracerID) * aPanels%tracer(1:aPanels%N,tracerID) * aPanels%area(1:aPanels%N) )
 end function
 
 !

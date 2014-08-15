@@ -1,0 +1,87 @@
+\hypertarget{TwoDipoles_8f90}{\section{Two\+Dipoles.\+f90 File Reference}
+\label{TwoDipoles_8f90}\index{Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}}
+}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+program \hyperlink{TwoDipoles_8f90_a8695044c9f84a0371342f5efe5bf2bf0}{twodipolesmain}
+\item 
+subroutine \hyperlink{TwoDipoles_8f90_ad04f6a68cf70854191e86b39830221a5}{readnamelistfile} (rank)
+\item 
+subroutine \hyperlink{TwoDipoles_8f90_a64131b1044264f784b158856557afdbe}{converttorelativetolerances} (a\+Mesh, max\+Circ\+Tol, vort\+Var\+Tol, lag\+Var\+Tol)
+\item 
+subroutine \hyperlink{TwoDipoles_8f90_a65e850480f866b566850de421518257c}{storelagrangianxcoordinateintracer} (a\+Mesh, tracer\+I\+D)
+\item 
+subroutine \hyperlink{TwoDipoles_8f90_ac0ea2c4849c1903661a5d7a3d600ee41}{initlogger} (a\+Log, rank)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{TwoDipoles_8f90_a64131b1044264f784b158856557afdbe}{\index{Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}!converttorelativetolerances@{converttorelativetolerances}}
+\index{converttorelativetolerances@{converttorelativetolerances}!Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}}
+\subsubsection[{converttorelativetolerances}]{\setlength{\rightskip}{0pt plus 5cm}subroutine twodipolesmain\+::converttorelativetolerances (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(in)}]{a\+Mesh, }
+\item[{real(kreal), intent(inout)}]{max\+Circ\+Tol, }
+\item[{real(kreal), intent(inout)}]{vort\+Var\+Tol, }
+\item[{real(kreal), intent(inout)}]{lag\+Var\+Tol}
+\end{DoxyParamCaption}
+)}}\label{TwoDipoles_8f90_a64131b1044264f784b158856557afdbe}
+
+
+Definition at line 366 of file Two\+Dipoles.\+f90.
+
+
+
+References planemeshmodule\+::maximumcirculation(), planemeshmodule\+::maximumlagrangianparametervariation(), and planemeshmodule\+::maximumvorticityvariation().
+
+\hypertarget{TwoDipoles_8f90_ac0ea2c4849c1903661a5d7a3d600ee41}{\index{Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}!initlogger@{initlogger}}
+\index{initlogger@{initlogger}!Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}}
+\subsubsection[{initlogger}]{\setlength{\rightskip}{0pt plus 5cm}subroutine twodipolesmain\+::initlogger (
+\begin{DoxyParamCaption}
+\item[{type(logger), intent(inout)}]{a\+Log, }
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{TwoDipoles_8f90_ac0ea2c4849c1903661a5d7a3d600ee41}
+
+
+Definition at line 396 of file Two\+Dipoles.\+f90.
+
+\hypertarget{TwoDipoles_8f90_ad04f6a68cf70854191e86b39830221a5}{\index{Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}!readnamelistfile@{readnamelistfile}}
+\index{readnamelistfile@{readnamelistfile}!Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}}
+\subsubsection[{readnamelistfile}]{\setlength{\rightskip}{0pt plus 5cm}subroutine twodipolesmain\+::readnamelistfile (
+\begin{DoxyParamCaption}
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{TwoDipoles_8f90_ad04f6a68cf70854191e86b39830221a5}
+
+
+Definition at line 289 of file Two\+Dipoles.\+f90.
+
+\hypertarget{TwoDipoles_8f90_a65e850480f866b566850de421518257c}{\index{Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}!storelagrangianxcoordinateintracer@{storelagrangianxcoordinateintracer}}
+\index{storelagrangianxcoordinateintracer@{storelagrangianxcoordinateintracer}!Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}}
+\subsubsection[{storelagrangianxcoordinateintracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine twodipolesmain\+::storelagrangianxcoordinateintracer (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{TwoDipoles_8f90_a65e850480f866b566850de421518257c}
+
+
+Definition at line 376 of file Two\+Dipoles.\+f90.
+
+\hypertarget{TwoDipoles_8f90_a8695044c9f84a0371342f5efe5bf2bf0}{\index{Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}!twodipolesmain@{twodipolesmain}}
+\index{twodipolesmain@{twodipolesmain}!Two\+Dipoles.\+f90@{Two\+Dipoles.\+f90}}
+\subsubsection[{twodipolesmain}]{\setlength{\rightskip}{0pt plus 5cm}program twodipolesmain (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{TwoDipoles_8f90_a8695044c9f84a0371342f5efe5bf2bf0}
+
+
+Definition at line 1 of file Two\+Dipoles.\+f90.
+
+
+
+References converttorelativetolerances(), planemeshmodule\+::gettotalcirculation(), planemeshmodule\+::gettotalenstrophy(), planemeshmodule\+::gettotalke(), planetracermodule\+::initdipoleidtracer(), planemeshmodule\+::initializerectangle(), refineremeshmodule\+::initialrefinement(), initlogger(), planevorticitymodule\+::inittwodipoles(), planeoutputmodule\+::outputforvtk(), readnamelistfile(), planedirectsummodule\+::rk4timestepnorotation(), planetracermodule\+::setdipoleidtraceronmesh(), planevorticitymodule\+::settwodipolesonmesh(), storelagrangianxcoordinateintracer(), planemeshmodule\+::totalarea(), spheremeshmodule\+::totalenstrophy(), and planeoutputmodule\+::updatefilename().
+

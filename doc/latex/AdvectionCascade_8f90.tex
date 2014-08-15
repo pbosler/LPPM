@@ -1,0 +1,73 @@
+\hypertarget{AdvectionCascade_8f90}{\section{Advection\+Cascade.\+f90 File Reference}
+\label{AdvectionCascade_8f90}\index{Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}}
+}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+program \hyperlink{AdvectionCascade_8f90_a3d4dff9cb6ea64d8dfb7117298b6873d}{kentcascadeadvection}
+\item 
+subroutine \hyperlink{AdvectionCascade_8f90_a2c38fce273a92400a9c2803c305fe5d2}{convertfromrelativetolerances} (a\+Mesh, tracer\+Mass\+Tol, tracer\+Var\+Tol, tracer\+I\+D)
+\item 
+subroutine \hyperlink{AdvectionCascade_8f90_ac2106953ef2f8f4fa946c4309a00cf7b}{readnamelistfile} (rank)
+\item 
+subroutine \hyperlink{AdvectionCascade_8f90_a58430ebb2077dac3622fa088d1a33915}{initlogger} (alog, rank)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{AdvectionCascade_8f90_a2c38fce273a92400a9c2803c305fe5d2}{\index{Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}!convertfromrelativetolerances@{convertfromrelativetolerances}}
+\index{convertfromrelativetolerances@{convertfromrelativetolerances}!Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}}
+\subsubsection[{convertfromrelativetolerances}]{\setlength{\rightskip}{0pt plus 5cm}subroutine kentcascadeadvection\+::convertfromrelativetolerances (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{a\+Mesh, }
+\item[{real(kreal), intent(inout)}]{tracer\+Mass\+Tol, }
+\item[{real(kreal), intent(inout)}]{tracer\+Var\+Tol, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{AdvectionCascade_8f90_a2c38fce273a92400a9c2803c305fe5d2}
+
+
+Definition at line 302 of file Advection\+Cascade.\+f90.
+
+
+
+References planemeshmodule\+::maximumtracermass(), and planemeshmodule\+::maximumtracervariation().
+
+\hypertarget{AdvectionCascade_8f90_a58430ebb2077dac3622fa088d1a33915}{\index{Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}!initlogger@{initlogger}}
+\index{initlogger@{initlogger}!Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}}
+\subsubsection[{initlogger}]{\setlength{\rightskip}{0pt plus 5cm}subroutine kentcascadeadvection\+::initlogger (
+\begin{DoxyParamCaption}
+\item[{type(logger), intent(out)}]{alog, }
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{AdvectionCascade_8f90_a58430ebb2077dac3622fa088d1a33915}
+
+
+Definition at line 355 of file Advection\+Cascade.\+f90.
+
+\hypertarget{AdvectionCascade_8f90_a3d4dff9cb6ea64d8dfb7117298b6873d}{\index{Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}!kentcascadeadvection@{kentcascadeadvection}}
+\index{kentcascadeadvection@{kentcascadeadvection}!Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}}
+\subsubsection[{kentcascadeadvection}]{\setlength{\rightskip}{0pt plus 5cm}program kentcascadeadvection (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{AdvectionCascade_8f90_a3d4dff9cb6ea64d8dfb7117298b6873d}
+
+
+Definition at line 1 of file Advection\+Cascade.\+f90.
+
+
+
+References advectionmodule\+::advectionrk4timestep(), convertfromrelativetolerances(), refineremeshmodule\+::initialrefinement(), initlogger(), tracersetupmodule\+::initonegaussianhilltracer(), advectionmodule\+::kentcascadevelocity(), sphereremeshmodule\+::lagrangianremeshtoreference(), bvesetupmodule\+::nullvorticity(), readnamelistfile(), tracersetupmodule\+::setonegaussianhilltraceronmesh(), spheremeshmodule\+::totalmass(), tracersetupmodule\+::tracervariance(), planeoutputmodule\+::updatefilename(), and vtkoutputmodule\+::vtkoutput().
+
+\hypertarget{AdvectionCascade_8f90_ac2106953ef2f8f4fa946c4309a00cf7b}{\index{Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}!readnamelistfile@{readnamelistfile}}
+\index{readnamelistfile@{readnamelistfile}!Advection\+Cascade.\+f90@{Advection\+Cascade.\+f90}}
+\subsubsection[{readnamelistfile}]{\setlength{\rightskip}{0pt plus 5cm}subroutine kentcascadeadvection\+::readnamelistfile (
+\begin{DoxyParamCaption}
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{AdvectionCascade_8f90_ac2106953ef2f8f4fa946c4309a00cf7b}
+
+
+Definition at line 310 of file Advection\+Cascade.\+f90.
+

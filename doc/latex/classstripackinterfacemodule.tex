@@ -1,0 +1,67 @@
+\hypertarget{classstripackinterfacemodule}{\section{stripackinterfacemodule Module Reference}
+\label{classstripackinterfacemodule}\index{stripackinterfacemodule@{stripackinterfacemodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classstripackinterfacemodule_a8f5817abddcd37ee46ea02f295c5b794}{delaunaytriangulation} (self)
+\item 
+subroutine, public \hyperlink{classstripackinterfacemodule_aa49a9d89d7a58aac7825659b96d1a9b4}{updatenodepositions} (self, new\+Particles\+X, n\+Particles, newactive\+Panels\+X, n\+Active)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file S\+T\+R\+I\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classstripackinterfacemodule_a8f5817abddcd37ee46ea02f295c5b794}{\index{stripackinterfacemodule@{stripackinterfacemodule}!delaunaytriangulation@{delaunaytriangulation}}
+\index{delaunaytriangulation@{delaunaytriangulation}!stripackinterfacemodule@{stripackinterfacemodule}}
+\subsubsection[{delaunaytriangulation}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public stripackinterfacemodule\+::delaunaytriangulation (
+\begin{DoxyParamCaption}
+\item[{type(stripackdata), intent(inout)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classstripackinterfacemodule_a8f5817abddcd37ee46ea02f295c5b794}
+
+
+Definition at line 235 of file S\+T\+R\+I\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References trmesh().
+
+
+
+Referenced by refineremeshmodule\+::initialrefinement(), and updatenodepositions().
+
+\hypertarget{classstripackinterfacemodule_aa49a9d89d7a58aac7825659b96d1a9b4}{\index{stripackinterfacemodule@{stripackinterfacemodule}!updatenodepositions@{updatenodepositions}}
+\index{updatenodepositions@{updatenodepositions}!stripackinterfacemodule@{stripackinterfacemodule}}
+\subsubsection[{updatenodepositions}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public stripackinterfacemodule\+::updatenodepositions (
+\begin{DoxyParamCaption}
+\item[{type(stripackdata), intent(inout)}]{self, }
+\item[{real(kreal), dimension(\+:,\+:), intent(in)}]{new\+Particles\+X, }
+\item[{integer(kint), intent(in)}]{n\+Particles, }
+\item[{real(kreal), dimension(\+:,\+:), intent(in)}]{newactive\+Panels\+X, }
+\item[{integer(kint), intent(in)}]{n\+Active}
+\end{DoxyParamCaption}
+)}}\label{classstripackinterfacemodule_aa49a9d89d7a58aac7825659b96d1a9b4}
+
+
+Definition at line 284 of file S\+T\+R\+I\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References delaunaytriangulation().
+
+
+
+Referenced by swedirectsummodule\+::swerk4timestep().
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{STRIPACKInterface2_8f90}{S\+T\+R\+I\+P\+A\+C\+K\+Interface2.\+f90}\end{DoxyCompactItemize}

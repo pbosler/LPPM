@@ -1,18 +1,20 @@
 module SphereRemeshModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
+!
+!> @defgroup SphereRemesh Sphere Remesh
+!> Data types, subroutines, and functions for adaptive remeshing spherical particle/panel meshes.
 !
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
+! DESCRIPTION:
+!> @file
+!> Data types, subroutines, and functions for adaptive remeshing spherical particle/panel meshes.
 !
-!----------------
-! USAGE :  This module provides methods for interpolating and remeshing a spherical mesh.
-!----------------
+!------------------------------------------------------------------------------
 
 use NumberKindsModule
 use LoggerModule

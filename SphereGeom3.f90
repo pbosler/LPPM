@@ -1,15 +1,20 @@
 module SphereGeomModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-! This module defines functions for performing geometric calculations
-! on the surface of the surface of a sphere.
+!> @defgroup SphereGeom Spherical Geometry
+!> defines functions for performing geometric calculations on the surface of a sphere.
 !
+!
+! DESCRIPTION:
+!> @file
+!> defines functions for performing geometric calculations on the surface of a sphere.
+!
+!------------------------------------------------------------------------------
 
 use NumberKindsModule
 

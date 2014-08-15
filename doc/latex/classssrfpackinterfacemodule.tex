@@ -1,0 +1,244 @@
+\hypertarget{classssrfpackinterfacemodule}{\section{ssrfpackinterfacemodule Module Reference}
+\label{classssrfpackinterfacemodule}\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classssrfpackinterfacemodule_a75264a16d52d3d5b690e48a2fedf1f3c}{setsigmatol} (self, new\+Tol)
+\item 
+subroutine, public \hyperlink{classssrfpackinterfacemodule_afd6acb60f29c898bae8450d04a1162b3}{setsourcelagrangianparameter} (self, del\+Tri)
+\item 
+subroutine, public \hyperlink{classssrfpackinterfacemodule_a87f766d858b504de0b491599d55a8487}{setsourcetracer} (self, del\+Tri)
+\item 
+subroutine, public \hyperlink{classssrfpackinterfacemodule_a08d1ec645cfe5f81019a9e06fa356795}{setsourceabsvort} (self, del\+Tri)
+\item 
+subroutine, public \hyperlink{classssrfpackinterfacemodule_ab0dcf80c0408a708cd2389c84f8c033a}{setsourcerelvort} (self, del\+Tri)
+\item 
+subroutine, public \hyperlink{classssrfpackinterfacemodule_ac60b06e45aadb25044e3525c71f8da04}{setsourcekineticenergy} (self, del\+Tri)
+\item 
+real(kreal) function, \\*
+dimension(3), public \hyperlink{classssrfpackinterfacemodule_a75ab76bb36890d37ec38050df8dec2c6}{interpolatevector} (xyz, self, del\+Tri)
+\item 
+real(kreal) function, public \hyperlink{classssrfpackinterfacemodule_a6c364f5ff552e1a8c4f92055226b7d7f}{interpolatescalar} (xyz, self, del\+Tri)
+\item 
+real(kreal) function, public \hyperlink{classssrfpackinterfacemodule_a65dd0a96886193cf4684ae943d6a514b}{interpolatetracer} (xyz, self, del\+Tri, tracer\+I\+D)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer(kint), parameter, public \hyperlink{classssrfpackinterfacemodule_aab9118e061bf334e412f174d571a0383}{sigma\+\_\+flag} = 1
+\item 
+integer(kint), parameter, public \hyperlink{classssrfpackinterfacemodule_a94dc725a7eeb76c6d6a9b367a985a383}{grad\+\_\+flag} = 1
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classssrfpackinterfacemodule_a6c364f5ff552e1a8c4f92055226b7d7f}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!interpolatescalar@{interpolatescalar}}
+\index{interpolatescalar@{interpolatescalar}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{interpolatescalar}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public ssrfpackinterfacemodule\+::interpolatescalar (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(3), intent(in)}]{xyz, }
+\item[{type(ssrfpackdata), intent(in)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_a6c364f5ff552e1a8c4f92055226b7d7f}
+
+
+Definition at line 607 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References intrc1().
+
+
+
+Referenced by sphereremeshmodule\+::directremesh(), sphereremeshmodule\+::lagrangianremeshtoreference(), latlonoutputmodule\+::lloutputmatlab(), and ssrfpackapproximations().
+
+\hypertarget{classssrfpackinterfacemodule_a65dd0a96886193cf4684ae943d6a514b}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!interpolatetracer@{interpolatetracer}}
+\index{interpolatetracer@{interpolatetracer}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{interpolatetracer}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public ssrfpackinterfacemodule\+::interpolatetracer (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(3), intent(in)}]{xyz, }
+\item[{type(ssrfpackdata), intent(in)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_a65dd0a96886193cf4684ae943d6a514b}
+
+
+Definition at line 627 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References intrc1().
+
+
+
+Referenced by sphereremeshmodule\+::directremesh(), sphereremeshmodule\+::lagrangianremeshtoreference(), and latlonoutputmodule\+::lloutputmatlab().
+
+\hypertarget{classssrfpackinterfacemodule_a75ab76bb36890d37ec38050df8dec2c6}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!interpolatevector@{interpolatevector}}
+\index{interpolatevector@{interpolatevector}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{interpolatevector}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, dimension(3), public ssrfpackinterfacemodule\+::interpolatevector (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(3), intent(in)}]{xyz, }
+\item[{type(ssrfpackdata), intent(in)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_a75ab76bb36890d37ec38050df8dec2c6}
+
+
+Definition at line 576 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References intrc1().
+
+
+
+Referenced by refineremeshmodule\+::initialrefinement(), sphereremeshmodule\+::lagrangianremeshtoreference(), and latlonoutputmodule\+::lloutputmatlab().
+
+\hypertarget{classssrfpackinterfacemodule_a75264a16d52d3d5b690e48a2fedf1f3c}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!setsigmatol@{setsigmatol}}
+\index{setsigmatol@{setsigmatol}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{setsigmatol}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public ssrfpackinterfacemodule\+::setsigmatol (
+\begin{DoxyParamCaption}
+\item[{type(ssrfpackdata), intent(inout)}]{self, }
+\item[{real(kreal), intent(in)}]{new\+Tol}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_a75264a16d52d3d5b690e48a2fedf1f3c}
+
+
+Definition at line 200 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+Referenced by refineremeshmodule\+::initialrefinement().
+
+\hypertarget{classssrfpackinterfacemodule_a08d1ec645cfe5f81019a9e06fa356795}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!setsourceabsvort@{setsourceabsvort}}
+\index{setsourceabsvort@{setsourceabsvort}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{setsourceabsvort}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public ssrfpackinterfacemodule\+::setsourceabsvort (
+\begin{DoxyParamCaption}
+\item[{type(ssrfpackdata), intent(inout)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_a08d1ec645cfe5f81019a9e06fa356795}
+
+
+Definition at line 416 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References getsig(), and gradl().
+
+
+
+Referenced by sphereremeshmodule\+::directremesh(), and latlonoutputmodule\+::lloutputmatlab().
+
+\hypertarget{classssrfpackinterfacemodule_ac60b06e45aadb25044e3525c71f8da04}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!setsourcekineticenergy@{setsourcekineticenergy}}
+\index{setsourcekineticenergy@{setsourcekineticenergy}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{setsourcekineticenergy}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public ssrfpackinterfacemodule\+::setsourcekineticenergy (
+\begin{DoxyParamCaption}
+\item[{type(ssrfpackdata), intent(inout)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_ac60b06e45aadb25044e3525c71f8da04}
+
+
+Definition at line 508 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References getsig(), and gradl().
+
+
+
+Referenced by latlonoutputmodule\+::lloutputmatlab().
+
+\hypertarget{classssrfpackinterfacemodule_afd6acb60f29c898bae8450d04a1162b3}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!setsourcelagrangianparameter@{setsourcelagrangianparameter}}
+\index{setsourcelagrangianparameter@{setsourcelagrangianparameter}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{setsourcelagrangianparameter}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public ssrfpackinterfacemodule\+::setsourcelagrangianparameter (
+\begin{DoxyParamCaption}
+\item[{type(ssrfpackdata), intent(inout)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_afd6acb60f29c898bae8450d04a1162b3}
+
+
+Definition at line 207 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References getsig(), and gradl().
+
+
+
+Referenced by refineremeshmodule\+::initialrefinement(), sphereremeshmodule\+::lagrangianremeshtoreference(), and latlonoutputmodule\+::lloutputmatlab().
+
+\hypertarget{classssrfpackinterfacemodule_ab0dcf80c0408a708cd2389c84f8c033a}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!setsourcerelvort@{setsourcerelvort}}
+\index{setsourcerelvort@{setsourcerelvort}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{setsourcerelvort}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public ssrfpackinterfacemodule\+::setsourcerelvort (
+\begin{DoxyParamCaption}
+\item[{type(ssrfpackdata), intent(inout)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_ab0dcf80c0408a708cd2389c84f8c033a}
+
+
+Definition at line 445 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References getsig(), and gradl().
+
+
+
+Referenced by latlonoutputmodule\+::lloutputmatlab(), and ssrfpackapproximations().
+
+\hypertarget{classssrfpackinterfacemodule_a87f766d858b504de0b491599d55a8487}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!setsourcetracer@{setsourcetracer}}
+\index{setsourcetracer@{setsourcetracer}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{setsourcetracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public ssrfpackinterfacemodule\+::setsourcetracer (
+\begin{DoxyParamCaption}
+\item[{type(ssrfpackdata), intent(inout)}]{self, }
+\item[{type(stripackdata), intent(in)}]{del\+Tri}
+\end{DoxyParamCaption}
+)}}\label{classssrfpackinterfacemodule_a87f766d858b504de0b491599d55a8487}
+
+
+Definition at line 253 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+References getsig(), and gradl().
+
+
+
+Referenced by sphereremeshmodule\+::directremesh(), and latlonoutputmodule\+::lloutputmatlab().
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classssrfpackinterfacemodule_a94dc725a7eeb76c6d6a9b367a985a383}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!grad\+\_\+flag@{grad\+\_\+flag}}
+\index{grad\+\_\+flag@{grad\+\_\+flag}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{grad\+\_\+flag}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public ssrfpackinterfacemodule\+::grad\+\_\+flag = 1}}\label{classssrfpackinterfacemodule_a94dc725a7eeb76c6d6a9b367a985a383}
+
+
+Definition at line 63 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+\hypertarget{classssrfpackinterfacemodule_aab9118e061bf334e412f174d571a0383}{\index{ssrfpackinterfacemodule@{ssrfpackinterfacemodule}!sigma\+\_\+flag@{sigma\+\_\+flag}}
+\index{sigma\+\_\+flag@{sigma\+\_\+flag}!ssrfpackinterfacemodule@{ssrfpackinterfacemodule}}
+\subsubsection[{sigma\+\_\+flag}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint), parameter, public ssrfpackinterfacemodule\+::sigma\+\_\+flag = 1}}\label{classssrfpackinterfacemodule_aab9118e061bf334e412f174d571a0383}
+
+
+Definition at line 63 of file S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90.
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{SSRFPACKInterface2_8f90}{S\+S\+R\+F\+P\+A\+C\+K\+Interface2.\+f90}\end{DoxyCompactItemize}

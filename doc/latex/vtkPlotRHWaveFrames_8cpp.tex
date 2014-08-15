@@ -1,0 +1,280 @@
+\hypertarget{vtkPlotRHWaveFrames_8cpp}{\section{vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp File Reference}
+\label{vtkPlotRHWaveFrames_8cpp}\index{vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp@{vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp}}
+}
+{\ttfamily \#include \char`\"{}vtk\+Actor.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Camera.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Poly\+Data\+Reader.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Poly\+Data.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Poly\+Data\+Mapper.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Property.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Property2\+D.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Caption\+Actor2\+D.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Renderer.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Render\+Window.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Scalar\+Bar\+Actor.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Text\+Actor.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Text\+Property.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Lookup\+Table.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Window\+To\+Image\+Filter.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+P\+N\+G\+Writer.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Scalars\+To\+Colors.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Math.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}vtk\+Points.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}Model\+Lookup\+Tables.\+h\char`\"{}}\\*
+{\ttfamily \#include $<$iostream$>$}\\*
+{\ttfamily \#include $<$cmath$>$}\\*
+{\ttfamily \#include $<$string$>$}\\*
+{\ttfamily \#include $<$sstream$>$}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{vtkPlotRHWaveFrames_8cpp_ae66f6b31b5ad750f1fe042a706a4e3d4}{main} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{vtkPlotRHWaveFrames_8cpp_ae66f6b31b5ad750f1fe042a706a4e3d4}{\index{vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp@{vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp}!main@{main}}
+\index{main@{main}!vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp@{vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp}}
+\subsubsection[{main}]{\setlength{\rightskip}{0pt plus 5cm}int main (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{vtkPlotRHWaveFrames_8cpp_ae66f6b31b5ad750f1fe042a706a4e3d4}
+
+
+Definition at line 29 of file vtk\+Plot\+R\+H\+Wave\+Frames.\+cpp.
+
+
+
+References Get\+Color\+For\+Value\+\_\+\+Blue\+White\+Red().
+
+
+\begin{DoxyCode}
+29           \{
+30     \textcolor{comment}{//}
+31     \textcolor{comment}{// model run parameters (edit this section for specific problems)}
+32     \textcolor{comment}{//}
+33     \textcolor{keywordtype}{double} dt = 4*0.01;
+34     \textcolor{keywordtype}{int} frameOut = 1;
+35     \textcolor{keywordtype}{int} finalFrame = 350;
+36     \textcolor{keywordtype}{double} relVortMin = -6.71E-05;
+37     \textcolor{keywordtype}{double} relVortMax = 6.71E-05;
+38     \textcolor{keywordtype}{char} scalarsDataName[16] = \textcolor{stringliteral}{"relVortPanel"};
+39     \textcolor{keywordtype}{char} scalarsDataTitle[28] = \textcolor{stringliteral}{"Rel. Vort."};
+40 
+41     \textcolor{keywordtype}{char} vtkFileroot[256] = \textcolor{stringliteral}{"/Users/pbosler/Desktop/modelData/vtkOut/rhWave\_remesh20\_noReinit\_quadUnif5\_\_"};
+42     \textcolor{keywordtype}{char} imgFileroot[256] = \textcolor{stringliteral}{"/Users/pbosler/Desktop/modelData/imgOut/rhWave\_remesh20\_noReinit\_"};
+43     
+44     \textcolor{keywordtype}{int} numColorsInColorbars = 1024;
+45     \textcolor{comment}{//}
+46     \textcolor{comment}{// end edit section }
+47     \textcolor{comment}{//}
+48     
+49     \textcolor{keyword}{const} \textcolor{keywordtype}{double} EARTH\_RADIUS = 0.9 ; \textcolor{comment}{//6371.220; // kilometers}
+50     
+51 
+52     \textcolor{comment}{//}
+53     \textcolor{comment}{// initialize .vtk file readers}
+54     \textcolor{comment}{//}
+55     \textcolor{keywordtype}{char} counterString[4];
+56     \textcolor{keywordtype}{int} j;
+57     j = sprintf(counterString,\textcolor{stringliteral}{"%04d"},0);
+58     \textcolor{keywordtype}{char} vtkFilename[256];
+59     strcpy(vtkFilename, vtkFileroot);
+60     strcat(vtkFilename,counterString);
+61     strcat(vtkFilename,\textcolor{stringliteral}{".vtk"});
+62     
+63     cout << \textcolor{stringliteral}{"reading "} << finalFrame + 1 << \textcolor{stringliteral}{" .vtk data files beginning with : "} << endl;
+64     cout << \textcolor{stringliteral}{"        "} << vtkFilename << endl;
+65     
+66     vtkPolyDataReader * relVortData[finalFrame + 1];
+67     vtkPolyDataReader * meshData[finalFrame + 1];
+68     
+69     \textcolor{keywordflow}{for} ( \textcolor{keywordtype}{int} frameJ = 0; frameJ <= finalFrame; frameJ++)
+70     \{
+71         j = sprintf(counterString,\textcolor{stringliteral}{"%04d"},frameJ);
+72         strcpy(vtkFilename, vtkFileroot);
+73         strcat(vtkFilename,counterString);
+74         strcat(vtkFilename,\textcolor{stringliteral}{".vtk"});
+75         
+76         relVortData[frameJ] = vtkPolyDataReader::New();
+77         meshData[frameJ] = vtkPolyDataReader::New();
+78         
+79         relVortData[frameJ]->SetFileName(vtkFilename);
+80         meshData[frameJ]->SetFileName(vtkFilename);
+81         
+82         relVortData[frameJ]->SetScalarsName(scalarsDataName);       
+83     \}
+84     
+85     \textcolor{comment}{//}
+86     \textcolor{comment}{// set up scalar colorbars}
+87     \textcolor{comment}{//}
+88     vtkLookupTable * relVortScale = vtkLookupTable::New();
+89         relVortScale->SetRange(relVortMin, relVortMax);
+90         relVortScale->SetNumberOfTableValues(numColorsInColorbars);
+91         \textcolor{keywordtype}{double} r, g, b, val;
+92         \textcolor{keywordtype}{double} range = relVortMax - relVortMin;
+93         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < numColorsInColorbars; i++)
+94         \{
+95             val = relVortMin + ( (double)i/numColorsInColorbars) * range;
+96             \hyperlink{ModelLookupTables_8cpp_a61b2630cfebc72a930f9e7adca93582f}{GetColorForValue\_BlueWhiteRed}( val, r, g, b, relVortMin, 
+      relVortMax);
+97             relVortScale -> SetTableValue(i, r, g, b);
+98         \}
+99         relVortScale -> Build();
+100     vtkTextProperty * colorbarLabelProperties = vtkTextProperty::New();
+101         colorbarLabelProperties -> SetColor(0.0, 0.0, 0.0);
+102         colorbarLabelProperties -> SetFontSize(12); 
+103     
+104     \textcolor{comment}{//}
+105     \textcolor{comment}{// VTK graphics pipeline}
+106     \textcolor{comment}{//}
+107     vtkPolyDataMapper * relVortMapper = vtkPolyDataMapper::New();
+108         relVortMapper -> SetScalarRange(relVortMin, relVortMax);
+109         relVortMapper -> SetLookupTable(relVortScale);
+110     vtkPolyDataMapper * meshMapper = vtkPolyDataMapper::New();
+111         meshMapper -> ScalarVisibilityOff();
+112         
+113     vtkActor * relVortSphere = vtkActor::New();
+114         relVortSphere -> SetMapper(relVortMapper);
+115     vtkActor * meshSphere = vtkActor::New();        
+116         meshSphere -> SetMapper(meshMapper);
+117         meshSphere -> GetProperty() -> EdgeVisibilityOn();
+118         meshSphere -> GetProperty() -> SetEdgeColor(0.0, 0.0, 0.0);
+119         meshSphere -> GetProperty() -> SetColor(1.0, 1.0, 1.0);
+120     
+121     vtkScalarBarActor * relVortColorbar = vtkScalarBarActor::New();
+122         relVortColorbar -> SetLookupTable(relVortScale);
+123         relVortColorbar -> SetOrientationToVertical();
+124         relVortColorbar -> SetLabelTextProperty(colorbarLabelProperties);
+125         relVortColorbar -> SetPosition(0.015, 0.1);
+126         relVortColorbar -> SetPosition2(0.9, 0.9);
+127         relVortColorbar -> SetWidth(0.25);
+128     
+129     vtkTextActor * annotationText = vtkTextActor::New();
+130         annotationText -> SetTextScaleModeToNone();
+131         annotationText -> GetTextProperty() -> SetColor(0.0, 0.0, 0.0);
+132         annotationText -> GetTextProperty() -> SetFontSize(40);
+133         annotationText -> SetPosition(0.2, 0.1);
+134         annotationText -> SetPosition2(0.7, 0.25);
+135     
+136     vtkCamera * camera1 = vtkCamera::New();
+137         camera1 -> SetPosition(5.0 * EARTH\_RADIUS, 0.0 * EARTH\_RADIUS, 2.0 * EARTH\_RADIUS);
+138         camera1 -> SetViewUp( 0.0, 0.0, 1.0);
+139         camera1 -> SetFocalPoint( 0.0, -0.25, 0.0);
+140         
+141     vtkCamera * camera2 = vtkCamera::New();
+142         camera2 -> SetPosition(5.0 * EARTH\_RADIUS, 0.0 * EARTH\_RADIUS, 2.0 * EARTH\_RADIUS);
+143         camera2 -> SetViewUp( 0.0, 0.0, 1.0);
+144         camera2 -> SetFocalPoint( 0.0, 0.0, 0.0);   
+145     
+146     vtkRenderer * relVortRenderer = vtkRenderer::New();
+147         relVortRenderer -> AddActor(relVortSphere);
+148         relVortRenderer -> AddActor(relVortColorbar);
+149         relVortRenderer -> AddActor(annotationText);
+150         relVortRenderer -> SetBackground(1.0, 1.0, 1.0);
+151         relVortRenderer -> SetViewport(0.0, 0.0, 0.5, 1.0);
+152         relVortRenderer -> SetActiveCamera(camera1);
+153         
+154     vtkRenderer * meshRenderer = vtkRenderer::New();
+155         meshRenderer -> AddActor(meshSphere);
+156         meshRenderer -> SetBackground( 1.0, 1.0, 1.0);
+157         meshRenderer -> SetViewport( 0.5, 0.0, 1.0, 1.0);
+158         meshRenderer -> SetActiveCamera(camera2);
+159     
+160     vtkRenderWindow * renWin = vtkRenderWindow::New();
+161         renWin -> AddRenderer(relVortRenderer);
+162         renWin -> AddRenderer(meshRenderer);
+163         renWin -> SetSize(1200, 600);
+164     
+165     vtkWindowToImageFilter * win2im = vtkWindowToImageFilter::New();
+166         win2im -> SetInput(renWin);
+167     
+168     vtkPNGWriter * writer = vtkPNGWriter::New();
+169         \textcolor{keywordtype}{char} imgFilename[256];
+170     
+171     cout << \textcolor{stringliteral}{"RENDERING ... "} << endl;
+172     
+173     \textcolor{keywordtype}{int} nActive = 0;
+174     \textcolor{keywordtype}{int} imgCounter = 0;
+175     \textcolor{keywordflow}{for} ( \textcolor{keywordtype}{int} frameJ = 0; frameJ <= finalFrame; frameJ+=frameOut)
+176     \{
+177         \textcolor{keywordtype}{char} annotationString[64];      
+178         j = sprintf(annotationString, \textcolor{stringliteral}{"t = %5.2f, N = %6d"}, frameJ*dt, nActive);
+179         annotationText -> SetInput(annotationString);
+180         
+181         relVortMapper -> SetInput( relVortData[frameJ]->GetOutput());
+182         meshMapper -> SetInput( meshData[frameJ]->GetOutput());
+183         
+184         renWin -> Render();
+185         win2im -> Modified();   
+186     
+187         nActive = relVortData[frameJ]->GetOutput()->GetNumberOfCells();
+188     
+189         j = sprintf(counterString,\textcolor{stringliteral}{"%04d"},imgCounter);
+190         strcpy(imgFilename, imgFileroot);
+191         strcat(imgFilename, counterString);
+192         strcat(imgFilename,\textcolor{stringliteral}{".png"});
+193         
+194         writer -> SetInput(win2im->GetOutput());
+195         writer -> SetFileName(imgFilename);
+196         writer -> Write();  
+197         
+198         imgCounter++;
+199         
+200         \textcolor{keywordflow}{if} ( frameJ == 0 )
+201         \{
+202             j = sprintf(annotationString, \textcolor{stringliteral}{"t = %5.2f, N = %6d"}, frameJ*dt, nActive);
+203             annotationText -> SetInput(annotationString);
+204         
+205             relVortMapper -> SetInput( relVortData[frameJ]->GetOutput());
+206             meshMapper -> SetInput( meshData[frameJ]->GetOutput());
+207         
+208             renWin -> Render();
+209             win2im -> Modified();   
+210     
+211             j = sprintf(counterString,\textcolor{stringliteral}{"%04d"},frameJ);
+212             strcpy(imgFilename, imgFileroot);
+213             strcat(imgFilename, counterString);
+214             strcat(imgFilename,\textcolor{stringliteral}{".png"});
+215         
+216             writer -> SetInput(win2im->GetOutput());
+217             writer -> SetFileName(imgFilename);
+218             writer -> Write();  
+219         \}
+220         \textcolor{keywordflow}{if} ( frameJ == finalFrame/4)\{cout << \textcolor{stringliteral}{"... 25\(\backslash\)% done.\(\backslash\)n"};\}
+221         \textcolor{keywordflow}{if} ( frameJ == finalFrame/2)\{cout << \textcolor{stringliteral}{"... 50\(\backslash\)% done.\(\backslash\)n"};\}
+222         \textcolor{keywordflow}{if} ( frameJ == 3*finalFrame/4)\{cout << \textcolor{stringliteral}{"... 75\(\backslash\)% done.\(\backslash\)n"};\}
+223             
+224     \}
+225 
+226     \textcolor{comment}{// }
+227     \textcolor{comment}{// clean up}
+228     \textcolor{comment}{//      }
+229     camera1 -> Delete();
+230     camera2 -> Delete();
+231     writer -> Delete();
+232     win2im -> Delete();
+233     renWin -> Delete();
+234     meshSphere -> Delete();
+235     relVortSphere -> Delete();
+236     annotationText -> Delete();
+237     relVortColorbar -> Delete();
+238     relVortRenderer -> Delete();
+239     meshRenderer -> Delete();
+240     colorbarLabelProperties -> Delete();
+241     meshMapper -> Delete();
+242     relVortMapper -> Delete();
+243     relVortScale -> Delete();
+244     \textcolor{keywordflow}{for} ( \textcolor{keywordtype}{int} frameJ=0; frameJ <= finalFrame; frameJ++)
+245     \{
+246         relVortData[frameJ] -> Delete();
+247         meshData[frameJ] -> Delete();
+248     \}
+249             
+250     
+251     
+252     
+253 \textcolor{keywordflow}{return} 0;
+254 \};
+\end{DoxyCode}

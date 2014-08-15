@@ -1,17 +1,20 @@
 module VTKOutputModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!******************************************************************************
 !
-!	Defines output data structures and methods for plotting Lagrangian meshes of the sphere.
+!> @defgroup VTKOutput VTKOutput - Sphere
+!> Provides data structures and methods for outputting data from SphereMesh objects into VTK 2.0 file format.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
+! DESCRIPTION:
+!> @file
+!> Provides data structures and methods for outputting data from SphereMesh objects into VTK 2.0 file format.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use SphereGeomModule
 use IntegerListModule

@@ -1,0 +1,282 @@
+\hypertarget{classnumberkindsmodule}{\section{numberkindsmodule Module Reference}
+\label{classnumberkindsmodule}\index{numberkindsmodule@{numberkindsmodule}}
+}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal} = kind(0.d0)
+\item 
+integer, parameter \hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint} = kind(1)
+\item 
+integer, parameter \hyperlink{classnumberkindsmodule_a4e700e028ecf89d8d338fb96bf5d2ee8}{klog} = kind(.T\+R\+U\+E.)
+\item 
+real(\hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal}), parameter \hyperlink{classnumberkindsmodule_a55d20f06f159cd32c956d990e1e8d09b}{zero\+\_\+tol} = 1.\+0d-\/14
+\item 
+real(\hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal}), parameter \hyperlink{classnumberkindsmodule_a5245bdece2ae8cdc7ed51106c7159d1e}{pi} = 3.\+1415926535897932384626433832795027975\+\_\+\+K\+R\+E\+A\+L
+\item 
+real(\hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal}), parameter \hyperlink{classnumberkindsmodule_aadb33c76ca6311bf704590f5fe6fcb03}{rad\+\_\+2\+\_\+deg} = 180.\+0\+\_\+kreal/\+P\+I
+\item 
+real(\hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal}), parameter \hyperlink{classnumberkindsmodule_a3fa35bfeabc89820eedbd3cb234860c0}{grav} = 9.\+80616
+\item 
+real(\hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal}), parameter \hyperlink{classnumberkindsmodule_a17524d8d05103095fa941ef39ed6d386}{one\+\_\+day} = 86140.\+0\+\_\+kreal
+\item 
+real(\hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal}), parameter \hyperlink{classnumberkindsmodule_a7a11e66fa6f857a8228f12a7c76ca69c}{earth\+\_\+radius} = 6371220\+\_\+kreal
+\item 
+real(\hyperlink{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{kreal}), save \hyperlink{classnumberkindsmodule_a924b4999227b1dfbd01844eaf4485508}{omega} = 2.\+0\+\_\+kreal$\ast$\+P\+I / O\+N\+E\+\_\+\+D\+A\+Y
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_aae6e3183138e223eec9e8f3d8d123bba}{std\+\_\+err} = 0
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_aeee3045e62a09578c8657f47d61bd423}{std\+\_\+in} = 5
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_afde1037e03524a31f4c27989e4651732}{std\+\_\+out} = 6
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_ae275628322d1dedf50a022f740d88e22}{read\+\_\+unit} = 11
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_a761d497049d5f7ead78a5088ec7ba6a2}{write\+\_\+unit\+\_\+1} = 12
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_a9b3dadbfd9070ddcc5614a70b8b175fb}{write\+\_\+unit\+\_\+2} = 13
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_aaed367cd86772cc92f06046eba31864e}{write\+\_\+unit\+\_\+3} = 14
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_acdff91cebc15eb3a5c7a453345454ae4}{max\+\_\+string\+\_\+length} = 256
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_ab3062c50a0b035fca7077f04a8e49329}{quad\+\_\+panel} = 4
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_ac5f366e59a1a142274f1abf9a3895188}{tri\+\_\+panel} = 3
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_a2bea0cc446c8e3bad6c460cb26ee0596}{advection\+\_\+solver} = 90
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_a0f39550048d794cfa17fae083fa8c144}{bve\+\_\+solver} = 91
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_a4c6e608e5607bcb2090a2e1b3dd482c5}{swe\+\_\+solver} = 92
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_ae767615e59f7444b7ff78296280c12b6}{plane\+\_\+solver} = 99
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_aee005c7ee017fa4369247b38c1fea7ba}{max\+\_\+polygon\+\_\+sides} = 20
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_a7e462ddc704343657b060034143bdabb}{free\+\_\+boundaries} = 101
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), parameter \hyperlink{classnumberkindsmodule_a76e3561e9d937b2db78a7f1921229140}{periodic\+\_\+boundaries} = 102
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), save \hyperlink{classnumberkindsmodule_af9edcbb4a68ceff7853d6b30d97dbae7}{numprocs} = 1
+\item 
+integer(\hyperlink{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{kint}), save \hyperlink{classnumberkindsmodule_a7c6975d710b4d578d515c3d3312043fc}{procrank} = 0
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file Number\+Kinds3.\+f90.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classnumberkindsmodule_a2bea0cc446c8e3bad6c460cb26ee0596}{\index{numberkindsmodule@{numberkindsmodule}!advection\+\_\+solver@{advection\+\_\+solver}}
+\index{advection\+\_\+solver@{advection\+\_\+solver}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{advection\+\_\+solver}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::advection\+\_\+solver = 90}}\label{classnumberkindsmodule_a2bea0cc446c8e3bad6c460cb26ee0596}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a0f39550048d794cfa17fae083fa8c144}{\index{numberkindsmodule@{numberkindsmodule}!bve\+\_\+solver@{bve\+\_\+solver}}
+\index{bve\+\_\+solver@{bve\+\_\+solver}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{bve\+\_\+solver}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::bve\+\_\+solver = 91}}\label{classnumberkindsmodule_a0f39550048d794cfa17fae083fa8c144}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a7a11e66fa6f857a8228f12a7c76ca69c}{\index{numberkindsmodule@{numberkindsmodule}!earth\+\_\+radius@{earth\+\_\+radius}}
+\index{earth\+\_\+radius@{earth\+\_\+radius}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{earth\+\_\+radius}]{\setlength{\rightskip}{0pt plus 5cm}real({\bf kreal}), parameter numberkindsmodule\+::earth\+\_\+radius = 6371220\+\_\+kreal}}\label{classnumberkindsmodule_a7a11e66fa6f857a8228f12a7c76ca69c}
+
+
+Definition at line 29 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a7e462ddc704343657b060034143bdabb}{\index{numberkindsmodule@{numberkindsmodule}!free\+\_\+boundaries@{free\+\_\+boundaries}}
+\index{free\+\_\+boundaries@{free\+\_\+boundaries}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{free\+\_\+boundaries}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::free\+\_\+boundaries = 101}}\label{classnumberkindsmodule_a7e462ddc704343657b060034143bdabb}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a3fa35bfeabc89820eedbd3cb234860c0}{\index{numberkindsmodule@{numberkindsmodule}!grav@{grav}}
+\index{grav@{grav}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{grav}]{\setlength{\rightskip}{0pt plus 5cm}real({\bf kreal}), parameter numberkindsmodule\+::grav = 9.\+80616}}\label{classnumberkindsmodule_a3fa35bfeabc89820eedbd3cb234860c0}
+
+
+Definition at line 29 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}{\index{numberkindsmodule@{numberkindsmodule}!kint@{kint}}
+\index{kint@{kint}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{kint}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter numberkindsmodule\+::kint = kind(1)}}\label{classnumberkindsmodule_a50957e2e9ebdf9a5c6da0641adf3a1b3}
+
+
+Definition at line 23 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a4e700e028ecf89d8d338fb96bf5d2ee8}{\index{numberkindsmodule@{numberkindsmodule}!klog@{klog}}
+\index{klog@{klog}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{klog}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter numberkindsmodule\+::klog = kind(.T\+R\+U\+E.)}}\label{classnumberkindsmodule_a4e700e028ecf89d8d338fb96bf5d2ee8}
+
+
+Definition at line 24 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}{\index{numberkindsmodule@{numberkindsmodule}!kreal@{kreal}}
+\index{kreal@{kreal}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{kreal}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter numberkindsmodule\+::kreal = kind(0.d0)}}\label{classnumberkindsmodule_acb7e3fe921df90acbc66762b69413be6}
+
+
+Definition at line 22 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_aee005c7ee017fa4369247b38c1fea7ba}{\index{numberkindsmodule@{numberkindsmodule}!max\+\_\+polygon\+\_\+sides@{max\+\_\+polygon\+\_\+sides}}
+\index{max\+\_\+polygon\+\_\+sides@{max\+\_\+polygon\+\_\+sides}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{max\+\_\+polygon\+\_\+sides}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::max\+\_\+polygon\+\_\+sides = 20}}\label{classnumberkindsmodule_aee005c7ee017fa4369247b38c1fea7ba}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_acdff91cebc15eb3a5c7a453345454ae4}{\index{numberkindsmodule@{numberkindsmodule}!max\+\_\+string\+\_\+length@{max\+\_\+string\+\_\+length}}
+\index{max\+\_\+string\+\_\+length@{max\+\_\+string\+\_\+length}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{max\+\_\+string\+\_\+length}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::max\+\_\+string\+\_\+length = 256}}\label{classnumberkindsmodule_acdff91cebc15eb3a5c7a453345454ae4}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_af9edcbb4a68ceff7853d6b30d97dbae7}{\index{numberkindsmodule@{numberkindsmodule}!numprocs@{numprocs}}
+\index{numprocs@{numprocs}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{numprocs}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), save numberkindsmodule\+::numprocs = 1}}\label{classnumberkindsmodule_af9edcbb4a68ceff7853d6b30d97dbae7}
+
+
+Definition at line 60 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a924b4999227b1dfbd01844eaf4485508}{\index{numberkindsmodule@{numberkindsmodule}!omega@{omega}}
+\index{omega@{omega}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{omega}]{\setlength{\rightskip}{0pt plus 5cm}real({\bf kreal}), save numberkindsmodule\+::omega = 2.\+0\+\_\+kreal$\ast$\+P\+I / O\+N\+E\+\_\+\+D\+A\+Y}}\label{classnumberkindsmodule_a924b4999227b1dfbd01844eaf4485508}
+
+
+Definition at line 35 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a17524d8d05103095fa941ef39ed6d386}{\index{numberkindsmodule@{numberkindsmodule}!one\+\_\+day@{one\+\_\+day}}
+\index{one\+\_\+day@{one\+\_\+day}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{one\+\_\+day}]{\setlength{\rightskip}{0pt plus 5cm}real({\bf kreal}), parameter numberkindsmodule\+::one\+\_\+day = 86140.\+0\+\_\+kreal}}\label{classnumberkindsmodule_a17524d8d05103095fa941ef39ed6d386}
+
+
+Definition at line 29 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a76e3561e9d937b2db78a7f1921229140}{\index{numberkindsmodule@{numberkindsmodule}!periodic\+\_\+boundaries@{periodic\+\_\+boundaries}}
+\index{periodic\+\_\+boundaries@{periodic\+\_\+boundaries}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{periodic\+\_\+boundaries}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::periodic\+\_\+boundaries = 102}}\label{classnumberkindsmodule_a76e3561e9d937b2db78a7f1921229140}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a5245bdece2ae8cdc7ed51106c7159d1e}{\index{numberkindsmodule@{numberkindsmodule}!pi@{pi}}
+\index{pi@{pi}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{pi}]{\setlength{\rightskip}{0pt plus 5cm}real({\bf kreal}), parameter numberkindsmodule\+::pi = 3.\+1415926535897932384626433832795027975\+\_\+\+K\+R\+E\+A\+L}}\label{classnumberkindsmodule_a5245bdece2ae8cdc7ed51106c7159d1e}
+
+
+Definition at line 29 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_ae767615e59f7444b7ff78296280c12b6}{\index{numberkindsmodule@{numberkindsmodule}!plane\+\_\+solver@{plane\+\_\+solver}}
+\index{plane\+\_\+solver@{plane\+\_\+solver}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{plane\+\_\+solver}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::plane\+\_\+solver = 99}}\label{classnumberkindsmodule_ae767615e59f7444b7ff78296280c12b6}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a7c6975d710b4d578d515c3d3312043fc}{\index{numberkindsmodule@{numberkindsmodule}!procrank@{procrank}}
+\index{procrank@{procrank}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{procrank}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), save numberkindsmodule\+::procrank = 0}}\label{classnumberkindsmodule_a7c6975d710b4d578d515c3d3312043fc}
+
+
+Definition at line 60 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_ab3062c50a0b035fca7077f04a8e49329}{\index{numberkindsmodule@{numberkindsmodule}!quad\+\_\+panel@{quad\+\_\+panel}}
+\index{quad\+\_\+panel@{quad\+\_\+panel}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{quad\+\_\+panel}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::quad\+\_\+panel = 4}}\label{classnumberkindsmodule_ab3062c50a0b035fca7077f04a8e49329}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_aadb33c76ca6311bf704590f5fe6fcb03}{\index{numberkindsmodule@{numberkindsmodule}!rad\+\_\+2\+\_\+deg@{rad\+\_\+2\+\_\+deg}}
+\index{rad\+\_\+2\+\_\+deg@{rad\+\_\+2\+\_\+deg}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{rad\+\_\+2\+\_\+deg}]{\setlength{\rightskip}{0pt plus 5cm}real({\bf kreal}), parameter numberkindsmodule\+::rad\+\_\+2\+\_\+deg = 180.\+0\+\_\+kreal/\+P\+I}}\label{classnumberkindsmodule_aadb33c76ca6311bf704590f5fe6fcb03}
+
+
+Definition at line 29 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_ae275628322d1dedf50a022f740d88e22}{\index{numberkindsmodule@{numberkindsmodule}!read\+\_\+unit@{read\+\_\+unit}}
+\index{read\+\_\+unit@{read\+\_\+unit}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{read\+\_\+unit}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::read\+\_\+unit = 11}}\label{classnumberkindsmodule_ae275628322d1dedf50a022f740d88e22}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_aae6e3183138e223eec9e8f3d8d123bba}{\index{numberkindsmodule@{numberkindsmodule}!std\+\_\+err@{std\+\_\+err}}
+\index{std\+\_\+err@{std\+\_\+err}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{std\+\_\+err}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::std\+\_\+err = 0}}\label{classnumberkindsmodule_aae6e3183138e223eec9e8f3d8d123bba}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_aeee3045e62a09578c8657f47d61bd423}{\index{numberkindsmodule@{numberkindsmodule}!std\+\_\+in@{std\+\_\+in}}
+\index{std\+\_\+in@{std\+\_\+in}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{std\+\_\+in}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::std\+\_\+in = 5}}\label{classnumberkindsmodule_aeee3045e62a09578c8657f47d61bd423}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_afde1037e03524a31f4c27989e4651732}{\index{numberkindsmodule@{numberkindsmodule}!std\+\_\+out@{std\+\_\+out}}
+\index{std\+\_\+out@{std\+\_\+out}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{std\+\_\+out}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::std\+\_\+out = 6}}\label{classnumberkindsmodule_afde1037e03524a31f4c27989e4651732}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a4c6e608e5607bcb2090a2e1b3dd482c5}{\index{numberkindsmodule@{numberkindsmodule}!swe\+\_\+solver@{swe\+\_\+solver}}
+\index{swe\+\_\+solver@{swe\+\_\+solver}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{swe\+\_\+solver}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::swe\+\_\+solver = 92}}\label{classnumberkindsmodule_a4c6e608e5607bcb2090a2e1b3dd482c5}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_ac5f366e59a1a142274f1abf9a3895188}{\index{numberkindsmodule@{numberkindsmodule}!tri\+\_\+panel@{tri\+\_\+panel}}
+\index{tri\+\_\+panel@{tri\+\_\+panel}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{tri\+\_\+panel}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::tri\+\_\+panel = 3}}\label{classnumberkindsmodule_ac5f366e59a1a142274f1abf9a3895188}
+
+
+Definition at line 48 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a761d497049d5f7ead78a5088ec7ba6a2}{\index{numberkindsmodule@{numberkindsmodule}!write\+\_\+unit\+\_\+1@{write\+\_\+unit\+\_\+1}}
+\index{write\+\_\+unit\+\_\+1@{write\+\_\+unit\+\_\+1}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{write\+\_\+unit\+\_\+1}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::write\+\_\+unit\+\_\+1 = 12}}\label{classnumberkindsmodule_a761d497049d5f7ead78a5088ec7ba6a2}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a9b3dadbfd9070ddcc5614a70b8b175fb}{\index{numberkindsmodule@{numberkindsmodule}!write\+\_\+unit\+\_\+2@{write\+\_\+unit\+\_\+2}}
+\index{write\+\_\+unit\+\_\+2@{write\+\_\+unit\+\_\+2}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{write\+\_\+unit\+\_\+2}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::write\+\_\+unit\+\_\+2 = 13}}\label{classnumberkindsmodule_a9b3dadbfd9070ddcc5614a70b8b175fb}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_aaed367cd86772cc92f06046eba31864e}{\index{numberkindsmodule@{numberkindsmodule}!write\+\_\+unit\+\_\+3@{write\+\_\+unit\+\_\+3}}
+\index{write\+\_\+unit\+\_\+3@{write\+\_\+unit\+\_\+3}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{write\+\_\+unit\+\_\+3}]{\setlength{\rightskip}{0pt plus 5cm}integer({\bf kint}), parameter numberkindsmodule\+::write\+\_\+unit\+\_\+3 = 14}}\label{classnumberkindsmodule_aaed367cd86772cc92f06046eba31864e}
+
+
+Definition at line 39 of file Number\+Kinds3.\+f90.
+
+\hypertarget{classnumberkindsmodule_a55d20f06f159cd32c956d990e1e8d09b}{\index{numberkindsmodule@{numberkindsmodule}!zero\+\_\+tol@{zero\+\_\+tol}}
+\index{zero\+\_\+tol@{zero\+\_\+tol}!numberkindsmodule@{numberkindsmodule}}
+\subsubsection[{zero\+\_\+tol}]{\setlength{\rightskip}{0pt plus 5cm}real({\bf kreal}), parameter numberkindsmodule\+::zero\+\_\+tol = 1.\+0d-\/14}}\label{classnumberkindsmodule_a55d20f06f159cd32c956d990e1e8d09b}
+
+
+Definition at line 26 of file Number\+Kinds3.\+f90.
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{NumberKinds3_8f90}{Number\+Kinds3.\+f90}\end{DoxyCompactItemize}

@@ -1,0 +1,107 @@
+\hypertarget{classpanelsmodule}{\section{panelsmodule Module Reference}
+\label{classpanelsmodule}\index{panelsmodule@{panelsmodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+integer(kint) function, public \hyperlink{classpanelsmodule_a5b71292ab09179ace5adb5535794e52c}{getpanelkind} (self)
+\item 
+integer(kint) function, public \hyperlink{classpanelsmodule_acc638a48db66f5462c7232bc224a1070}{getproblemkind} (self)
+\item 
+subroutine, public \hyperlink{classpanelsmodule_aeb19e08c6d68ea1430271e427f242f9b}{gatherpanels} (self, active\+Panels, active\+Map, passive\+Panels, passive\+Map)
+\item 
+subroutine, public \hyperlink{classpanelsmodule_aeb8bd533adb1c1291e014b82a818b1d1}{scatterpanels} (self, active\+Panels, active\+Map, passive\+Panels, passive\+Map)
+\item 
+integer(kint) function, public \hyperlink{classpanelsmodule_a2df44c4f719cf14a0b91a43259ce13cc}{panelmax} (panel\+Kind, max\+Nest)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file Panels.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classpanelsmodule_aeb19e08c6d68ea1430271e427f242f9b}{\index{panelsmodule@{panelsmodule}!gatherpanels@{gatherpanels}}
+\index{gatherpanels@{gatherpanels}!panelsmodule@{panelsmodule}}
+\subsubsection[{gatherpanels}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public panelsmodule\+::gatherpanels (
+\begin{DoxyParamCaption}
+\item[{type(panels), intent(in)}]{self, }
+\item[{type(panels), intent(inout)}]{active\+Panels, }
+\item[{integer(kint), dimension(\+:), intent(inout)}]{active\+Map, }
+\item[{type(panels), intent(inout)}]{passive\+Panels, }
+\item[{integer(kint), dimension(\+:), intent(inout)}]{passive\+Map}
+\end{DoxyParamCaption}
+)}}\label{classpanelsmodule_aeb19e08c6d68ea1430271e427f242f9b}
+
+
+Definition at line 490 of file Panels.\+f90.
+
+\hypertarget{classpanelsmodule_a5b71292ab09179ace5adb5535794e52c}{\index{panelsmodule@{panelsmodule}!getpanelkind@{getpanelkind}}
+\index{getpanelkind@{getpanelkind}!panelsmodule@{panelsmodule}}
+\subsubsection[{getpanelkind}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint) function, public panelsmodule\+::getpanelkind (
+\begin{DoxyParamCaption}
+\item[{type(panels), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classpanelsmodule_a5b71292ab09179ace5adb5535794e52c}
+
+
+Definition at line 458 of file Panels.\+f90.
+
+
+
+Referenced by spheremeshmodule\+::ccwedgesandparticlesaroundpanel(), spheremeshmodule\+::dividepanel(), spheremeshmodule\+::findadjacentpanels(), panelmax(), spheremeshmodule\+::renormalize(), and vtkoutputmodule\+::vtkoutput().
+
+\hypertarget{classpanelsmodule_acc638a48db66f5462c7232bc224a1070}{\index{panelsmodule@{panelsmodule}!getproblemkind@{getproblemkind}}
+\index{getproblemkind@{getproblemkind}!panelsmodule@{panelsmodule}}
+\subsubsection[{getproblemkind}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint) function, public panelsmodule\+::getproblemkind (
+\begin{DoxyParamCaption}
+\item[{type(panels), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classpanelsmodule_acc638a48db66f5462c7232bc224a1070}
+
+
+Definition at line 477 of file Panels.\+f90.
+
+\hypertarget{classpanelsmodule_a2df44c4f719cf14a0b91a43259ce13cc}{\index{panelsmodule@{panelsmodule}!panelmax@{panelmax}}
+\index{panelmax@{panelmax}!panelsmodule@{panelsmodule}}
+\subsubsection[{panelmax}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint) function, public panelsmodule\+::panelmax (
+\begin{DoxyParamCaption}
+\item[{integer(kint), intent(in)}]{panel\+Kind, }
+\item[{integer(kint), intent(in)}]{max\+Nest}
+\end{DoxyParamCaption}
+)}}\label{classpanelsmodule_a2df44c4f719cf14a0b91a43259ce13cc}
+
+
+Definition at line 568 of file Panels.\+f90.
+
+
+
+References getpanelkind().
+
+\hypertarget{classpanelsmodule_aeb8bd533adb1c1291e014b82a818b1d1}{\index{panelsmodule@{panelsmodule}!scatterpanels@{scatterpanels}}
+\index{scatterpanels@{scatterpanels}!panelsmodule@{panelsmodule}}
+\subsubsection[{scatterpanels}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public panelsmodule\+::scatterpanels (
+\begin{DoxyParamCaption}
+\item[{type(panels), intent(inout)}]{self, }
+\item[{type(panels), intent(in)}]{active\+Panels, }
+\item[{integer(kint), dimension(\+:), intent(in)}]{active\+Map, }
+\item[{type(panels), intent(in)}]{passive\+Panels, }
+\item[{integer(kint), dimension(\+:), intent(in)}]{passive\+Map}
+\end{DoxyParamCaption}
+)}}\label{classpanelsmodule_aeb8bd533adb1c1291e014b82a818b1d1}
+
+
+Definition at line 544 of file Panels.\+f90.
+
+
+
+Referenced by advectionmodule\+::advectionrk4timestep(), bvedirectsummodule\+::bverk4timestep(), planedirectsummodule\+::rk4timestepincompressibleadvection(), planedirectsummodule\+::rk4timestepnorotation(), and swedirectsummodule\+::swerk4timestep().
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{Panels_8f90}{Panels.\+f90}\end{DoxyCompactItemize}

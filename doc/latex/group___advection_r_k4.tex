@@ -1,0 +1,65 @@
+\hypertarget{group___advection_r_k4}{\section{Advection}
+\label{group___advection_r_k4}\index{Advection@{Advection}}
+}
+
+
+Provides data structures and methods for R\+K4 timestepping meshes in advection problems on a sphere.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{group___advection_r_k4_ga9a42b57d9bea0b541418b2bb32ae1ba1}{advectionmodule\+::advectionrk4timestep} (self, a\+Mesh, dt, t, proc\+Rank, n\+Procs, velocity\+Function)
+\begin{DoxyCompactList}\small\item\em Advances a\+Mesh one time step using 4th order Runge-\/\+Kutta. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Provides data structures and methods for R\+K4 timestepping meshes in advection problems on a sphere. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler, Department of Mathematics, University of Michigan 
+\end{DoxyAuthor}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{group___advection_r_k4_ga9a42b57d9bea0b541418b2bb32ae1ba1}{\index{Advection@{Advection}!advectionrk4timestep@{advectionrk4timestep}}
+\index{advectionrk4timestep@{advectionrk4timestep}!Advection@{Advection}}
+\subsubsection[{advectionrk4timestep}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public advectionmodule\+::advectionrk4timestep (
+\begin{DoxyParamCaption}
+\item[{type(advrk4data), intent(inout)}]{self, }
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{real(kreal), intent(in)}]{dt, }
+\item[{real(kreal), intent(in)}]{t, }
+\item[{integer(kint), intent(in)}]{proc\+Rank, }
+\item[{integer(kint), intent(in)}]{n\+Procs, }
+\item[{procedure(advectionvelocity)}]{velocity\+Function}
+\end{DoxyParamCaption}
+)}}\label{group___advection_r_k4_ga9a42b57d9bea0b541418b2bb32ae1ba1}
+
+
+Advances a\+Mesh one time step using 4th order Runge-\/\+Kutta. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler. 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em dt} & \\
+\hline
+\mbox{\tt in}  & {\em t} & \\
+\hline
+\mbox{\tt in}  & {\em proc\+Rank} & \\
+\hline
+\mbox{\tt in}  & {\em n\+Procs} & \\
+\hline
+\mbox{\tt in}  & {\em velocity\+Function} & \\
+\hline
+\mbox{\tt in,out}  & {\em self} & \\
+\hline
+\mbox{\tt in,out}  & {\em a\+Mesh} & \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 378 of file Advection2.\+f90.
+

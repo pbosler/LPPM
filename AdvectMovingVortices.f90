@@ -413,21 +413,21 @@ function testCaseTracerExact(xyz, t, rho0, gamma)
 	real(kreal) :: testCaseTracerExact
 	real(kreal), intent(in) :: xyz(3), rho0, gamma, t
 	!
-	real(kreal) :: lat, lon, wr, rho, u0, lamC, thetaC, thetaP
-        real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS /  (12.0_kreal * ONE_DAY)
+	real(kreal) :: lat, lon, wr, rho, lamC, thetaC, thetaP
+	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS /  (12.0_kreal * ONE_DAY)
 
-        lat = Latitude(xyz)
-        lon = Longitude(xyz)
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
 
-        lamC = 1.5_kreal * PI + u0 * t
-        thetaC = 0.0_kreal
-        
-        thetaP = asin( sin(lat) * sin(thetaC) * cos(lon - lamC) * sin(lat))
-        rho = rho0 * cos( thetaP )
+	lamC = 1.5_kreal * PI + u0 * t
+	thetaC = 0.0_kreal
 
-        wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) / cosh(rho) / cosh(rho) * (rho / (rho*rho + ZERO_TOL*ZERO_TOL))
+	thetaP = asin( sin(lat) * sin(thetaC) * cos(lon - lamC) * sin(lat))
+	rho = rho0 * cos( thetaP )
 
-        testCaseTracerExact = 1.0_kreal - tanh( rho * sin(lamC - wr*t) / gamma )
+	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) / cosh(rho) / cosh(rho) * (rho / (rho*rho + ZERO_TOL*ZERO_TOL))
+
+	testCaseTracerExact = 1.0_kreal - tanh( rho * sin(lamC - wr*t) / gamma )
 end function
 
 subroutine ConvertFromRelativeTolerances(aMesh, tracerMassTol, tracerVarTol, tracerID, lagVarTol)

@@ -1,19 +1,20 @@
 module PlaneTracerModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the RK4 data structure used by SphereMesh.
+!> @defgroup PlaneTracer Planar tracer distributions
+!> defines passive tracer distributions for incompressible flow in 2d Cartesian geometry
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the barotropic vorticity equation on the sphere.
-!----------------
+! DESCRIPTION:
+!> @file
+!> defines passive tracer distributions for incompressible flow in 2d Cartesian geometry
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use PlaneGeomModule

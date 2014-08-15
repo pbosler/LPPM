@@ -1,0 +1,62 @@
+\hypertarget{classbvedirectsummodule}{\section{bvedirectsummodule Module Reference}
+\label{classbvedirectsummodule}\index{bvedirectsummodule@{bvedirectsummodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classbvedirectsummodule_a05a4e55163f7c48ee16dbdb894341d5c}{bverk4timestep} (self, a\+Mesh, dt, proc\+Rank, n\+Procs)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+real(kreal), save, public, \\*
+protected \hyperlink{classbvedirectsummodule_a1a52fae15743a0c982e2d3ab09041bd3}{velocity\+\_\+smooth} = 0.\+01\+\_\+kreal
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file B\+V\+E\+Direct\+Sum.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classbvedirectsummodule_a05a4e55163f7c48ee16dbdb894341d5c}{\index{bvedirectsummodule@{bvedirectsummodule}!bverk4timestep@{bverk4timestep}}
+\index{bverk4timestep@{bverk4timestep}!bvedirectsummodule@{bvedirectsummodule}}
+\subsubsection[{bverk4timestep}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public bvedirectsummodule\+::bverk4timestep (
+\begin{DoxyParamCaption}
+\item[{type(bverk4data), intent(inout)}]{self, }
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh, }
+\item[{real(kreal), intent(in)}]{dt, }
+\item[{integer(kint), intent(in)}]{proc\+Rank, }
+\item[{integer(kint), intent(in)}]{n\+Procs}
+\end{DoxyParamCaption}
+)}}\label{classbvedirectsummodule_a05a4e55163f7c48ee16dbdb894341d5c}
+
+
+Definition at line 311 of file B\+V\+E\+Direct\+Sum.\+f90.
+
+
+
+References panelsmodule\+::scatterpanels(), and advectionmodule\+::zerork4().
+
+
+
+Referenced by bvegaussvort(), bvesolidbody(), and rh4wave().
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classbvedirectsummodule_a1a52fae15743a0c982e2d3ab09041bd3}{\index{bvedirectsummodule@{bvedirectsummodule}!velocity\+\_\+smooth@{velocity\+\_\+smooth}}
+\index{velocity\+\_\+smooth@{velocity\+\_\+smooth}!bvedirectsummodule@{bvedirectsummodule}}
+\subsubsection[{velocity\+\_\+smooth}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal), save, public, protected bvedirectsummodule\+::velocity\+\_\+smooth = 0.\+01\+\_\+kreal}}\label{classbvedirectsummodule_a1a52fae15743a0c982e2d3ab09041bd3}
+
+
+Definition at line 41 of file B\+V\+E\+Direct\+Sum.\+f90.
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{BVEDirectSum_8f90}{B\+V\+E\+Direct\+Sum.\+f90}\end{DoxyCompactItemize}

@@ -1,0 +1,300 @@
+\hypertarget{SWEDivergenceEqnTerms_8f90}{\section{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90 File Reference}
+\label{SWEDivergenceEqnTerms_8f90}\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+program \hyperlink{SWEDivergenceEqnTerms_8f90_a891842420934b166623edb78fd30a0d4}{swedivergenceequationterms}
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_accf23045084daea731c39e87a24f6ba5}{readnamelistinputfile} (rank)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_a4cbc518e806ca1044acf283d04abc075}{initlogger} (a\+Log, rank)
+\item 
+real(kreal) function \hyperlink{SWEDivergenceEqnTerms_8f90_ac0b6d50eecc57a45087fd920dbdee141}{legendrep10\+\_\+3} (z)
+\item 
+real(kreal) function \hyperlink{SWEDivergenceEqnTerms_8f90_aac357529279a325e65d57a2e8ae325a7}{legendrep54} (z)
+\item 
+real(kreal) function \hyperlink{SWEDivergenceEqnTerms_8f90_ae9899fe10261dec4ceb5a4374513c15b}{legendrep52} (z)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_a71f6723b7fb4f750e9e1f3830dd09231}{testlinearfunction} (a\+Mesh)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_a8bc719b10178af31d98e0bd2ea8730e4}{testsphericalharmonic52} (amesh)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_a79de79fb4db2e8aa6d5ac06aa6777010}{testsphericalharmonic54} (amesh)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_a4e309bf258ed9840178206987394d981}{testsphericalharmonic10\+\_\+3} (amesh, rescale)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_a8ee794a2775dde1e1d19119b066dc4b4}{ssrfpackapproximations} (a\+Mesh)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_a5da25d9e381537060c209f61d2ccb886}{trivariatequadraticapproximations} (a\+Mesh)
+\item 
+real(kreal) function \hyperlink{SWEDivergenceEqnTerms_8f90_a11afa3a64e916dd9cb5284ca3c4ca91a}{quadraticscalarappx} (coeffs, xyz)
+\item 
+real(kreal) function, dimension(3) \hyperlink{SWEDivergenceEqnTerms_8f90_ae316d6fdef69aeaa973cf809719fa865}{quadraticgradappx} (coeffs, xyz)
+\item 
+real(kreal) function \hyperlink{SWEDivergenceEqnTerms_8f90_a8df75300dc43851cb562121450f0ae25}{quadraticlaplacianappx} (coeffs, xyz)
+\item 
+subroutine \hyperlink{SWEDivergenceEqnTerms_8f90_ad75ad867d6444931b4651a285dba0ba3}{calculateerror} (amesh, grad\+Linf, grad\+L2, lap\+Linf, lap\+L2, scalar\+Linf, scalar\+L2)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{SWEDivergenceEqnTerms_8f90_ad75ad867d6444931b4651a285dba0ba3}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!calculateerror@{calculateerror}}
+\index{calculateerror@{calculateerror}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{calculateerror}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::calculateerror (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{amesh, }
+\item[{real(kreal), intent(out)}]{grad\+Linf, }
+\item[{real(kreal), intent(out)}]{grad\+L2, }
+\item[{real(kreal), intent(out)}]{lap\+Linf, }
+\item[{real(kreal), intent(out)}]{lap\+L2, }
+\item[{real(kreal), intent(out)}]{scalar\+Linf, }
+\item[{real(kreal), intent(out)}]{scalar\+L2}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_ad75ad867d6444931b4651a285dba0ba3}
+
+
+Definition at line 903 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by swedivergenceequationterms().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a4cbc518e806ca1044acf283d04abc075}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!initlogger@{initlogger}}
+\index{initlogger@{initlogger}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{initlogger}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::initlogger (
+\begin{DoxyParamCaption}
+\item[{type(logger), intent(out)}]{a\+Log, }
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a4cbc518e806ca1044acf283d04abc075}
+
+
+Definition at line 387 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_ac0b6d50eecc57a45087fd920dbdee141}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!legendrep10\+\_\+3@{legendrep10\+\_\+3}}
+\index{legendrep10\+\_\+3@{legendrep10\+\_\+3}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{legendrep10\+\_\+3}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function swedivergenceequationterms\+::legendrep10\+\_\+3 (
+\begin{DoxyParamCaption}
+\item[{real(kreal), intent(in)}]{z}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_ac0b6d50eecc57a45087fd920dbdee141}
+
+
+Definition at line 398 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by testsphericalharmonic10\+\_\+3().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_ae9899fe10261dec4ceb5a4374513c15b}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!legendrep52@{legendrep52}}
+\index{legendrep52@{legendrep52}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{legendrep52}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function swedivergenceequationterms\+::legendrep52 (
+\begin{DoxyParamCaption}
+\item[{real(kreal), intent(in)}]{z}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_ae9899fe10261dec4ceb5a4374513c15b}
+
+
+Definition at line 411 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by testsphericalharmonic52().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_aac357529279a325e65d57a2e8ae325a7}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!legendrep54@{legendrep54}}
+\index{legendrep54@{legendrep54}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{legendrep54}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function swedivergenceequationterms\+::legendrep54 (
+\begin{DoxyParamCaption}
+\item[{real(kreal), intent(in)}]{z}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_aac357529279a325e65d57a2e8ae325a7}
+
+
+Definition at line 404 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by testsphericalharmonic54().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_ae316d6fdef69aeaa973cf809719fa865}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!quadraticgradappx@{quadraticgradappx}}
+\index{quadraticgradappx@{quadraticgradappx}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{quadraticgradappx}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, dimension(3) swedivergenceequationterms\+::quadraticgradappx (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(10), intent(in)}]{coeffs, }
+\item[{real(kreal), dimension(3), intent(in)}]{xyz}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_ae316d6fdef69aeaa973cf809719fa865}
+
+
+Definition at line 855 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by trivariatequadraticapproximations().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a8df75300dc43851cb562121450f0ae25}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!quadraticlaplacianappx@{quadraticlaplacianappx}}
+\index{quadraticlaplacianappx@{quadraticlaplacianappx}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{quadraticlaplacianappx}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function swedivergenceequationterms\+::quadraticlaplacianappx (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(10), intent(in)}]{coeffs, }
+\item[{real(kreal), dimension(3), intent(in)}]{xyz}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a8df75300dc43851cb562121450f0ae25}
+
+
+Definition at line 870 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by trivariatequadraticapproximations().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a11afa3a64e916dd9cb5284ca3c4ca91a}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!quadraticscalarappx@{quadraticscalarappx}}
+\index{quadraticscalarappx@{quadraticscalarappx}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{quadraticscalarappx}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function swedivergenceequationterms\+::quadraticscalarappx (
+\begin{DoxyParamCaption}
+\item[{real(kreal), dimension(10), intent(in)}]{coeffs, }
+\item[{real(kreal), dimension(3), intent(in)}]{xyz}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a11afa3a64e916dd9cb5284ca3c4ca91a}
+
+
+Definition at line 847 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by trivariatequadraticapproximations().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_accf23045084daea731c39e87a24f6ba5}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!readnamelistinputfile@{readnamelistinputfile}}
+\index{readnamelistinputfile@{readnamelistinputfile}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{readnamelistinputfile}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::readnamelistinputfile (
+\begin{DoxyParamCaption}
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_accf23045084daea731c39e87a24f6ba5}
+
+
+Definition at line 363 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by nonlinearsteadyswe(), and swedivergenceequationterms().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a8ee794a2775dde1e1d19119b066dc4b4}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!ssrfpackapproximations@{ssrfpackapproximations}}
+\index{ssrfpackapproximations@{ssrfpackapproximations}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{ssrfpackapproximations}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::ssrfpackapproximations (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a8ee794a2775dde1e1d19119b066dc4b4}
+
+
+Definition at line 574 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+References gradl(), ssrfpackinterfacemodule\+::interpolatescalar(), and ssrfpackinterfacemodule\+::setsourcerelvort().
+
+
+
+Referenced by swedivergenceequationterms().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a891842420934b166623edb78fd30a0d4}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!swedivergenceequationterms@{swedivergenceequationterms}}
+\index{swedivergenceequationterms@{swedivergenceequationterms}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{swedivergenceequationterms}]{\setlength{\rightskip}{0pt plus 5cm}program swedivergenceequationterms (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a891842420934b166623edb78fd30a0d4}
+
+
+Definition at line 1 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+References calculateerror(), initlogger(), readnamelistinputfile(), ssrfpackapproximations(), testlinearfunction(), testsphericalharmonic10\+\_\+3(), trivariatequadraticapproximations(), planeoutputmodule\+::updatefilename(), vtkoutputmodule\+::updatetitle(), and vtkoutputmodule\+::vtkoutput().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a71f6723b7fb4f750e9e1f3830dd09231}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!testlinearfunction@{testlinearfunction}}
+\index{testlinearfunction@{testlinearfunction}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{testlinearfunction}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::testlinearfunction (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a71f6723b7fb4f750e9e1f3830dd09231}
+
+
+Definition at line 418 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+Referenced by swedivergenceequationterms().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a4e309bf258ed9840178206987394d981}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!testsphericalharmonic10\+\_\+3@{testsphericalharmonic10\+\_\+3}}
+\index{testsphericalharmonic10\+\_\+3@{testsphericalharmonic10\+\_\+3}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{testsphericalharmonic10\+\_\+3}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::testsphericalharmonic10\+\_\+3 (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{amesh, }
+\item[{logical(klog), intent(in)}]{rescale}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a4e309bf258ed9840178206987394d981}
+
+
+Definition at line 502 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+References legendrep10\+\_\+3().
+
+
+
+Referenced by swedivergenceequationterms().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a8bc719b10178af31d98e0bd2ea8730e4}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!testsphericalharmonic52@{testsphericalharmonic52}}
+\index{testsphericalharmonic52@{testsphericalharmonic52}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{testsphericalharmonic52}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::testsphericalharmonic52 (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{amesh}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a8bc719b10178af31d98e0bd2ea8730e4}
+
+
+Definition at line 449 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+References legendrep52().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a79de79fb4db2e8aa6d5ac06aa6777010}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!testsphericalharmonic54@{testsphericalharmonic54}}
+\index{testsphericalharmonic54@{testsphericalharmonic54}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{testsphericalharmonic54}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::testsphericalharmonic54 (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{amesh}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a79de79fb4db2e8aa6d5ac06aa6777010}
+
+
+Definition at line 476 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+References legendrep54().
+
+\hypertarget{SWEDivergenceEqnTerms_8f90_a5da25d9e381537060c209f61d2ccb886}{\index{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}!trivariatequadraticapproximations@{trivariatequadraticapproximations}}
+\index{trivariatequadraticapproximations@{trivariatequadraticapproximations}!S\+W\+E\+Divergence\+Eqn\+Terms.\+f90@{S\+W\+E\+Divergence\+Eqn\+Terms.\+f90}}
+\subsubsection[{trivariatequadraticapproximations}]{\setlength{\rightskip}{0pt plus 5cm}subroutine swedivergenceequationterms\+::trivariatequadraticapproximations (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{a\+Mesh}
+\end{DoxyParamCaption}
+)}}\label{SWEDivergenceEqnTerms_8f90_a5da25d9e381537060c209f61d2ccb886}
+
+
+Definition at line 635 of file S\+W\+E\+Divergence\+Eqn\+Terms.\+f90.
+
+
+
+References planemeshmodule\+::ccwedgesandparticlesaroundpanel(), planemeshmodule\+::findadjacentpanels(), quadraticgradappx(), quadraticlaplacianappx(), and quadraticscalarappx().
+
+
+
+Referenced by swedivergenceequationterms().
+

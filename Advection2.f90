@@ -1,19 +1,27 @@
 module AdvectionModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+! MODULE: Advection Module
 !
-!	Defines the RK4 data structure used by SphereMesh for advection problems.
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the advection equation on the sphere.
-!----------------
+!> @defgroup AdvectionRK4 Advection
+!> Provides data structures and methods for RK4 timestepping meshes in advection problems on a sphere.
+!
+!
+! DESCRIPTION:
+!> @file
+!> Provides timestepping methods for solving the advection equation on a sphere.
+!>  Advection velocities are defined in this module.
+!
+!
+!> @todo MovingVortices has incorrect background rotation
+!------------------------------------------------------------------------------
+
 use NumberKindsModule
 use LoggerModule
 use SphereGeomModule
@@ -42,12 +50,17 @@ public KentCascadeVelocity
 !----------------
 !
 
-real(kreal), save :: alpha = 0.0_kreal, & ! angle of inclination relative to z-axis
+real(kreal), save :: alpha = 0.0_kreal, & !> @param alpha angle of inclination relative to z-axis
 					 rotLon0 = 3.0_kreal*PI/2.0_kreal, &
 					 rotLat0 = 0.0_kreal , &
 					 npLat = PI/2.0_kreal, &
 					 npLon = 0.0_kreal
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @class AdvRK4Data
+!> @brief handles memory for 4th order Runge-Kutta timestepping of advection problems for spherical meshes.
+!! @ingroup AdvectionRK4
+!------------------------------------------------------------------------------
 type AdvRK4Data
 	! MPI load balancing indices
 	integer(kint), pointer :: particlesIndexStart(:) => null(), &
@@ -137,14 +150,38 @@ contains
 ! Standard methods : Constructor / Destructor
 !----------------
 !
+
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Creates storage for Runge-Kutta stages for both compressible and incompressible advection problems.
+!> Allocates memory for an advection RK4 timestepping object.
+!<
+!
+!> @ingroup AdvectionRK4
+!
+!> @param[in] aMesh
+!> @param[in] nProcs
+!> @param[in] isDivergent
+!> @param[out] self
+!---------------------------------------------------------------------------
 subroutine NewPrivate(self,aMesh,nProcs,isDivergent)
-	type(AdvRK4Data), intent(out) :: self
-	type(SphereMesh), intent(in) :: aMesh
-	integer(kint), intent(in) :: nProcs
-	logical(klog), intent(in), optional :: isDivergent
-	type(Particles), pointer :: aParticles
-	type(Panels), pointer :: aPanels
-	integer(kint) :: nParticles, nActive, nPassive, nTracer, panelKind, problemKind
+	type(AdvRK4Data), intent(out) :: self !> @var RK4 data structure
+	type(SphereMesh), intent(in) :: aMesh !> @var the mesh object that needs to be advanced in time
+	integer(kint), intent(in) :: nProcs	  !> @var number of MPI processes
+	logical(klog), intent(in), optional :: isDivergent !> @var TRUE if flow has nonzero velocity divergence
+	type(Particles), pointer :: aParticles !> @var pointer to particles associated with aMesh
+	type(Panels), pointer :: aPanels	   !> @var pointer to panels associated with aMesh
+	integer(kint) :: nParticles, & !> @var number of particles in aMesh
+					 nActive, & !> @var number of low-level panels in aMesh
+					 nPassive, & !> @var number of divided panels in aMesh
+					 nTracer, & !> @var number of tracers carried by particles
+					 panelKind, & !> @var type of panel (e.g., quadrilateral or triangular) used by aMesh
+					 problemKind !> @var id number of problem to be solved, defined in NumberKinds3.f90
 
 	if ( .NOT. loginit) call InitLogger(log,procRank)
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'Creating New AdvRK4Data.')
@@ -321,10 +358,28 @@ end subroutine
 ! Public member functions
 !----------------
 !
+
+
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler.
+!
+! DESCRIPTION:
+!> @brief
+!> Advances a spherical mesh advection problem one time step using 4th order Runge-Kutta.
+!
+!> @ingroup AdvectionRK4
+!
+!> @param[in] dt double precision real, timestep size
+!> @param[in] t double precision real, current simulation time
+!> @param[in] procRank integer, MPI process rank
+!> @param[in] nProcs integer, number of MPI processes
+!> @param[in] velocityFunction, interface to advection velocity functions
+!> @param[inout] self  AdvectionRK4 object
+!> @param[inout] aMesh SphereMesh object
+!---------------------------------------------------------------------------
 subroutine AdvectionRK4Timestep(self,aMesh, dt, t, procRank, nProcs, velocityFunction)
 !	Non-divergent advection
-!
-!
 	type(AdvRK4Data), intent(inout) :: self
 	type(SphereMesh), intent(inout) :: aMesh
 	real(kreal), intent(in) :: dt, t
@@ -517,7 +572,20 @@ subroutine AdvectionRK4Timestep(self,aMesh, dt, t, procRank, nProcs, velocityFun
 	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'... timestep complete.')
 end subroutine
 
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Sets arrays used by Runge-Kutta to zero to prevent contamination of current timestep from previous data.
+!<
+!
+!> @ingroup AdvectionRK4
+!
+!> @param[in] self AdvectionRK4 object
+!---------------------------------------------------------------------------
 subroutine ZeroRK4(self)
 	type(AdvRK4Data), intent(inout) :: self
 	if ( .not. self%rk4isReady ) then
@@ -565,6 +633,20 @@ subroutine ZeroRK4(self)
 	endif
 end subroutine
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Sets the angle of inclination (relative to the z-axis) for solid body rotation.
+!<
+!
+!> @ingroup AdvectionRK4
+!
+!> @param[in] newAlpha double precision real
+!---------------------------------------------------------------------------
 subroutine SetAlpha(newAlpha)
 	real(kreal), intent(in) :: newAlpha
 	alpha = newAlpha
@@ -576,6 +658,23 @@ end subroutine
 !----------------
 !
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> balances particles, active panels, and passive panels across MPI_WORLD_COMM.
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[inout] self AdvectionRK4 object
+!> @param[in] nParticles integer, number of particles in current mesh
+!> @param[in] nActive integer, number of active panels in current mesh
+!> @param[in] nPassive integer, number of passive (divided) panels in current mesh
+!> @param[in] nProcs integer, number of MPI processes available
+!---------------------------------------------------------------------------
 subroutine LoadBalance(self,nParticles,nActive,nPassive,nProcs)
 	type(AdvRK4Data), intent(inout) :: self
 	integer(kint), intent(in) :: nParticles,nActive, nPassive, nProcs
@@ -610,6 +709,21 @@ subroutine LoadBalance(self,nParticles,nActive,nPassive,nProcs)
 	self%mpiIsReady = .TRUE.
 end subroutine
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Outputs velocity at postion xyz and time t corresponding to the non-divergent test cases found in @cite LauritzenEtAl2012.
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[in] xyz double precision real, size(3); position vector in Cartesian coordinates of a point on the sphere
+!> @param[in] t double precision real; current value of simulation time variable
+!> @return velocity vector double precision real, size(3); tangent to sphere
+!---------------------------------------------------------------------------
 function LauritzenEtAlNonDivergentWind(xyz,t)
 !  zero-divergence wind field from Lauritzen, Skamarock, Prather, & Taylor, GMD, 2012
 !
@@ -629,6 +743,21 @@ function LauritzenEtAlNonDivergentWind(xyz,t)
 	LauritzenEtAlNonDivergentWind(3) =  v*cos(lat)
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Outputs velocity at postion xyz and time t corresponding to the divergent test cases found in @cite LauritzenEtAl2012.
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[in] xyz double precision real, size(3); position vector in Cartesian coordinates of a point on the sphere
+!> @param[in] t double precision real; current value of simulation time variable
+!> @return velocity vector double precision real, size(3); tangent to sphere
+!---------------------------------------------------------------------------
 function LauritzenEtAlDivergentWind(xyz,t)
 !  nonzero-divergence wind field from Lauritzen, Skamarock, Prather, & Taylor, GMD, 2012
 !
@@ -647,6 +776,21 @@ function LauritzenEtAlDivergentWind(xyz,t)
 	LauritzenEtAlDivergentWind(3) =  v*cos(lat)
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Outputs velocity at postion xyz and time t corresponding to @cite WilliamsonEtAl1992 test case 1.
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[in] xyz double precision real, size(3); position vector in Cartesian coordinates of a point on the sphere
+!> @param[in] t double precision real; current value of simulation time variable
+!> @return velocity vector double precision real, size(3); tangent to sphere
+!---------------------------------------------------------------------------
 function TestCase1Velocity(xyz,t)
 ! solid-body rotation wind field from Williamson, Drake, Hack, Jakob, and Swarztrauber, JCP, 1992
 	real(kreal), intent(in) :: xyz(3), t
@@ -658,85 +802,71 @@ function TestCase1Velocity(xyz,t)
 	TestCase1Velocity(3) =  u0*xyz(2)*sin(alpha)
 end function
 
-function RotatedLongitude( xyz, lamP, thetaP)
-!	gives the rotated longitude of a vector located at cartesian coordinates xyz with respect to a sphere whose north pole
-!	has longitude lamP and latitude thetaP in an unrotated coordinate system.
-	real(kreal) :: RotatedLongitude
-	real(kreal), intent(in) :: xyz(3), lamP, thetaP
-	!
-	real(kreal) :: lat, lon
-	lat = Latitude(xyz)
-	lon = Longitude(xyz)
-	RotatedLongitude = atan4( cos(lat) * sin( lon - lamP), cos(lat) * sin(thetaP) * cos(lon-lamP) - cos(thetaP)*sin(lat) )
-end function
-
-function RotatedLatitude( xyz, lamP, thetaP)
-!	gives the rotated latitude of a vector located at cartesian coordinates xyz with respect to a sphere whose north pole
-!	has longitude lamP and latitude thetaP in an unrotated coordinate system.
-	real(kreal) :: RotatedLatitude
-	real(kreal), intent(in) :: xyz(3), lamP, thetaP
-	!
-	real(kreal) :: lat, lon
-	lat = Latitude(xyz)
-	lon = Longitude(xyz)
-	RotatedLatitude = asin( sin(lat)*sin(thetaP) + cos(lat)*cos(thetaP)*cos(lon-lamP))
-end function
-
-function UnrotatedLongitude(rotLon, rotLat, lamP, thetaP)
-	real(kreal) :: UnrotatedLongitude
-	real(kreal), intent(in) :: rotLon, rotLat, lamP, thetaP
-	UnrotatedLongitude = lamP + atan4( cos(rotLat)*sin(rotLon), sin(rotLat)*cos(thetaP) + cos(rotlat)*cos(rotLon)*sin(thetaP))
-end function
-
-function UnrotatedLatitude(rotLon, rotLat, lamP, thetaP)
-	real(kreal) :: UnrotatedLatitude
-	real(kreal), intent(in) :: rotLon, rotLat, lamP, thetaP
-	UnrotatedLatitude = asin(sin(rotLat)*sin(thetaP) - cos(rotLat)*cos(thetaP)*cos(rotLon))
-end function
-
-function MovingVorticesRho( xyz, rho0, lamP, thetaP)
-	real(kreal) :: MovingVorticesRho
-	real(kreal), intent(in) :: xyz(3), rho0, lamP, thetaP
-	MovingVorticesRho = rho0 * cos( RotatedLatitude(xyz, lamP, thetaP) )
-end function
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Outputs velocity at postion xyz and time t corresponding to @cite NairJablonowski2008 moving vortices test case.
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[in] xyz double precision real, size(3); position vector in Cartesian coordinates of a point on the sphere
+!> @param[in] t double precision real; current value of simulation time variable
+!> @return velocity vector double precision real, size(3); tangent to sphere
+!---------------------------------------------------------------------------
 function MovingVorticesVelocity( xyz, t)
 	real(kreal) :: MovingVorticesVelocity(3)
 	real(kreal), intent(in) :: xyz(3), t
 	!
 	real(kreal) :: lamC, thetaC, u, v, lat, lon, rho, wr, lamP, thetaP
-	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY), &
-							  rho0 = 3.0_kreal
-
+	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY)!, rho0 = 3.0_kreal
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
-        lamC = npLon + u0 * t
-        thetaC = npLat
-        lamP = atan4( cos(lat)*sin(lon - lamC), cos(lat)*sin(thetaC)*cos(lon-lamC) - cos(thetaC)*sin(lat))
-        thetaP = asin( sin(lat)*sin(thetaC)*cos(lon-lamC)-cos(thetaC)*sin(lat))
- 
-	rho = rho0 * cos( thetaP )
+	lamC = 1.5_kreal * PI + u0 * t
+	thetaC = 0.0_kreal
+	lamP = atan4( cos(lat)*sin(lon - lamC), cos(lat)*sin(thetaC)*cos(lon-lamC) - cos(thetaC)*sin(lat))
+	thetaP = asin( sin(lat)*sin(thetaC)*cos(lon-lamC)-cos(thetaC)*sin(lat))
+	!rho = rho0 * cos( thetaP )
+	rho = 3.0_kreal * cos( thetaP )
 
-	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * / cosh(rho) / cosh(rho) * ( rho / ( rho*rho + ZERO_TOL*ZERO_TOL))
+	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) / cosh(rho) / cosh(rho) * ( rho / ( rho*rho + ZERO_TOL*ZERO_TOL))
 
-        u = u0 * cos(lat) + wr * ( sin(thetaC)*cos(lat) - cos(thetaC)*cos(lon-lamC)*sin(lat))
-        v = wr * cos(thetaC)*sin(lon-lamC)
+	u = u0 * cos(lat) + wr * ( sin(thetaC)*cos(lat) - cos(thetaC)*cos(lon-lamC)*sin(lat))
+	v = wr * cos(thetaC)*sin(lon-lamC)
 
 	MovingVorticesVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
 	MovingVorticesVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
 	MovingVorticesVelocity(3) =  v*cos(lat)
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Outputs velocity at postion xyz and time t corresponding to @cite KentEtAl2012 tracer cascade test case.
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[in] xyz double precision real, size(3); position vector in Cartesian coordinates of a point on the sphere
+!> @param[in] t double precision real; current value of simulation time variable
+!> @return velocity vector double precision real, size(3); tangent to sphere
+!---------------------------------------------------------------------------
 function KentCascadeVelocity(xyz, t)
 	real(kreal) :: KentCascadeVelocity(3)
 	real(kreal), intent(in) :: xyz(3), t
 	!
 	real(kreal) :: lat, lon, u, v
 	real(kreal), parameter :: TT = 12.0_kreal * ONE_DAY
-	
+
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
-	
+
 	u = 38.0_kreal * EARTH_RADIUS * sin( 0.5_kreal * lon) * sin( 0.5_kreal * lon ) * sin( 2.0_kreal * lat) / TT
 	v = 19.0_kreal * EARTH_RADIUS * sin( lon ) * cos( lat ) / TT
 	KentCascadeVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
@@ -744,6 +874,20 @@ function KentCascadeVelocity(xyz, t)
 	KentCascadeVelocity(3) =  v*cos(lat)
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Initializes a Logger object for the AdvectionRK4 module.
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[inout] aLog Logger object
+!> @param[in] rank integer, MPI process rank
+!---------------------------------------------------------------------------
 subroutine InitLogger(aLog,rank)
 	type(Logger), intent(inout) :: aLog
 	integer(kint), intent(in) :: rank

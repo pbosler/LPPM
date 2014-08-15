@@ -1,0 +1,327 @@
+\hypertarget{classspheremeshmodule}{\section{spheremeshmodule Module Reference}
+\label{classspheremeshmodule}\index{spheremeshmodule@{spheremeshmodule}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{classspheremeshmodule_a7e822ca8c1c2f3dbb84c1677b73b01d8}{renormalize} (self)
+\item 
+subroutine, public \hyperlink{classspheremeshmodule_a8a8a47063a070aa34913a6ecffd90e62}{resetspherearea} (self)
+\item 
+subroutine, public \hyperlink{classspheremeshmodule_a05c2ef27a6cef4f07bacbeae15d7a290}{ccwedgesandparticlesaroundpanel} (edge\+List, vert\+List, n\+Verts, self, panel\+Index)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_aff88fd47f20601b9ce1fc3b80f66c180}{totalmass} (self, tracer\+Number)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_a73b1f415fd585597ed3d213632cbf8d9}{totalabsvort} (self)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_a328b7708b010b001ba36e802abb3c863}{getrossbynumber} (self)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_abe01464cd105cc5c2f2d2c577bb3eea2}{totalrelvort} (self)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_a3bbd7e4f63fe3cffaff0220681c612d4}{totalenstrophy} (self)
+\item 
+integer(kint) function, public \hyperlink{classspheremeshmodule_a7d024751a0858a280b313d29f360c973}{locatepoint} (self, xyz)
+\item 
+integer(kint) function, public \hyperlink{classspheremeshmodule_a7e2d1d284ff59b890c4e2cbe2bc7106c}{countsubtriangles} (self)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_a6686ad6af0289f6a4fb2fc33c8aaaec0}{maximumcirculation} (self)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_a5e91a046c4930eb535d416ecd186d642}{maximumtracermass} (self, tracer\+I\+D)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_a6f36560d3412a7d7e4cfa5befdb7533a}{maximumtracervariation} (self, tracer\+I\+D)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_aae2d1cf4ffc3bae54040cbeea7b7d0be}{maximumvorticityvariation} (self)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_aa98d1a869045c29e59c388b3defd5267}{averagelagrangianparametervariation} (self)
+\item 
+real(kreal) function, public \hyperlink{classspheremeshmodule_a27be9c6a5c086d37db3dd65c2c8ec37b}{maximumlagrangianparametervariation} (self)
+\item 
+subroutine, public \hyperlink{classspheremeshmodule_a8178d3931d36fed89706bdbcb071b69b}{dividepanel} (self, panel\+Index)
+\item 
+subroutine, public \hyperlink{classspheremeshmodule_a40ef1c43bfb85ce697ddf617209a3886}{findadjacentpanels} (adj\+Panels, n\+Neighbors, self, panel\+Index)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 1 of file Sphere\+Mesh2.\+f90.
+
+
+
+\subsection{Member Function/\+Subroutine Documentation}
+\hypertarget{classspheremeshmodule_aa98d1a869045c29e59c388b3defd5267}{\index{spheremeshmodule@{spheremeshmodule}!averagelagrangianparametervariation@{averagelagrangianparametervariation}}
+\index{averagelagrangianparametervariation@{averagelagrangianparametervariation}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{averagelagrangianparametervariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::averagelagrangianparametervariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_aa98d1a869045c29e59c388b3defd5267}
+
+
+Definition at line 524 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by converttorelativetolerances().
+
+\hypertarget{classspheremeshmodule_a05c2ef27a6cef4f07bacbeae15d7a290}{\index{spheremeshmodule@{spheremeshmodule}!ccwedgesandparticlesaroundpanel@{ccwedgesandparticlesaroundpanel}}
+\index{ccwedgesandparticlesaroundpanel@{ccwedgesandparticlesaroundpanel}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{ccwedgesandparticlesaroundpanel}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::ccwedgesandparticlesaroundpanel (
+\begin{DoxyParamCaption}
+\item[{integer(kint), dimension(\+:), intent(inout)}]{edge\+List, }
+\item[{integer(kint), dimension(\+:), intent(inout)}]{vert\+List, }
+\item[{integer(kint), intent(inout)}]{n\+Verts, }
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{panel\+Index}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a05c2ef27a6cef4f07bacbeae15d7a290}
+
+
+Definition at line 269 of file Sphere\+Mesh2.\+f90.
+
+
+
+References panelsmodule\+::getpanelkind().
+
+\hypertarget{classspheremeshmodule_a7e2d1d284ff59b890c4e2cbe2bc7106c}{\index{spheremeshmodule@{spheremeshmodule}!countsubtriangles@{countsubtriangles}}
+\index{countsubtriangles@{countsubtriangles}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{countsubtriangles}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint) function, public spheremeshmodule\+::countsubtriangles (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a7e2d1d284ff59b890c4e2cbe2bc7106c}
+
+
+Definition at line 439 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::ccwedgesandparticlesaroundpanel().
+
+\hypertarget{classspheremeshmodule_a8178d3931d36fed89706bdbcb071b69b}{\index{spheremeshmodule@{spheremeshmodule}!dividepanel@{dividepanel}}
+\index{dividepanel@{dividepanel}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{dividepanel}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::dividepanel (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{self, }
+\item[{integer(kint), intent(in)}]{panel\+Index}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a8178d3931d36fed89706bdbcb071b69b}
+
+
+Definition at line 947 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::ccwedgesandparticlesaroundpanel(), planemeshmodule\+::findadjacentpanels(), panelsmodule\+::getpanelkind(), spheregeommodule\+::spheremidpoint(), spheregeommodule\+::spherequadcenter(), and spheregeommodule\+::spheretricenter().
+
+\hypertarget{classspheremeshmodule_a40ef1c43bfb85ce697ddf617209a3886}{\index{spheremeshmodule@{spheremeshmodule}!findadjacentpanels@{findadjacentpanels}}
+\index{findadjacentpanels@{findadjacentpanels}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{findadjacentpanels}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::findadjacentpanels (
+\begin{DoxyParamCaption}
+\item[{integer(kint), dimension(\+:), intent(inout)}]{adj\+Panels, }
+\item[{integer(kint), intent(inout)}]{n\+Neighbors, }
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{panel\+Index}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a40ef1c43bfb85ce697ddf617209a3886}
+
+
+Definition at line 1791 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::ccwedgesandparticlesaroundpanel(), panelsmodule\+::getpanelkind(), and spheregeommodule\+::spherequadcenter().
+
+\hypertarget{classspheremeshmodule_a328b7708b010b001ba36e802abb3c863}{\index{spheremeshmodule@{spheremeshmodule}!getrossbynumber@{getrossbynumber}}
+\index{getrossbynumber@{getrossbynumber}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{getrossbynumber}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::getrossbynumber (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a328b7708b010b001ba36e802abb3c863}
+
+
+Definition at line 383 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by bvegaussvort(), and rh4wave().
+
+\hypertarget{classspheremeshmodule_a7d024751a0858a280b313d29f360c973}{\index{spheremeshmodule@{spheremeshmodule}!locatepoint@{locatepoint}}
+\index{locatepoint@{locatepoint}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{locatepoint}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint) function, public spheremeshmodule\+::locatepoint (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{real(kreal), dimension(3), intent(in)}]{xyz}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a7d024751a0858a280b313d29f360c973}
+
+
+Definition at line 424 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::locatepoint().
+
+\hypertarget{classspheremeshmodule_a6686ad6af0289f6a4fb2fc33c8aaaec0}{\index{spheremeshmodule@{spheremeshmodule}!maximumcirculation@{maximumcirculation}}
+\index{maximumcirculation@{maximumcirculation}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{maximumcirculation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumcirculation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a6686ad6af0289f6a4fb2fc33c8aaaec0}
+
+
+Definition at line 471 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumcirculation().
+
+\hypertarget{classspheremeshmodule_a27be9c6a5c086d37db3dd65c2c8ec37b}{\index{spheremeshmodule@{spheremeshmodule}!maximumlagrangianparametervariation@{maximumlagrangianparametervariation}}
+\index{maximumlagrangianparametervariation@{maximumlagrangianparametervariation}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{maximumlagrangianparametervariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumlagrangianparametervariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a27be9c6a5c086d37db3dd65c2c8ec37b}
+
+
+Definition at line 530 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::ccwedgesandparticlesaroundpanel(), planemeshmodule\+::maximumlagrangianparametervariation(), and spheregeommodule\+::spheretricenter().
+
+\hypertarget{classspheremeshmodule_a5e91a046c4930eb535d416ecd186d642}{\index{spheremeshmodule@{spheremeshmodule}!maximumtracermass@{maximumtracermass}}
+\index{maximumtracermass@{maximumtracermass}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{maximumtracermass}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumtracermass (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a5e91a046c4930eb535d416ecd186d642}
+
+
+Definition at line 480 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumtracermass().
+
+\hypertarget{classspheremeshmodule_a6f36560d3412a7d7e4cfa5befdb7533a}{\index{spheremeshmodule@{spheremeshmodule}!maximumtracervariation@{maximumtracervariation}}
+\index{maximumtracervariation@{maximumtracervariation}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{maximumtracervariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumtracervariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a6f36560d3412a7d7e4cfa5befdb7533a}
+
+
+Definition at line 488 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumtracervariation().
+
+\hypertarget{classspheremeshmodule_aae2d1cf4ffc3bae54040cbeea7b7d0be}{\index{spheremeshmodule@{spheremeshmodule}!maximumvorticityvariation@{maximumvorticityvariation}}
+\index{maximumvorticityvariation@{maximumvorticityvariation}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{maximumvorticityvariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumvorticityvariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_aae2d1cf4ffc3bae54040cbeea7b7d0be}
+
+
+Definition at line 507 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumvorticityvariation().
+
+\hypertarget{classspheremeshmodule_a7e822ca8c1c2f3dbb84c1677b73b01d8}{\index{spheremeshmodule@{spheremeshmodule}!renormalize@{renormalize}}
+\index{renormalize@{renormalize}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{renormalize}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::renormalize (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a7e822ca8c1c2f3dbb84c1677b73b01d8}
+
+
+Definition at line 226 of file Sphere\+Mesh2.\+f90.
+
+
+
+References panelsmodule\+::getpanelkind().
+
+\hypertarget{classspheremeshmodule_a8a8a47063a070aa34913a6ecffd90e62}{\index{spheremeshmodule@{spheremeshmodule}!resetspherearea@{resetspherearea}}
+\index{resetspherearea@{resetspherearea}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{resetspherearea}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::resetspherearea (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a8a8a47063a070aa34913a6ecffd90e62}
+
+
+Definition at line 256 of file Sphere\+Mesh2.\+f90.
+
+\hypertarget{classspheremeshmodule_a73b1f415fd585597ed3d213632cbf8d9}{\index{spheremeshmodule@{spheremeshmodule}!totalabsvort@{totalabsvort}}
+\index{totalabsvort@{totalabsvort}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{totalabsvort}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalabsvort (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a73b1f415fd585597ed3d213632cbf8d9}
+
+
+Definition at line 346 of file Sphere\+Mesh2.\+f90.
+
+\hypertarget{classspheremeshmodule_a3bbd7e4f63fe3cffaff0220681c612d4}{\index{spheremeshmodule@{spheremeshmodule}!totalenstrophy@{totalenstrophy}}
+\index{totalenstrophy@{totalenstrophy}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{totalenstrophy}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalenstrophy (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_a3bbd7e4f63fe3cffaff0220681c612d4}
+
+
+Definition at line 406 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by bvegaussvort(), lambtest(), reversibledipolesmain(), rh4wave(), and twodipolesmain().
+
+\hypertarget{classspheremeshmodule_aff88fd47f20601b9ce1fc3b80f66c180}{\index{spheremeshmodule@{spheremeshmodule}!totalmass@{totalmass}}
+\index{totalmass@{totalmass}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{totalmass}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalmass (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+Number}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_aff88fd47f20601b9ce1fc3b80f66c180}
+
+
+Definition at line 329 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by bvegaussvort(), gaussianhillsadvection(), gaussianhillsadvectiondirect(), kentcascadeadvection(), movingvorticesadvection(), and planerotateadvection().
+
+\hypertarget{classspheremeshmodule_abe01464cd105cc5c2f2d2c577bb3eea2}{\index{spheremeshmodule@{spheremeshmodule}!totalrelvort@{totalrelvort}}
+\index{totalrelvort@{totalrelvort}!spheremeshmodule@{spheremeshmodule}}
+\subsubsection[{totalrelvort}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalrelvort (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{classspheremeshmodule_abe01464cd105cc5c2f2d2c577bb3eea2}
+
+
+Definition at line 389 of file Sphere\+Mesh2.\+f90.
+
+
+
+The documentation for this module was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\hyperlink{SphereMesh2_8f90}{Sphere\+Mesh2.\+f90}\end{DoxyCompactItemize}

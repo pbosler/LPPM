@@ -1,20 +1,20 @@
 module STRIPACKInterfaceModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Provides an interface for SphereMesh objects and SphereMeshOutput objects to
-!	use the cubic Hermite interpolation procedures provided by ssrfpack.f.
+!> @defgroup STRIPACKInterface STRIPACK Interface Module
+!> Provides and object-oriented interface into the stripack.f module @cite STRIPACK .
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!	Renka, R. "Algorithm 772 : STRIPACK : Delaunay triangulation and Voronoi diagram on the surface of a sphere."
-!		ACM Transactions on Mathematical Software, 23 : 416-434. 1997.
+! DESCRIPTION:
+!> @file
+!> Provides and object-oriented interface into the stripack.f module.
 !
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use ParticlesModule

@@ -1,20 +1,20 @@
 module EdgesModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the edges data structure used by icosahedral triangle and cubed
-!	sphere Lagrangian meshes of the sphere.
+!> @defgroup Edges Edges module
+!> Provides the primitive Edges data structure that defines the passive particles of LPPM meshes.
 !
-!	no wings : simple edge data structure (as oppose to winged edges used by Voronoi meshes) relies on
-!		constant polygonal structure (triangles or quadrilaterals) across the whole mesh.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
+! DESCRIPTION:
+!> @file
+!> Provides the primitive Edges data structure that defines the passive particles of LPPM meshes.
 !
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 

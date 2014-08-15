@@ -1,14 +1,20 @@
 module NumberKindsModule
-!******************************************************************************
-!	Peter Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-! This module provides basic numerical data types and constants.
+!> @defgroup NumberKinds Number kinds module
+!> Defines numerical constants for use by all other LPPM modules and executables.
 !
+!
+! DESCRIPTION:
+!> @file
+!> Defines numerical constants for use by all other LPPM modules and executables.
+!
+!------------------------------------------------------------------------------
 	implicit none
 	public
 
@@ -25,7 +31,7 @@ module NumberKindsModule
 							  GRAV = 9.80616, & ! {m s^(-2)} acceleration due to gravity
 							  ONE_DAY = 86140.0_kreal, & ! {s} Earth's sidereal day
 							  EARTH_RADIUS = 6371220_kreal ! { m }
-							  
+
     real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  ! {s^(-1)} rotation rate of sphere
 
 

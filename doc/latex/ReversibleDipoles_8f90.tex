@@ -1,0 +1,105 @@
+\hypertarget{ReversibleDipoles_8f90}{\section{Reversible\+Dipoles.\+f90 File Reference}
+\label{ReversibleDipoles_8f90}\index{Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}}
+}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+program \hyperlink{ReversibleDipoles_8f90_a6ecf96e1809e24e50bf4a9a2508372f0}{reversibledipolesmain}
+\item 
+subroutine \hyperlink{ReversibleDipoles_8f90_a7d37dbba96760da70671be2dd3d43ff5}{reversevorticity} (a\+Mesh, a\+Ref)
+\item 
+subroutine \hyperlink{ReversibleDipoles_8f90_a92a90e707533c83c40849c2668173228}{readnamelistfile} (rank)
+\item 
+subroutine \hyperlink{ReversibleDipoles_8f90_aad21acaf525d7eda4371e8d6b7c17d27}{converttorelativetolerances} (a\+Mesh, max\+Circ\+Tol, vort\+Var\+Tol, lag\+Var\+Tol)
+\item 
+subroutine \hyperlink{ReversibleDipoles_8f90_a3062520ed4f305fa21ee670ed0e8f8f8}{storelagrangianxcoordinateintracer} (a\+Mesh, tracer\+I\+D)
+\item 
+subroutine \hyperlink{ReversibleDipoles_8f90_abc4c1d050917612ef423426a4dfe4661}{initlogger} (a\+Log, rank)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{ReversibleDipoles_8f90_aad21acaf525d7eda4371e8d6b7c17d27}{\index{Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}!converttorelativetolerances@{converttorelativetolerances}}
+\index{converttorelativetolerances@{converttorelativetolerances}!Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}}
+\subsubsection[{converttorelativetolerances}]{\setlength{\rightskip}{0pt plus 5cm}subroutine reversibledipolesmain\+::converttorelativetolerances (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(in)}]{a\+Mesh, }
+\item[{real(kreal), intent(inout)}]{max\+Circ\+Tol, }
+\item[{real(kreal), intent(inout)}]{vort\+Var\+Tol, }
+\item[{real(kreal), intent(inout)}]{lag\+Var\+Tol}
+\end{DoxyParamCaption}
+)}}\label{ReversibleDipoles_8f90_aad21acaf525d7eda4371e8d6b7c17d27}
+
+
+Definition at line 412 of file Reversible\+Dipoles.\+f90.
+
+
+
+References planemeshmodule\+::maximumcirculation(), planemeshmodule\+::maximumlagrangianparametervariation(), and planemeshmodule\+::maximumvorticityvariation().
+
+\hypertarget{ReversibleDipoles_8f90_abc4c1d050917612ef423426a4dfe4661}{\index{Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}!initlogger@{initlogger}}
+\index{initlogger@{initlogger}!Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}}
+\subsubsection[{initlogger}]{\setlength{\rightskip}{0pt plus 5cm}subroutine reversibledipolesmain\+::initlogger (
+\begin{DoxyParamCaption}
+\item[{type(logger), intent(inout)}]{a\+Log, }
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{ReversibleDipoles_8f90_abc4c1d050917612ef423426a4dfe4661}
+
+
+Definition at line 442 of file Reversible\+Dipoles.\+f90.
+
+\hypertarget{ReversibleDipoles_8f90_a92a90e707533c83c40849c2668173228}{\index{Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}!readnamelistfile@{readnamelistfile}}
+\index{readnamelistfile@{readnamelistfile}!Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}}
+\subsubsection[{readnamelistfile}]{\setlength{\rightskip}{0pt plus 5cm}subroutine reversibledipolesmain\+::readnamelistfile (
+\begin{DoxyParamCaption}
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{ReversibleDipoles_8f90_a92a90e707533c83c40849c2668173228}
+
+
+Definition at line 335 of file Reversible\+Dipoles.\+f90.
+
+\hypertarget{ReversibleDipoles_8f90_a7d37dbba96760da70671be2dd3d43ff5}{\index{Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}!reversevorticity@{reversevorticity}}
+\index{reversevorticity@{reversevorticity}!Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}}
+\subsubsection[{reversevorticity}]{\setlength{\rightskip}{0pt plus 5cm}subroutine reversibledipolesmain\+::reversevorticity (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{type(bivarsetup), intent(inout)}]{a\+Ref}
+\end{DoxyParamCaption}
+)}}\label{ReversibleDipoles_8f90_a7d37dbba96760da70671be2dd3d43ff5}
+
+
+Definition at line 305 of file Reversible\+Dipoles.\+f90.
+
+
+
+Referenced by reversibledipolesmain().
+
+\hypertarget{ReversibleDipoles_8f90_a6ecf96e1809e24e50bf4a9a2508372f0}{\index{Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}!reversibledipolesmain@{reversibledipolesmain}}
+\index{reversibledipolesmain@{reversibledipolesmain}!Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}}
+\subsubsection[{reversibledipolesmain}]{\setlength{\rightskip}{0pt plus 5cm}program reversibledipolesmain (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{ReversibleDipoles_8f90_a6ecf96e1809e24e50bf4a9a2508372f0}
+
+
+Definition at line 1 of file Reversible\+Dipoles.\+f90.
+
+
+
+References converttorelativetolerances(), planemeshmodule\+::gettotalcirculation(), planemeshmodule\+::gettotalenstrophy(), planemeshmodule\+::gettotalke(), planetracermodule\+::initdipoleidtracer(), planemeshmodule\+::initializerectangle(), refineremeshmodule\+::initialrefinement(), initlogger(), planevorticitymodule\+::inittwodipoles(), planeoutputmodule\+::outputforvtk(), readnamelistfile(), reversevorticity(), planedirectsummodule\+::rk4timestepnorotation(), planetracermodule\+::setdipoleidtraceronmesh(), planevorticitymodule\+::settwodipolesonmesh(), storelagrangianxcoordinateintracer(), planemeshmodule\+::totalarea(), spheremeshmodule\+::totalenstrophy(), and planeoutputmodule\+::updatefilename().
+
+\hypertarget{ReversibleDipoles_8f90_a3062520ed4f305fa21ee670ed0e8f8f8}{\index{Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}!storelagrangianxcoordinateintracer@{storelagrangianxcoordinateintracer}}
+\index{storelagrangianxcoordinateintracer@{storelagrangianxcoordinateintracer}!Reversible\+Dipoles.\+f90@{Reversible\+Dipoles.\+f90}}
+\subsubsection[{storelagrangianxcoordinateintracer}]{\setlength{\rightskip}{0pt plus 5cm}subroutine reversibledipolesmain\+::storelagrangianxcoordinateintracer (
+\begin{DoxyParamCaption}
+\item[{type(planemesh), intent(inout)}]{a\+Mesh, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{ReversibleDipoles_8f90_a3062520ed4f305fa21ee670ed0e8f8f8}
+
+
+Definition at line 422 of file Reversible\+Dipoles.\+f90.
+

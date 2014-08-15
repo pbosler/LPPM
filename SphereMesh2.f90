@@ -1,30 +1,20 @@
 module SphereMeshModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the mesh data structure used by icosahedral triangle and cubed
-!	sphere Lagrangian meshes of the sphere.
+!> @defgroup SphereMesh SphereMesh module
+!> Combines primitives (particles, edges, and panels) to form spherical mesh object; plus mesh functions / subroutines.
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides the basic data structures for particle-panel methods on the
-! unit sphere.  Memory is preallocated statically for speed, assuming the column-priority indexing
-! typical to Fortran.  This means that information associated with panel j will be contained in
-! column j of the panels' structure's various arrays.
-!		For example : the physical position of panel j is stored at panels%x(:,j), and the area
-!				associated with panel j is stored at panels%area(j).  Vertices that make up the corners
-!				of panel j are stored at panels%vertices(:,j), etc...  The same is true for particles and
-!				edges, so that the indices to the particles that make up edge k are stored at
-!				edges%verts(:,k).
-!		Memory is handled with the "New" and "Delete" interfaces and procedures; grids are initialized
-! 				with subroutines labeled "Init*".
-!----------------
+! DESCRIPTION:
+!> @file
+!> Combines primitives (particles, edges, and panels) to form spherical mesh object; plus mesh functions / subroutines.
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use IntegerListModule

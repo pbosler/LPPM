@@ -1,0 +1,53 @@
+\hypertarget{BVESolidBodyRotation_8f90}{\section{B\+V\+E\+Solid\+Body\+Rotation.\+f90 File Reference}
+\label{BVESolidBodyRotation_8f90}\index{B\+V\+E\+Solid\+Body\+Rotation.\+f90@{B\+V\+E\+Solid\+Body\+Rotation.\+f90}}
+}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+program \hyperlink{BVESolidBodyRotation_8f90_a69188145ef2ee87fca3b57980fc944be}{bvesolidbody}
+\item 
+subroutine \hyperlink{BVESolidBodyRotation_8f90_a1cf36b2a7661cb2bee711c93bb228ebd}{readnamelistfile} (rank)
+\item 
+subroutine \hyperlink{BVESolidBodyRotation_8f90_a62ce1680ad4e0aeb6a3e159eb9e1a962}{initlogger} (alog, rank)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{BVESolidBodyRotation_8f90_a69188145ef2ee87fca3b57980fc944be}{\index{B\+V\+E\+Solid\+Body\+Rotation.\+f90@{B\+V\+E\+Solid\+Body\+Rotation.\+f90}!bvesolidbody@{bvesolidbody}}
+\index{bvesolidbody@{bvesolidbody}!B\+V\+E\+Solid\+Body\+Rotation.\+f90@{B\+V\+E\+Solid\+Body\+Rotation.\+f90}}
+\subsubsection[{bvesolidbody}]{\setlength{\rightskip}{0pt plus 5cm}program bvesolidbody (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{BVESolidBodyRotation_8f90_a69188145ef2ee87fca3b57980fc944be}
+
+
+Definition at line 1 of file B\+V\+E\+Solid\+Body\+Rotation.\+f90.
+
+
+
+References bvedirectsummodule\+::bverk4timestep(), tracersetupmodule\+::initcosinebelltracer(), refineremeshmodule\+::initialrefinement(), initlogger(), bvesetupmodule\+::initsolidbodyrotation(), readnamelistfile(), tracersetupmodule\+::setcosinebelltraceronmesh(), bvesetupmodule\+::setsolidbodyrotationonmesh(), planeoutputmodule\+::updatefilename(), and vtkoutputmodule\+::vtkoutput().
+
+\hypertarget{BVESolidBodyRotation_8f90_a62ce1680ad4e0aeb6a3e159eb9e1a962}{\index{B\+V\+E\+Solid\+Body\+Rotation.\+f90@{B\+V\+E\+Solid\+Body\+Rotation.\+f90}!initlogger@{initlogger}}
+\index{initlogger@{initlogger}!B\+V\+E\+Solid\+Body\+Rotation.\+f90@{B\+V\+E\+Solid\+Body\+Rotation.\+f90}}
+\subsubsection[{initlogger}]{\setlength{\rightskip}{0pt plus 5cm}subroutine bvesolidbody\+::initlogger (
+\begin{DoxyParamCaption}
+\item[{type(logger), intent(out)}]{alog, }
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{BVESolidBodyRotation_8f90_a62ce1680ad4e0aeb6a3e159eb9e1a962}
+
+
+Definition at line 273 of file B\+V\+E\+Solid\+Body\+Rotation.\+f90.
+
+\hypertarget{BVESolidBodyRotation_8f90_a1cf36b2a7661cb2bee711c93bb228ebd}{\index{B\+V\+E\+Solid\+Body\+Rotation.\+f90@{B\+V\+E\+Solid\+Body\+Rotation.\+f90}!readnamelistfile@{readnamelistfile}}
+\index{readnamelistfile@{readnamelistfile}!B\+V\+E\+Solid\+Body\+Rotation.\+f90@{B\+V\+E\+Solid\+Body\+Rotation.\+f90}}
+\subsubsection[{readnamelistfile}]{\setlength{\rightskip}{0pt plus 5cm}subroutine bvesolidbody\+::readnamelistfile (
+\begin{DoxyParamCaption}
+\item[{integer(kint), intent(in)}]{rank}
+\end{DoxyParamCaption}
+)}}\label{BVESolidBodyRotation_8f90_a1cf36b2a7661cb2bee711c93bb228ebd}
+
+
+Definition at line 245 of file B\+V\+E\+Solid\+Body\+Rotation.\+f90.
+

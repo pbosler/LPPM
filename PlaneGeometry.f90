@@ -1,15 +1,21 @@
 module PlaneGeomModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-! This module defines functions for performing geometric calculations
-! in the plane.
+!> @defgroup PlaneGeom Planar Geometry
+!> defines functions for performing geometric calculations in the plane
 !
+!
+! DESCRIPTION:
+!> @file
+!> defines functions for performing geometric calculations in the plane
+!
+!------------------------------------------------------------------------------
+
 use NumberKindsModule
 
 implicit none

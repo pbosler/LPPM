@@ -1,19 +1,20 @@
 module BVESetupModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines vorticity distributions used by SphereMesh objects.
+!> @defgroup BVEVorticity Spherical geometry vorticity distributions
+!> defines vorticity distributions for barotropic flows in spherical geometry
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the barotropic vorticity equation on the sphere.
-!----------------
+! DESCRIPTION:
+!> @file
+!> defines vorticity distributions for barotropic flows in spherical geometry
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use SphereGeomModule

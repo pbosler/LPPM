@@ -1,18 +1,20 @@
 module PlaneMeshModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
+!
+!> @defgroup PlaneMesh Plane Mesh module
+!> Combines primitives (particles, edges, and panels) to form planar mesh objects; plus mesh functions / subroutines.
 !
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
+! DESCRIPTION:
+!> @file
+!> Combines primitives (particles, edges, and panels) to form planar mesh objects; plus mesh functions / subroutines.
 !
-!----------------
-! USAGE :  This module provides methods for defining a mesh in the plane.
-!----------------
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use PlaneGeomModule
@@ -487,7 +489,7 @@ function GetTotalMass(self, tracerID)
 	type(Panels), pointer :: aPanels
 	aPanels => self%panels
 	GetTotalMass = sum( aPanels%tracer(:,tracerID) * aPanels%area )
-end function 
+end function
 
 function GetTotalKE(self)
 	real(kreal) :: GetTotalKE

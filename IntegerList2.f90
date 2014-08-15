@@ -1,16 +1,21 @@
 module IntegerListModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
+!
+!> @defgroup IntegerList IntegerList
+!> A basic linked-list data structures for integers
 !
 !
-! This module defines a simple linked-list data structure for dynamically sized integer data.
+! DESCRIPTION:
+!> @file
+!> A basic linked-list data structures for integers
 !
-!
+!------------------------------------------------------------------------------
+
 use NumberKindsModule
 
 implicit none
@@ -138,7 +143,7 @@ subroutine AddUniqueIntegerToList(listRoot,number)
 		allocate(next)
 		current%next => next
 		next%value = number
-		nullify(next%next)		
+		nullify(next%next)
 	endif
 end subroutine
 

@@ -1,19 +1,20 @@
 module PlaneVorticityModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
 !
-!	Defines the RK4 data structure used by SphereMesh.
+!> @defgroup PlaneVorticity Planar vorticity distributions
+!> defines vorticity distributions for incompressible flow in 2d Cartesian geometry
 !
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
 !
-!----------------
-! USAGE :  This module provides methods for integrating the barotropic vorticity equation on the sphere.
-!----------------
+! DESCRIPTION:
+!> @file
+!> defines vorticity distributions for incompressible flow in 2d Cartesian geometry
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use PlaneGeomModule

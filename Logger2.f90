@@ -1,19 +1,20 @@
 module LoggerModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
+!------------------------------------------------------------------------------
+! Lagrangian Particle / Panel Method - Spherical Model
+!------------------------------------------------------------------------------
 !
-!******************************************************************************
+!> @author
+!> Peter Bosler, Department of Mathematics, University of Michigan
+!
+!> @defgroup Logger Logger module
+!> A Logger object for writing output to console or to files
 !
 !
-! This module defines a logging object for use in API development.
-! Adapted from
-!		McCormack, D. "Scientific software development with Fortran." www.mentalfaculty.com, 2009.
+! DESCRIPTION:
+!> @file
+!> A Logger object for writing output to console or to files
 !
-
-! TO DO : Move InitLogger routines to this module
+!------------------------------------------------------------------------------
 
 use NumberKindsModule
 use OutputWriterModule
