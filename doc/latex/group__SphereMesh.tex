@@ -6,8 +6,508 @@
 Combines primitives (particles, edges, and panels) to form spherical mesh object; plus mesh functions / subroutines.  
 
 
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine, public \hyperlink{group__SphereMesh_ga7e822ca8c1c2f3dbb84c1677b73b01d8}{spheremeshmodule\+::renormalize} (self)
+\begin{DoxyCompactList}\small\item\em Resets position vector of all particles in Sphere\+Mesh object to satisfy x$^\wedge$2 + y$^\wedge$2 + z$^\wedge$2 = R$^\wedge$2. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{group__SphereMesh_ga8a8a47063a070aa34913a6ecffd90e62}{spheremeshmodule\+::resetspherearea} (self)
+\begin{DoxyCompactList}\small\item\em Resets area of all panels in Sphere\+Mesh. \end{DoxyCompactList}\item 
+subroutine, public \hyperlink{group__SphereMesh_ga05c2ef27a6cef4f07bacbeae15d7a290}{spheremeshmodule\+::ccwedgesandparticlesaroundpanel} (edge\+List, vert\+List, n\+Verts, self, panel\+Index)
+\begin{DoxyCompactList}\small\item\em Determines the adjacency information of a panel within a Sphere\+Mesh. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_gaff88fd47f20601b9ce1fc3b80f66c180}{spheremeshmodule\+::totalmass} (self, tracer\+Number)
+\begin{DoxyCompactList}\small\item\em Computes the total integral of a tracer over the sphere using midpoint rule quadrature. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_ga73b1f415fd585597ed3d213632cbf8d9}{spheremeshmodule\+::totalabsvort} (self)
+\begin{DoxyCompactList}\small\item\em Computes the total integral of a absolute vorticity over the sphere using midpoint rule quadrature. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_ga328b7708b010b001ba36e802abb3c863}{spheremeshmodule\+::getrossbynumber} (self)
+\begin{DoxyCompactList}\small\item\em Computes the Rossby number of the current vorticity distribution. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_gabe01464cd105cc5c2f2d2c577bb3eea2}{spheremeshmodule\+::totalrelvort} (self)
+\begin{DoxyCompactList}\small\item\em Computes the total integral of relative vorticity over the sphere using midpoint rule quadrature. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_ga3bbd7e4f63fe3cffaff0220681c612d4}{spheremeshmodule\+::totalenstrophy} (self)
+\begin{DoxyCompactList}\small\item\em Computes the total enstrophy over the sphere using midpoint rule quadrature. \end{DoxyCompactList}\item 
+integer(kint) function, public \hyperlink{group__SphereMesh_ga7d024751a0858a280b313d29f360c973}{spheremeshmodule\+::locatepoint} (self, xyz)
+\begin{DoxyCompactList}\small\item\em Locates an arbitrary point on the sphere within a Sphere\+Mesh. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_ga6686ad6af0289f6a4fb2fc33c8aaaec0}{spheremeshmodule\+::maximumcirculation} (self)
+\begin{DoxyCompactList}\small\item\em Finds the maximum magnitude of circulation about any panel in a mesh. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_ga5e91a046c4930eb535d416ecd186d642}{spheremeshmodule\+::maximumtracermass} (self, tracer\+I\+D)
+\begin{DoxyCompactList}\small\item\em Finds the maximum amount of tracer mass contained in any panel in a mesh. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_ga6f36560d3412a7d7e4cfa5befdb7533a}{spheremeshmodule\+::maximumtracervariation} (self, tracer\+I\+D)
+\begin{DoxyCompactList}\small\item\em Finds the maximum variation of a passive tracer over a whole Sphere\+Mesh. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_gaae2d1cf4ffc3bae54040cbeea7b7d0be}{spheremeshmodule\+::maximumvorticityvariation} (self)
+\begin{DoxyCompactList}\small\item\em Finds the maximum variation of a relative vorticiy over a whole Sphere\+Mesh. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_gaa98d1a869045c29e59c388b3defd5267}{spheremeshmodule\+::averagelagrangianparametervariation} (self)
+\begin{DoxyCompactList}\small\item\em Estimates the average edge length of a panel in Lagrangian coordinate space. \end{DoxyCompactList}\item 
+real(kreal) function, public \hyperlink{group__SphereMesh_ga27be9c6a5c086d37db3dd65c2c8ec37b}{spheremeshmodule\+::maximumlagrangianparametervariation} (self)
+\begin{DoxyCompactList}\small\item\em Finds the maximum Lagrangian coordinate variation over each panel in a Sphere\+Mesh. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
 Combines primitives (particles, edges, and panels) to form spherical mesh object; plus mesh functions / subroutines. 
 
 \begin{DoxyAuthor}{Author}
-Peter Bosler, Department of Mathematics, University of Michigan 
+Peter Bosler, Department of Mathematics, University of Michigan
 \end{DoxyAuthor}
+Meshes may be triangular panels from an icosahedral triangular discretization or quadrilatertal panels from the cubed sphere. The type of panel is set by the panel\+Kind variable. panel\+Kind should be set using the constants defined in \hyperlink{NumberKinds3_8f90}{Number\+Kinds3.\+f90}, so panel\+Kind = T\+R\+I\+\_\+\+P\+A\+N\+E\+L yields a set of triangular panels while panel\+Kind = Q\+U\+A\+D\+\_\+\+P\+A\+N\+E\+L yields a mesh of quadrilateral panels.
+
+Each root polyhedron (the icosahedron or the cube) is defined as the root of the quadtree panels data structure; users choose a mesh size by defining how many levels the tree should have with the init\+Nest variable. An setting of init\+Nest = 1 will cause each root panel from the initial polyhedron to be refined once, and the quadtree will have two levels, 0 and 1. Typical coarse meshes for the sphere use init\+Nest = 3 for triangles (1280 panels) and init\+Nest = 4 for quadrilaterals (1536) panels. Approximate resolutions of 1 degree are given by setting init\+Nest = 6 for triangles (81920 panels) and init\+Nest = 7 for quadrilaterals (98304 panels).
+
+Users may toggle adaptive refinement via the A\+M\+R variable. A\+M\+R = 0 turns off adaptive refinement and creates a computation where the number of panels is the same for all time. A\+M\+R $>$ 0 turns on A\+M\+R, and the number determines the amount of memory allocated. A\+M\+R = 1 creates reserves enough memory for the entire mesh to be refined once, so that a user could end up with an entire mesh at nest level init\+Nest + 1 if every panel triggers the adaptive refinement criteria. Typical settings are A\+M\+R = 3 or A\+M\+R = 4 for adaptively refined mesh simulations. 
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{group__SphereMesh_gaa98d1a869045c29e59c388b3defd5267}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!averagelagrangianparametervariation@{averagelagrangianparametervariation}}
+\index{averagelagrangianparametervariation@{averagelagrangianparametervariation}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{averagelagrangianparametervariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::averagelagrangianparametervariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_gaa98d1a869045c29e59c388b3defd5267}
+
+
+Estimates the average edge length of a panel in Lagrangian coordinate space. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+approximate edge length, $ \sqrt{4\pi R^2/N} $ 
+\end{DoxyReturn}
+
+
+Definition at line 820 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by converttorelativetolerances().
+
+\hypertarget{group__SphereMesh_ga05c2ef27a6cef4f07bacbeae15d7a290}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!ccwedgesandparticlesaroundpanel@{ccwedgesandparticlesaroundpanel}}
+\index{ccwedgesandparticlesaroundpanel@{ccwedgesandparticlesaroundpanel}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{ccwedgesandparticlesaroundpanel}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::ccwedgesandparticlesaroundpanel (
+\begin{DoxyParamCaption}
+\item[{integer(kint), dimension(\+:), intent(inout)}]{edge\+List, }
+\item[{integer(kint), dimension(\+:), intent(inout)}]{vert\+List, }
+\item[{integer(kint), intent(inout)}]{n\+Verts, }
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{panel\+Index}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga05c2ef27a6cef4f07bacbeae15d7a290}
+
+
+Determines the adjacency information of a panel within a Sphere\+Mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em edge\+List} & integer array; on output, contains a C\+C\+W list of pointers to Edges around panel \\
+\hline
+\mbox{\tt in,out}  & {\em vert\+List} & integer array; on output, contains a C\+C\+W list of particles (vertices) around panel \\
+\hline
+\mbox{\tt in,out}  & {\em n\+Verts} & integer; on output provides the number of edges (= number of vertices) around panel \\
+\hline
+\mbox{\tt in}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\mbox{\tt in}  & {\em panel\+Index} & integer; pointer to panel whose adjacency information is needed \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 395 of file Sphere\+Mesh2.\+f90.
+
+
+
+References panelsmodule\+::getpanelkind().
+
+\hypertarget{group__SphereMesh_ga328b7708b010b001ba36e802abb3c863}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!getrossbynumber@{getrossbynumber}}
+\index{getrossbynumber@{getrossbynumber}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{getrossbynumber}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::getrossbynumber (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga328b7708b010b001ba36e802abb3c863}
+
+
+Computes the Rossby number of the current vorticity distribution. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Rossby Number Ro, double precision real 
+\end{DoxyReturn}
+
+
+Definition at line 567 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by bvegaussvort(), and rh4wave().
+
+\hypertarget{group__SphereMesh_ga7d024751a0858a280b313d29f360c973}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!locatepoint@{locatepoint}}
+\index{locatepoint@{locatepoint}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{locatepoint}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint) function, public spheremeshmodule\+::locatepoint (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{real(kreal), dimension(3), intent(in)}]{xyz}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga7d024751a0858a280b313d29f360c973}
+
+
+Locates an arbitrary point on the sphere within a Sphere\+Mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\mbox{\tt in}  & {\em xyz} & double precision real, size(3); Cartesian coordinates of a point on the sphere \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+integer pointer to panel that contains xyz 
+\end{DoxyReturn}
+
+
+Definition at line 652 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::locatepoint().
+
+\hypertarget{group__SphereMesh_ga6686ad6af0289f6a4fb2fc33c8aaaec0}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!maximumcirculation@{maximumcirculation}}
+\index{maximumcirculation@{maximumcirculation}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{maximumcirculation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumcirculation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga6686ad6af0289f6a4fb2fc33c8aaaec0}
+
+
+Finds the maximum magnitude of circulation about any panel in a mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+maximum absolute value of circulation over each panel, $ \max_k |\zeta_k|A_k $ 
+\end{DoxyReturn}
+
+
+Definition at line 711 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumcirculation().
+
+\hypertarget{group__SphereMesh_ga27be9c6a5c086d37db3dd65c2c8ec37b}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!maximumlagrangianparametervariation@{maximumlagrangianparametervariation}}
+\index{maximumlagrangianparametervariation@{maximumlagrangianparametervariation}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{maximumlagrangianparametervariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumlagrangianparametervariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga27be9c6a5c086d37db3dd65c2c8ec37b}
+
+
+Finds the maximum Lagrangian coordinate variation over each panel in a Sphere\+Mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+maximum Lagrangian coordinate variation all panels 
+\end{DoxyReturn}
+
+
+Definition at line 840 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::ccwedgesandparticlesaroundpanel(), planemeshmodule\+::maximumlagrangianparametervariation(), and spheregeommodule\+::spheretricenter().
+
+\hypertarget{group__SphereMesh_ga5e91a046c4930eb535d416ecd186d642}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!maximumtracermass@{maximumtracermass}}
+\index{maximumtracermass@{maximumtracermass}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{maximumtracermass}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumtracermass (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga5e91a046c4930eb535d416ecd186d642}
+
+
+Finds the maximum amount of tracer mass contained in any panel in a mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+maximum tracer mass contained in a panel over a Sphere\+Mesh, , $ \max_k \phi_k A_k - \min_k \phi_k A_k $ 
+\end{DoxyReturn}
+
+
+Definition at line 734 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumtracermass().
+
+\hypertarget{group__SphereMesh_ga6f36560d3412a7d7e4cfa5befdb7533a}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!maximumtracervariation@{maximumtracervariation}}
+\index{maximumtracervariation@{maximumtracervariation}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{maximumtracervariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumtracervariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+I\+D}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga6f36560d3412a7d7e4cfa5befdb7533a}
+
+
+Finds the maximum variation of a passive tracer over a whole Sphere\+Mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\mbox{\tt in}  & {\em tracer\+I\+D} & integer; identification number of tracer whose variation is desired \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+maximum tracer variation over the sphere , $ \max_S \phi - \min_S\phi $ 
+\end{DoxyReturn}
+
+
+Definition at line 757 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumtracervariation().
+
+\hypertarget{group__SphereMesh_gaae2d1cf4ffc3bae54040cbeea7b7d0be}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!maximumvorticityvariation@{maximumvorticityvariation}}
+\index{maximumvorticityvariation@{maximumvorticityvariation}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{maximumvorticityvariation}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::maximumvorticityvariation (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_gaae2d1cf4ffc3bae54040cbeea7b7d0be}
+
+
+Finds the maximum variation of a relative vorticiy over a whole Sphere\+Mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+maximum relative vorticity variation over the sphere, $ \max_S \zeta - \min_S\zeta $ 
+\end{DoxyReturn}
+
+
+Definition at line 789 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::maximumvorticityvariation().
+
+\hypertarget{group__SphereMesh_ga7e822ca8c1c2f3dbb84c1677b73b01d8}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!renormalize@{renormalize}}
+\index{renormalize@{renormalize}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{renormalize}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::renormalize (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga7e822ca8c1c2f3dbb84c1677b73b01d8}
+
+
+Resets position vector of all particles in Sphere\+Mesh object to satisfy x$^\wedge$2 + y$^\wedge$2 + z$^\wedge$2 = R$^\wedge$2. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 308 of file Sphere\+Mesh2.\+f90.
+
+
+
+References panelsmodule\+::getpanelkind().
+
+\hypertarget{group__SphereMesh_ga8a8a47063a070aa34913a6ecffd90e62}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!resetspherearea@{resetspherearea}}
+\index{resetspherearea@{resetspherearea}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{resetspherearea}]{\setlength{\rightskip}{0pt plus 5cm}subroutine, public spheremeshmodule\+::resetspherearea (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(inout)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga8a8a47063a070aa34913a6ecffd90e62}
+
+
+Resets area of all panels in Sphere\+Mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 365 of file Sphere\+Mesh2.\+f90.
+
+\hypertarget{group__SphereMesh_ga73b1f415fd585597ed3d213632cbf8d9}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!totalabsvort@{totalabsvort}}
+\index{totalabsvort@{totalabsvort}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{totalabsvort}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalabsvort (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga73b1f415fd585597ed3d213632cbf8d9}
+
+
+Computes the total integral of a absolute vorticity over the sphere using midpoint rule quadrature. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\mbox{\tt in}  & {\em tracer\+Number} & integer, identification number of passive tracer whose integral is to be computed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+double precsion real, $ \int_S \omega \, dA \approx \sum_{k=1}^N \omega_k A_k $ 
+\end{DoxyReturn}
+
+
+Definition at line 501 of file Sphere\+Mesh2.\+f90.
+
+\hypertarget{group__SphereMesh_ga3bbd7e4f63fe3cffaff0220681c612d4}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!totalenstrophy@{totalenstrophy}}
+\index{totalenstrophy@{totalenstrophy}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{totalenstrophy}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalenstrophy (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga3bbd7e4f63fe3cffaff0220681c612d4}
+
+
+Computes the total enstrophy over the sphere using midpoint rule quadrature. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\mbox{\tt in}  & {\em tracer\+Number} & integer, identification number of passive tracer whose integral is to be computed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+double precsion real, $ \int_S \zeta^2 \, dA \approx \sum_{k=1}^N \zeta_k^2 A_k $ 
+\end{DoxyReturn}
+
+
+Definition at line 620 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by bvegaussvort(), lambtest(), reversibledipolesmain(), rh4wave(), and twodipolesmain().
+
+\hypertarget{group__SphereMesh_gaff88fd47f20601b9ce1fc3b80f66c180}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!totalmass@{totalmass}}
+\index{totalmass@{totalmass}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{totalmass}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalmass (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self, }
+\item[{integer(kint), intent(in)}]{tracer\+Number}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_gaff88fd47f20601b9ce1fc3b80f66c180}
+
+
+Computes the total integral of a tracer over the sphere using midpoint rule quadrature. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\mbox{\tt in}  & {\em tracer\+Number} & integer, identification number of passive tracer whose integral is to be computed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+double precsion real, $ \int_S \phi \, dA \approx \sum_{k=1}^N \phi_k A_k $ 
+\end{DoxyReturn}
+
+
+Definition at line 470 of file Sphere\+Mesh2.\+f90.
+
+
+
+Referenced by bvegaussvort(), gaussianhillsadvection(), gaussianhillsadvectiondirect(), kentcascadeadvection(), movingvorticesadvection(), and planerotateadvection().
+
+\hypertarget{group__SphereMesh_gabe01464cd105cc5c2f2d2c577bb3eea2}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!totalrelvort@{totalrelvort}}
+\index{totalrelvort@{totalrelvort}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{totalrelvort}]{\setlength{\rightskip}{0pt plus 5cm}real(kreal) function, public spheremeshmodule\+::totalrelvort (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_gabe01464cd105cc5c2f2d2c577bb3eea2}
+
+
+Computes the total integral of relative vorticity over the sphere using midpoint rule quadrature. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\mbox{\tt in}  & {\em tracer\+Number} & integer, identification number of passive tracer whose integral is to be computed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+double precsion real, $ \int_S \zeta \, dA \approx \sum_{k=1}^N \zeta_k A_k $ 
+\end{DoxyReturn}
+
+
+Definition at line 588 of file Sphere\+Mesh2.\+f90.
+

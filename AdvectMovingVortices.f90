@@ -105,7 +105,7 @@ call InitLogger(exeLog, procRank)
 
 wallclock = MPI_WTIME()
 
-nTracer = 2
+nTracer = 3
 tracerID = 1
 rho0 = 3.0_kreal
 gamma = 5.0_kreal
@@ -151,6 +151,20 @@ else
 		write(amrstring,'(A,I1,A)') 'triUnif_', initNest, '_'
 endif
 
+sphereParticles => sphere%particles
+spherePanels => sphere%panels
+
+do j = 1, sphereParticles%N
+	sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), 0.0_kreal, rho0, gamma)
+enddo
+do j = 1, spherePanels%N
+	if ( spherePanels%hasChildren(j) ) then
+		spherePanels%tracer(j,3) = 0.0_kreal
+	else
+		spherePanels%tracer(j,3) = testCaseTracerExact( spherePanels%x(:,j), 0.0_kreal, rho0, gamma)
+	endif
+enddo
+
 !
 ! initialize output
 !
@@ -195,8 +209,7 @@ var0 = TracerVariance(sphere, tracerID)
 allocate(sphereL1(0:timesteps))
 sphereL1 = 0.0_kreal
 
-sphereParticles => sphere%particles
-spherePanels => sphere%panels
+
 phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
 phimin0 = 0.0_kreal
 deltaPhi = phimax0 - phimin0
@@ -265,6 +278,17 @@ do timeJ = 0, timesteps - 1
 	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, MovingVorticesVelocity)
 	t = real( timeJ+1, kreal) * dt
 	testCaseTracer%reals(1) = t
+
+	do j = 1, sphereParticles%N
+		sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), t, rho0, gamma)
+	enddo
+	do j = 1, spherePanels%N
+		if ( spherePanels%hasChildren(j) ) then
+			spherePanels%tracer(j,3) = 0.0_kreal
+		else
+			spherePanels%tracer(j,3) = testCaseTracerExact( spherePanels%x(:,j), t, rho0, gamma)
+		endif
+	enddo
 
 	!
 	! calculate error
@@ -419,15 +443,14 @@ function testCaseTracerExact(xyz, t, rho0, gamma)
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
 
-	lamC = 1.5_kreal * PI + u0 * t
-	thetaC = 0.0_kreal
+	lamC = 0.0_kreal
+	thetaC = PI/2.0_kreal
 
-	thetaP = asin( sin(lat) * sin(thetaC) * cos(lon - lamC) * sin(lat))
-	rho = rho0 * cos( thetaP )
+	rho = rho0 * cos( lat )
 
-	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) / cosh(rho) / cosh(rho) * (rho / (rho*rho + ZERO_TOL*ZERO_TOL))
+	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / ( EARTH_RADIUS * cosh(rho) * cosh(rho) * (rho*rho + ZERO_TOL*ZERO_TOL))
 
-	testCaseTracerExact = 1.0_kreal - tanh( rho * sin(lamC - wr*t) / gamma )
+	testCaseTracerExact = 1.0_kreal - tanh( rho * sin(lon - wr*t) / gamma )
 end function
 
 subroutine ConvertFromRelativeTolerances(aMesh, tracerMassTol, tracerVarTol, tracerID, lagVarTol)

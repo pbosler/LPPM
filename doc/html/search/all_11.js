@@ -14,8 +14,8 @@ var searchData=
   ['refineremesh2_2ef90',['RefineRemesh2.f90',['../RefineRemesh2_8f90.html',1,'']]],
   ['refineremeshmodule',['refineremeshmodule',['../classrefineremeshmodule.html',1,'']]],
   ['relvort_5frefine',['relvort_refine',['../classrefineremeshmodule.html#a6b6cb1aeff0463b208981fd3742a2658',1,'refineremeshmodule']]],
-  ['renormalize',['renormalize',['../classspheremeshmodule.html#a7e822ca8c1c2f3dbb84c1677b73b01d8',1,'spheremeshmodule']]],
-  ['resetspherearea',['resetspherearea',['../classspheremeshmodule.html#a8a8a47063a070aa34913a6ecffd90e62',1,'spheremeshmodule']]],
+  ['renormalize',['renormalize',['../group__SphereMesh.html#ga7e822ca8c1c2f3dbb84c1677b73b01d8',1,'spheremeshmodule']]],
+  ['resetspherearea',['resetspherearea',['../group__SphereMesh.html#ga8a8a47063a070aa34913a6ecffd90e62',1,'spheremeshmodule']]],
   ['returnintegerarrayfromlist',['returnintegerarrayfromlist',['../classintegerlistmodule.html#a4242dfa00bd3649946bebdaf6ed001db',1,'integerlistmodule']]],
   ['reversevorticity',['reversevorticity',['../ReversibleDipoles_8f90.html#a7d37dbba96760da70671be2dd3d43ff5',1,'ReversibleDipoles.f90']]],
   ['reversibledipoles_2ef90',['ReversibleDipoles.f90',['../ReversibleDipoles_8f90.html',1,'']]],
@@ -26,5 +26,8 @@ var searchData=
   ['rh54vorticity',['rh54vorticity',['../classbvesetupmodule.html#ab67bc18bae5929b348933611bf1da37c',1,'bvesetupmodule']]],
   ['rk4timestepincompressibleadvection',['rk4timestepincompressibleadvection',['../classplanedirectsummodule.html#aff2006ee7a13ce54962e7dd6ec8e0a3e',1,'planedirectsummodule']]],
   ['rk4timestepnorotation',['rk4timestepnorotation',['../classplanedirectsummodule.html#a2bf00997645e24b8cd75fbdbc7c6cd2e',1,'planedirectsummodule']]],
-  ['rotate',['rotate',['../ssrfpack_8f.html#a320320a847275dbab4d0049e94772364',1,'ssrfpack.f']]]
+  ['rotate',['ROTATE',['../interfacerotate____genmod_1_1ROTATE.html',1,'rotate__genmod']]],
+  ['rotate',['rotate',['../interfacerotate____genmod_1_1ROTATE.html#a5ac585b7e726ac636938a305f60b432a',1,'rotate__genmod::ROTATE::rotate()'],['../ssrfpack_8f.html#a320320a847275dbab4d0049e94772364',1,'rotate():&#160;ssrfpack.f']]],
+  ['rotate_5f_5fgenmod',['rotate__genmod',['../classrotate____genmod.html',1,'']]],
+  ['rotate_5f_5fgenmod_2ef90',['rotate__genmod.f90',['../rotate____genmod_8f90.html',1,'']]]
 ];

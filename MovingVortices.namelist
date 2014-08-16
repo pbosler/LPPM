@@ -1,6 +1,6 @@
 &meshDefine
 	initNest = 4
-	AMR = 4
+	AMR = 0
 	panelKind = 3
 	amrLimit = 4
 	tracerMassTol = 2.0

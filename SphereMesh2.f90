@@ -2,13 +2,31 @@ module SphereMeshModule
 !------------------------------------------------------------------------------
 ! Lagrangian Particle / Panel Method - Spherical Model
 !------------------------------------------------------------------------------
-!
+!*
 !> @author
 !> Peter Bosler, Department of Mathematics, University of Michigan
-!
-!> @defgroup SphereMesh SphereMesh module
-!> Combines primitives (particles, edges, and panels) to form spherical mesh object; plus mesh functions / subroutines.
-!
+!>
+!>
+!>
+!> @defgroup SphereMesh  SphereMesh module
+!> @brief Combines primitives (particles, edges, and panels) to form spherical mesh object; plus mesh functions / subroutines.
+!>
+!> @detail Meshes may be triangular panels from an icosahedral triangular discretization or quadrilatertal panels from the cubed sphere.
+!> The type of panel is set by the panelKind variable.  panelKind should be set using the constants defined in NumberKinds3.f90, so
+!> panelKind = TRI_PANEL yields a set of triangular panels while panelKind = QUAD_PANEL yields a mesh of quadrilateral panels.
+!>
+!> Each root polyhedron (the icosahedron or the cube) is defined as the root of
+!> the quadtree panels data structure; users choose a mesh size by defining how many levels the tree should have with the initNest variable.
+!> An setting of initNest = 1 will cause each root panel from the initial polyhedron to be refined once, and the quadtree will have
+!> two levels, 0 and 1.  Typical coarse meshes for the sphere use initNest = 3 for triangles (1280 panels) and initNest = 4 for
+!> quadrilaterals (1536) panels.  Approximate resolutions of 1 degree are given by setting initNest = 6 for triangles (81920 panels)
+!> and initNest = 7 for quadrilaterals (98304 panels).
+!>
+!> Users may toggle adaptive refinement via the AMR variable.  AMR = 0 turns off adaptive refinement and creates a computation where
+!> the number of panels is the same for all time.  AMR > 0 turns on AMR, and the number determines the amount of memory allocated.
+!> AMR = 1 creates reserves enough memory for the entire mesh to be refined once, so that a user could end up with an entire mesh at
+!> nest level initNest + 1 if every panel triggers the adaptive refinement criteria.  Typical settings are AMR = 3 or AMR = 4 for
+!> adaptively refined mesh simulations.
 !
 ! DESCRIPTION:
 !> @file
@@ -29,7 +47,8 @@ implicit none
 
 private
 public SphereMesh
-public New, Delete, Copy
+public New
+public Delete, Copy
 public LogStats
 public CCWEdgesAndParticlesAroundPanel, FindAdjacentPanels
 public Renormalize, ResetSphereArea
@@ -76,6 +95,25 @@ character(len=24) :: formatString
 ! Interfaces
 !----------------
 !
+
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> allocates memory for SphereMesh objects
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @param[in] panelKind integer that determines the kind of panel (e.g., triangular or quadrilateral) used to build mesh
+!> @param[in] initNest integer defines initial uniform resolution of SphereMesh
+!> @param[in] AMR integer that allocates memory for adaptive refinement (AMR = 0 turns off adaptive refinement)
+!> @param[in] nTracer integer; number of passive tracers to be carries by mesh particles
+!> @param[in] problemKind integer; must be one of the values defined in NumberKinds3.f90, e.g., ADVECTION_SOLVER, BVE_SOLVER, etc.
+!---------------------------------------------------------------------------
 interface New
 	module procedure NewMesh
 end interface
@@ -107,7 +145,24 @@ contains
 !----------------
 !
 
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> allocates memory for SphereMesh objects
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @param[in] panelKind integer that determines the kind of panel (e.g., triangular or quadrilateral) used to build mesh
+!> @param[in] initNest integer defines initial uniform resolution of SphereMesh
+!> @param[in] AMR integer that allocates memory for adaptive refinement (AMR = 0 turns off adaptive refinement)
+!> @param[in] nTracer integer; number of passive tracers to be carries by mesh particles
+!> @param[in] problemKind integer; must be one of the values defined in NumberKinds3.f90, e.g., ADVECTION_SOLVER, BVE_SOLVER, etc.
+!---------------------------------------------------------------------------
 subroutine NewMesh(self,panelKind,initNest,AMR,nTracer,problemKind)
 ! Allocates memory for a SphereMesh object and initializes a discretization of the sphere with
 ! the desired panelKind.
@@ -198,6 +253,21 @@ end subroutine
 !----------------
 !
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Outputs textual data from SphereMesh objects to Logger
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @param[inout] aLog Logger object
+!> @param[in] message string; optional string used as header for normal output
+!---------------------------------------------------------------------------
 subroutine LogStatsSphereMesh(self,alog,message)
 ! Prints SphereMesh statistical data to log.
 	type(SphereMesh), intent(in) :: self
@@ -222,7 +292,19 @@ function GetNTracerMesh(self)
 	GetNTracerMesh = self%nTracer
 end function
 
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Resets position vector of all particles in SphereMesh object to satisfy x^2 + y^2 + z^2 = R^2
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!---------------------------------------------------------------------------
 subroutine Renormalize(self)
 ! 	Reprojects SphereMesh physical coordinates back to spherical surface.
 	type(SphereMesh), intent(inout) :: self
@@ -239,7 +321,21 @@ subroutine Renormalize(self)
 	enddo
 end subroutine
 
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Determines the spherical area of a panel within SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @param[in] panelIndex integer, pointer to panel whose area is needed
+!> @return double precision real, scalar arear of panel
+!---------------------------------------------------------------------------
 function PanelArea(self,panelIndex)
 ! 	Interface for calling the appropriate private panel area function.
 	type(SphereMesh), intent(inout) :: self
@@ -253,6 +349,49 @@ function PanelArea(self,panelIndex)
 end function
 
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Counts the number of subtriangles in a SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @return integer number of subtriangles in a SphereMesh
+!---------------------------------------------------------------------------
+
+function CountSubtriangles(self)
+!	Returns the total number of panel subtriangles in a SphereMesh object.
+	integer(kint) :: CountSubTriangles
+	type(SphereMesh), intent(in) :: self
+	integer(kint) :: edgeList(8), vertList(8), nVerts, j
+	CountSubTriangles = 0
+	do j=1,self%panels%N
+		if ( .NOT. self%panels%hasChildren(j) ) then
+			call CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,self,j)
+			CountSubTriangles = CountSubTriangles + nVerts
+		endif
+	enddo
+end function
+
+
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Resets area of all panels in SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!---------------------------------------------------------------------------
 subroutine ResetSphereArea(self)
 ! Resets SphereMesh panel areas for use in flows with nonzero divergence.
 	type(SphereMesh), intent(inout) :: self
@@ -266,6 +405,23 @@ subroutine ResetSphereArea(self)
 	enddo
 end subroutine
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Determines the adjacency information of a panel within a SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] edgeList integer array; on output, contains a CCW list of pointers to Edges around panel
+!> @param[inout] vertList integer array; on output, contains a CCW list of particles (vertices) around panel
+!> @param[inout] nVerts integer; on output provides the number of edges (= number of vertices) around panel
+!> @param[in] self SphereMesh object
+!> @param[in] panelIndex integer; pointer to panel whose adjacency information is needed
+!---------------------------------------------------------------------------
 subroutine CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,self,panelIndex)
 ! 	Returns a counter-clockwise ordered list of edges and a counter-clockwise ordered list
 ! 	of vertices around a panel.  For use with AMR, this subroutine does not assume a panel
@@ -326,6 +482,21 @@ subroutine CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,self,panelIn
 	nVerts = vertK
 end subroutine
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Computes the total integral of a tracer over the sphere using midpoint rule quadrature
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @param[in] tracerNumber integer, identification number of passive tracer whose integral is to be computed
+!> @return double precsion real, \f$ \int_S \phi \, dA \approx \sum_{k=1}^N \phi_k A_k \f$
+!---------------------------------------------------------------------------
 function TotalMass(self,tracerNumber)
 !	Computes the mass integral of passive tracers over the sphere.
 	type(SphereMesh), intent(in) :: self
@@ -342,7 +513,21 @@ function TotalMass(self,tracerNumber)
 	TotalMass = sum(aPanels%tracer(:,tracerNumber)*aPanels%area)
 end function
 
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Computes the total integral of a absolute vorticity over the sphere using midpoint rule quadrature
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @param[in] tracerNumber integer, identification number of passive tracer whose integral is to be computed
+!> @return double precsion real, \f$ \int_S \omega \, dA \approx \sum_{k=1}^N \omega_k A_k \f$
+!---------------------------------------------------------------------------
 function TotalAbsVort(self)
 !	Calculates the integral of absolute vorticity over the sphere.
 !	For diagnostic purposes (this quantity should be zero).
@@ -360,6 +545,21 @@ function TotalAbsVort(self)
 	TotalAbsVort = sum(aPanels%absVort*aPanels%area)
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Computes the total integral of potential energy over the sphere using midpoint rule quadrature
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @param[in] tracerNumber integer, identification number of passive tracer whose integral is to be computed
+!> @return double precsion real, \f$ \int_S gh \, dA \approx g\sum_{k=1}^N h_k A_k \f$
+!---------------------------------------------------------------------------
 function TotalEnergy(self)
 !	Calculates the integral of absolute vorticity over the sphere.
 !	For diagnostic purposes (this quantity should be zero).
@@ -380,12 +580,41 @@ function TotalEnergy(self)
 	endif
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Computes the Rossby number of the current vorticity distribution
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @return Rossby Number Ro, double precision real
+!---------------------------------------------------------------------------
 function GetRossbyNumber(self)
 	real(kreal) :: GetRossbyNumber
 	type(SphereMesh), intent(in) :: self
 	GetRossbyNumber = maxval(abs(self%panels%relVort))/(2.0_kreal*OMEGA)
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Computes the total integral of relative vorticity over the sphere using midpoint rule quadrature
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @param[in] tracerNumber integer, identification number of passive tracer whose integral is to be computed
+!> @return double precsion real, \f$ \int_S \zeta \, dA \approx \sum_{k=1}^N \zeta_k A_k \f$
+!---------------------------------------------------------------------------
 function TotalRelVort(self)
 !	Calculates the integral of relative vorticity over the sphere.
 !	For diagnostic purposes (this quantity should be zero).
@@ -403,6 +632,21 @@ function TotalRelVort(self)
 end function
 
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Computes the total enstrophy over the sphere using midpoint rule quadrature
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @param[in] tracerNumber integer, identification number of passive tracer whose integral is to be computed
+!> @return double precsion real, \f$ \int_S \zeta^2 \, dA \approx \sum_{k=1}^N \zeta_k^2 A_k \f$
+!---------------------------------------------------------------------------
 function TotalEnstrophy(self)
 !	Computes the total enstrophy as a surface integral over the sphere.
 	type(SphereMesh), intent(in) :: self
@@ -420,7 +664,21 @@ function TotalEnstrophy(self)
 	totalEnstrophy = 0.5*sum(aPanels%relVort*aPanels%relVort*aPanels%area)
 end function
 
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Locates an arbitrary point on the sphere within a SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[in] self SphereMesh object
+!> @param[in] xyz double precision real, size(3); Cartesian coordinates of a point on the sphere
+!> @return integer pointer to panel that contains xyz
+!---------------------------------------------------------------------------
 function LocatePoint(self,xyz)
 !  	Primary function to locate what panel of a SphereMesh object contains the point xyz.
 ! 	Calls private subroutines TreeSearch and WalkSearch.
@@ -435,23 +693,21 @@ function LocatePoint(self,xyz)
 	call LocatePointWalkSearch(LocatePoint,self,xyz,startWalk)
 end function
 
-
-function CountSubtriangles(self)
-!	Returns the total number of panel subtriangles in a SphereMesh object.
-	integer(kint) :: CountSubTriangles
-	type(SphereMesh), intent(in) :: self
-	integer(kint) :: edgeList(8), vertList(8), nVerts, j
-	CountSubTriangles = 0
-	do j=1,self%panels%N
-		if ( .NOT. self%panels%hasChildren(j) ) then
-			call CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,self,j)
-			CountSubTriangles = CountSubTriangles + nVerts
-		endif
-	enddo
-end function
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Resets Lagrangian parameter; sets Lagrangian parameter equal to physical position vector of all particles in a mesh.
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!---------------------------------------------------------------------------
 subroutine ResetLagrangianParameterPrivate(self)
-  type(SphereMesh), intent(in) :: self
+  type(SphereMesh), intent(inout) :: self
   integer(kint) :: j
   type(Particles), pointer :: aParticles
   type(Panels), pointer :: aPanels
@@ -468,6 +724,20 @@ subroutine ResetLagrangianParameterPrivate(self)
 
 end subroutine
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Finds the maximum magnitude of circulation about any panel in a mesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @return maximum absolute value of circulation over each panel, \f$ \max_k |\zeta_k|A_k \f$
+!---------------------------------------------------------------------------
 function MaximumCirculation(self)
 	real(kreal) :: MaximumCirculation
 	type(SphereMesh), intent(in) :: self
@@ -477,6 +747,20 @@ function MaximumCirculation(self)
 	MaximumCirculation = maxval( abs(aPanels%relvort(1:aPanels%N)) * aPanels%area(1:aPanels%N) )
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Finds the maximum amount of tracer mass contained in any panel in a mesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @return maximum tracer mass contained in a panel over a SphereMesh, , \f$ \max_k \phi_k A_k - \min_k \phi_k A_k \f$
+!---------------------------------------------------------------------------
 function MaximumTracerMass(self, tracerID)
 	real(kreal) :: MaximumTracerMass
 	type(SphereMesh), intent(in) :: self
@@ -485,6 +769,21 @@ function MaximumTracerMass(self, tracerID)
 	MaximumTracerMass = maxval( self%panels%tracer(1:self%panels%N, tracerID) * self%panels%area(1:self%panels%N) )
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Finds the maximum variation of a passive tracer over a whole SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @param[in] tracerID integer; identification number of tracer whose variation is desired
+!> @return maximum tracer variation over the sphere , \f$ \max_S \phi - \min_S\phi \f$
+!---------------------------------------------------------------------------
 function MaximumTracerVariation(self, tracerID)
 	real(kreal) :: MaximumTracerVariation
 	type(SphereMesh), intent(in) :: self
@@ -503,7 +802,20 @@ function MaximumTracerVariation(self, tracerID)
 	MaximumTracerVariation = tmax - tmin
 end function
 
-
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Finds the maximum variation of a relative vorticiy over a whole SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @return maximum relative vorticity variation over the sphere, \f$ \max_S \zeta - \min_S\zeta \f$
+!---------------------------------------------------------------------------
 function MaximumVorticityVariation(self)
 	real(kreal) :: MaximumVorticityVariation
 	type(SphereMesh), intent(in) :: self
@@ -521,12 +833,40 @@ function MaximumVorticityVariation(self)
 	MaximumVorticityVariation = maxVort - minVort
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Estimates the average edge length of a panel in Lagrangian coordinate space
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @return approximate edge length, \f$ \sqrt{4\pi R^2/N} \f$
+!---------------------------------------------------------------------------
 function AverageLagrangianParameterVariation(self)
 	real(kreal) :: AverageLagrangianParameterVariation
 	type(SphereMesh), intent(in) :: self
  	AverageLagrangianParameterVariation = sqrt( 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS / self%panels%N_Active )
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Finds the maximum Lagrangian coordinate variation over each panel in a SphereMesh
+!<
+!> @ingroup SphereMesh
+!
+!> @param[inout] self SphereMesh object
+!> @return maximum Lagrangian coordinate variation all panels
+!---------------------------------------------------------------------------
 function MaximumLagrangianParameterVariation(self)
 	real(kreal) :: MaximumLagrangianParameterVariation
 	type(SphereMesh), intent(in) :: self

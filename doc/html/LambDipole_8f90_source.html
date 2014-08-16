@@ -136,7 +136,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment">!</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="comment">! computation and error calculation variables</span></div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="comment">!</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="keywordtype">real(kreal)</span>, <span class="keywordtype">allocatable</span> :: totalke(:), <a class="code" href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(:), totalcirc(:)</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="keywordtype">real(kreal)</span>, <span class="keywordtype">allocatable</span> :: totalke(:), <a class="code" href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(:), totalcirc(:)</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment">!</span></div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment">! input / output variables</span></div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment">!</span></div>
@@ -231,14 +231,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;timesteps = floor(tfinal / dt)</div>
 <div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;remeshcounter = 0</div>
 <div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;<span class="keyword">allocate</span>(totalcirc(0:timesteps))</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;<span class="keyword">allocate</span>(<a class="code" href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(0:timesteps))</div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;<span class="keyword">allocate</span>(<a class="code" href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(0:timesteps))</div>
 <div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;<span class="keyword">allocate</span>(totalke(0:timesteps))</div>
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;totalcirc = 0.0_kreal</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;<a class="code" href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a> = 0.0_kreal</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;<a class="code" href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a> = 0.0_kreal</div>
 <div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;totalke = 0.0_kreal</div>
 <div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;</div>
 <div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;totalcirc(0) = <a class="code" href="classplanemeshmodule.html#ab1a7aa76744914e7f0ad8b247e4d3e36">gettotalcirculation</a>(mesh)</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;<a class="code" href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(0) = <a class="code" href="classplanemeshmodule.html#ae59615dc382b37d49e63179f18d0f1fd">gettotalenstrophy</a>(mesh)</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;<a class="code" href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(0) = <a class="code" href="classplanemeshmodule.html#ae59615dc382b37d49e63179f18d0f1fd">gettotalenstrophy</a>(mesh)</div>
 <div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;</div>
 <div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;<span class="comment">!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></div>
 <div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;<span class="comment">!   RUN THE PROBLEM</span></div>
@@ -306,7 +306,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    <span class="comment">! compute integral invariants</span></div>
 <div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    <span class="comment">!</span></div>
 <div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    totalcirc(timej+1) = <a class="code" href="classplanemeshmodule.html#ab1a7aa76744914e7f0ad8b247e4d3e36">gettotalcirculation</a>(mesh)</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    <a class="code" href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(timej+1) = <a class="code" href="classplanemeshmodule.html#ae59615dc382b37d49e63179f18d0f1fd">gettotalenstrophy</a>(mesh)</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    <a class="code" href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(timej+1) = <a class="code" href="classplanemeshmodule.html#ae59615dc382b37d49e63179f18d0f1fd">gettotalenstrophy</a>(mesh)</div>
 <div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    totalke(timej+1) = <a class="code" href="classplanemeshmodule.html#a2154fdcea3b754d6ad2545af3e584085">gettotalke</a>(mesh)</div>
 <div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    <span class="keywordflow">if</span> ( timej == 0 ) totalke(0) = totalke(timej+1)</div>
 <div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    <span class="comment">!</span></div>
@@ -330,7 +330,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    <span class="keywordflow">if</span> (writestat == 0 ) <span class="keywordflow">then</span></div>
 <div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;        <span class="keyword">write</span>(write_unit_1,<span class="stringliteral">&#39;(4A24)&#39;</span>) <span class="stringliteral">&#39;t &#39;</span>, <span class="stringliteral">&#39;totalCirc&#39;</span>, <span class="stringliteral">&#39;totalKE&#39;</span>, <span class="stringliteral">&#39;totalEns&#39;</span></div>
 <div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;        <span class="keywordflow">do</span> j = 0, timesteps</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;            <span class="keyword">write</span>(write_unit_1,<span class="stringliteral">&#39;(4F24.12)&#39;</span>) j*dt, totalcirc(j), totalke(j), <a class="code" href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(j)</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;            <span class="keyword">write</span>(write_unit_1,<span class="stringliteral">&#39;(4F24.12)&#39;</span>) j*dt, totalcirc(j), totalke(j), <a class="code" href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>(j)</div>
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;        <span class="keywordflow">enddo</span></div>
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;        call logmessage(exelog,error_logging_level,<span class="stringliteral">&#39;summaryFile ERROR : &#39;</span>,<span class="stringliteral">&#39;cannot open datafile.&#39;</span>)</div>
@@ -345,7 +345,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;<span class="comment">!   FREE MEMORY, CLEAN UP, FINALIZE</span></div>
 <div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="comment">!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></div>
 <div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="keyword">deallocate</span>(totalcirc)</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="keyword">deallocate</span>(<a class="code" href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>)</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="keyword">deallocate</span>(<a class="code" href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">totalenstrophy</a>)</div>
 <div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;<span class="keyword">deallocate</span>(totalke)</div>
 <div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;call delete(lamb)</div>
 <div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;call delete(mesh)</div>
@@ -443,6 +443,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;<span class="keyword">end subroutine</span></div>
 <div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;</div>
 <div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;<span class="keyword">end program</span></div>
+<div class="ttc" id="group__SphereMesh_html_ga3bbd7e4f63fe3cffaff0220681c612d4"><div class="ttname"><a href="group__SphereMesh.html#ga3bbd7e4f63fe3cffaff0220681c612d4">spheremeshmodule::totalenstrophy</a></div><div class="ttdeci">real(kreal) function, public totalenstrophy(self)</div><div class="ttdoc">Computes the total enstrophy over the sphere using midpoint rule quadrature. </div><div class="ttdef"><b>Definition:</b> <a href="SphereMesh2_8f90_source.html#l00620">SphereMesh2.f90:620</a></div></div>
 <div class="ttc" id="AdvectGaussHills_8f90_html_a08b68d3073505a61248131bca0b0dd4f"><div class="ttname"><a href="AdvectGaussHills_8f90.html#a08b68d3073505a61248131bca0b0dd4f">readnamelistfile</a></div><div class="ttdeci">subroutine readnamelistfile(rank)</div><div class="ttdef"><b>Definition:</b> <a href="AdvectGaussHills_8f90_source.html#l00366">AdvectGaussHills.f90:366</a></div></div>
 <div class="ttc" id="classpanelsmodule_html"><div class="ttname"><a href="classpanelsmodule.html">panelsmodule</a></div><div class="ttdef"><b>Definition:</b> <a href="Panels_8f90_source.html#l00001">Panels.f90:1</a></div></div>
 <div class="ttc" id="classrefineremeshmodule_html_a0439693b33ad6046443c9198279bb904"><div class="ttname"><a href="classrefineremeshmodule.html#a0439693b33ad6046443c9198279bb904">refineremeshmodule::initialrefinement</a></div><div class="ttdeci">subroutine, public initialrefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef, refineRelVort, updateVorticityOnMesh, vortDef)</div><div class="ttdef"><b>Definition:</b> <a href="RefineRemesh2_8f90_source.html#l00158">RefineRemesh2.f90:158</a></div></div>
@@ -451,7 +452,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="classplanevorticitymodule_html_aab0e291683ba215bdd68fb624f9dbcfe"><div class="ttname"><a href="classplanevorticitymodule.html#aab0e291683ba215bdd68fb624f9dbcfe">planevorticitymodule::initlambdipole</a></div><div class="ttdeci">subroutine, public initlambdipole(self, lambR, U0, xCent, yCent)</div><div class="ttdef"><b>Definition:</b> <a href="PlaneVorticity_8f90_source.html#l00185">PlaneVorticity.f90:185</a></div></div>
 <div class="ttc" id="classplanemeshmodule_html_a26426ed32e5f8a045d82ea725157a55b"><div class="ttname"><a href="classplanemeshmodule.html#a26426ed32e5f8a045d82ea725157a55b">planemeshmodule::maximumvorticityvariation</a></div><div class="ttdeci">real(kreal) function, public maximumvorticityvariation(self)</div><div class="ttdef"><b>Definition:</b> <a href="PlaneMesh_8f90_source.html#l00542">PlaneMesh.f90:542</a></div></div>
 <div class="ttc" id="classplanevorticitymodule_html_a8781b59d1db37580d3e49f91c06633a1"><div class="ttname"><a href="classplanevorticitymodule.html#a8781b59d1db37580d3e49f91c06633a1">planevorticitymodule::setlambdipoleonmesh</a></div><div class="ttdeci">subroutine, public setlambdipoleonmesh(aMesh, self)</div><div class="ttdef"><b>Definition:</b> <a href="PlaneVorticity_8f90_source.html#l00200">PlaneVorticity.f90:200</a></div></div>
-<div class="ttc" id="classspheremeshmodule_html_a3bbd7e4f63fe3cffaff0220681c612d4"><div class="ttname"><a href="classspheremeshmodule.html#a3bbd7e4f63fe3cffaff0220681c612d4">spheremeshmodule::totalenstrophy</a></div><div class="ttdeci">real(kreal) function, public totalenstrophy(self)</div><div class="ttdef"><b>Definition:</b> <a href="SphereMesh2_8f90_source.html#l00406">SphereMesh2.f90:406</a></div></div>
 <div class="ttc" id="LambDipole_8f90_html_a6161adb860849b6dc547a9f10fdf1ee9"><div class="ttname"><a href="LambDipole_8f90.html#a6161adb860849b6dc547a9f10fdf1ee9">storelagrangianxcoordinateintracer</a></div><div class="ttdeci">subroutine storelagrangianxcoordinateintracer(aMesh, tracerID)</div><div class="ttdef"><b>Definition:</b> <a href="LambDipole_8f90_source.html#l00336">LambDipole.f90:336</a></div></div>
 <div class="ttc" id="classplanemeshmodule_html_a2154fdcea3b754d6ad2545af3e584085"><div class="ttname"><a href="classplanemeshmodule.html#a2154fdcea3b754d6ad2545af3e584085">planemeshmodule::gettotalke</a></div><div class="ttdeci">real(kreal) function, public gettotalke(self)</div><div class="ttdef"><b>Definition:</b> <a href="PlaneMesh_8f90_source.html#l00494">PlaneMesh.f90:494</a></div></div>
 <div class="ttc" id="classplanemeshmodule_html_ab1a7aa76744914e7f0ad8b247e4d3e36"><div class="ttname"><a href="classplanemeshmodule.html#ab1a7aa76744914e7f0ad8b247e4d3e36">planemeshmodule::gettotalcirculation</a></div><div class="ttdeci">real(kreal) function, public gettotalcirculation(self)</div><div class="ttdef"><b>Definition:</b> <a href="PlaneMesh_8f90_source.html#l00475">PlaneMesh.f90:475</a></div></div>
@@ -477,7 +477,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Aug 15 2014 15:54:00 for Lagrangian Particle / Panel Methods (LPPM) by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Aug 15 2014 16:48:39 for Lagrangian Particle / Panel Methods (LPPM) by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.7
 </small></address>

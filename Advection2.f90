@@ -821,21 +821,36 @@ function MovingVorticesVelocity( xyz, t)
 	real(kreal) :: MovingVorticesVelocity(3)
 	real(kreal), intent(in) :: xyz(3), t
 	!
-	real(kreal) :: lamC, thetaC, u, v, lat, lon, rho, wr, lamP, thetaP
+	real(kreal) :: lat, lon, vortCenterLon, vortCenterLat, lonPrime, latPrime, rho, wr, u, v
 	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY)!, rho0 = 3.0_kreal
+	!
+	! find lat / lon of this particle, xyz
+	!
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
-	lamC = 1.5_kreal * PI + u0 * t
-	thetaC = 0.0_kreal
-	lamP = atan4( cos(lat)*sin(lon - lamC), cos(lat)*sin(thetaC)*cos(lon-lamC) - cos(thetaC)*sin(lat))
-	thetaP = asin( sin(lat)*sin(thetaC)*cos(lon-lamC)-cos(thetaC)*sin(lat))
-	!rho = rho0 * cos( thetaP )
-	rho = 3.0_kreal * cos( thetaP )
-
-	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) / cosh(rho) / cosh(rho) * ( rho / ( rho*rho + ZERO_TOL*ZERO_TOL))
-
-	u = u0 * cos(lat) + wr * ( sin(thetaC)*cos(lat) - cos(thetaC)*cos(lon-lamC)*sin(lat))
-	v = wr * cos(thetaC)*sin(lon-lamC)
+	!
+	! find position of vortex center at time t
+	!
+	!vortCenterLon = 1.5_kreal * PI + u0 * t
+	!vortCenterLat = 0.0_kreal
+	vortCenterLon = 0.0_kreal
+	vortCenterLat = PI/2.0_kreal
+	!
+	! Find coordinates of xyz in a coordinate system whose north pole is at the vortex location
+	!
+	lonPrime = atan4( cos(lat)*sin( lon - vortCenterLon),  cos(lat)*sin(vortCenterLat)*cos( lon - vortCenterLon) - cos(vortCenterLat)*sin(lat) )
+	latPrime = asin( sin(lat)*sin(vortCenterLat) + cos(lat)*cos(vortCenterLat)*cos( lon - vortCenterLon ) )
+	!
+	! Determine angular tangential velocity induced by vortex about its center
+	!
+	rho = 3.0_kreal * cos( lat )
+	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / (cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
+	!
+	! Set velocities of particle at xyz at time t
+	!
+	!u = u0 * cos(lat) +  wr * ( sin(vortCenterLat)*cos(lat) - cos(vortCenterLat)*sin(lat)*cos( lon-vortCenterLon) )
+	u = wr * ( sin( vortCenterLat)*cos(lat) - cos(vortCenterLat)*sin(lat)*cos( lon - vortCenterLon) )
+	v = wr * cos(vortCenterLat) * sin( lon - vortCenterLon )
 
 	MovingVorticesVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
 	MovingVorticesVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)

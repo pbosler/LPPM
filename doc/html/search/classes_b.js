@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['tracersetupmodule',['tracersetupmodule',['../classtracersetupmodule.html',1,'']]]
+  ['movingleastsquaresmodule',['movingleastsquaresmodule',['../classmovingleastsquaresmodule.html',1,'']]]
 ];
