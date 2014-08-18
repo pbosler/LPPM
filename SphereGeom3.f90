@@ -54,6 +54,15 @@ contains
 ! Basic geometry : length, area, coordinates, etc.
 !----------------
 
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Euclidean distance between two points on the sphere
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @return Distance double precision real, straight-line distance between xyzA and xyzB
 function ChordDistance(xyzA, xyzB)
 	! Outputs the Euclidean distance between two points in R3.
 	! Units of length
@@ -62,7 +71,16 @@ function ChordDistance(xyzA, xyzB)
 	ChordDistance = sqrt( sum( (xyzB - xyzA)*(xyzB-xyzA) ) )
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Great-circle distance between two points in the plane
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @return Distance double precision real, great-circle distance between xyzA and xyzB
+!------------------------------------------------------------------------------
 function SphereDistanceVector( xyzA, xyzB )
 ! Finds the great circle distance between two points (xyzA and xyzB) on the sphere
 ! Units of length
@@ -83,7 +101,20 @@ function SphereDistanceVector( xyzA, xyzB )
     SphereDistanceVector = atan2(crossNorm,dotProd)*EARTH_RADIUS
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Great-circle distance between two points in the plane
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xA double precision real  
+!> @param[in] yA double precision real 
+!> @param[in] zA
+!> @param[in] xB
+!> @param[in] yB
+!> @param[in] zB
+!> @return Distance double precision real, great-circle distance between xyzA and xyzB
+!------------------------------------------------------------------------------
 function SphereDistanceComponents(xA, yA, zA, xB, yB, zB)
 ! Finds the great circle distance between two points (xyzA and xyzB) on the sphere
 ! Units of length
@@ -103,6 +134,16 @@ function SphereDistanceComponents(xA, yA, zA, xB, yB, zB)
 	SphereDistanceComponents = atan2(cpNorm,dp)*EARTH_RADIUS
 end function
 
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief central angle between two points in the plane
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @return Distance double precision real, angular separation between xyzA and xyzB
+!------------------------------------------------------------------------------
 function SphereArcLengthVector(xyzA, xyzB)
 ! returns the arc length between two vectors on the surface of a sphere.
 ! dimensionless (angle)
@@ -123,6 +164,20 @@ function SphereArcLengthVector(xyzA, xyzB)
     SphereArcLengthVector = atan2(crossNorm,dotProd)
 end function
 
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief central angle between two points in the plane
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xA double precision real  
+!> @param[in] yA double precision real 
+!> @param[in] zA
+!> @param[in] xB
+!> @param[in] yB
+!> @param[in] zB
+!> @return Distance double precision real, angular separation between xyzA and xyzB
+!------------------------------------------------------------------------------
 function SphereArcLengthComponents(xA, yA, zA, xB, yB, zB)
 ! dimensionless (angle)
 	real(kreal), intent(in) :: xA, yA, zA
@@ -141,7 +196,15 @@ function SphereArcLengthComponents(xA, yA, zA, xB, yB, zB)
 	SphereArcLengthComponents = atan2(cpNorm,dp)
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief central angle between two points in the plane
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyz double precision real size(3); vector on the sphere
+!> @return northward-pointing unit vector at position xyz
+!------------------------------------------------------------------------------
 function LatUnitVector(xyz)
 !	Returns the latitudinal unit vector at the point xyz
 	real(kreal) :: LatUnitVector(3)
@@ -158,6 +221,15 @@ function LatUnitVector(xyz)
 	endif
 end function
 
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief central angle between two points in the plane
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyz double precision real size(3); vector on the sphere
+!> @return eastward-pointing unit vector at position xyz
+!-----------------------------------------------------------------------------
 function LonUnitVector(xyz)
 !	Returns the Longitudinal unit vector at the point xyz
 	real(kreal) :: LonUnitVector(3)
@@ -174,7 +246,16 @@ function LonUnitVector(xyz)
 	endif
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief midpoint of a great-circle segment connecting two points on the sphere
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @return Midpoint vector
+!------------------------------------------------------------------------------
 function SphereMidpoint(xyzA, xyzB)
 ! Finds the midpoint of two points on the sphere by finding the midpoint of the chord
 ! connecting the two points, then projecting the chord midpoint to the sphere.
@@ -186,6 +267,17 @@ function SphereMidpoint(xyzA, xyzB)
 	SphereMidpoint = SphereMidpoint/sqrt(sum(sphereMidpoint*sphereMidpoint))*EARTH_RADIUS
 end function
 
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the centroid of a spherical triangle defined by three vertices
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @param[in] xyzC double precision real size(3); vector on the sphere
+!> @return centroid vector
+!------------------------------------------------------------------------------
 function SphereTriCenter(xyzA, xyzB, xyzC)
 ! Finds the midpoint of three points on the sphere by find their average position in Cartesian
 ! coordinates, then projecting that average onto the sphere.
@@ -197,7 +289,18 @@ function SphereTriCenter(xyzA, xyzB, xyzC)
 	SphereTriCenter = SphereTriCenter/sqrt(sum(sphereTriCenter*sphereTriCenter))*EARTH_RADIUS
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the centroid of a spherical quadrilateral defined by four vertices
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @param[in] xyzC double precision real size(3); vector on the sphere
+!> @param[in] xyzD double precision real size(3); vector on the sphere
+!> @return centroid vector
+!------------------------------------------------------------------------------
 function SphereQuadCenter(xyzA, xyzB, xyzC, xyzD)
 ! Finds the midpoint of four points on the sphere by finding their average position in
 ! Cartesian coordinates, then projecting that average onto the sphere.
@@ -209,7 +312,17 @@ function SphereQuadCenter(xyzA, xyzB, xyzC, xyzD)
 	SphereQuadCenter = SphereQuadCenter/sqrt(sum(sphereQuadCenter*sphereQuadCenter))*EARTH_RADIUS
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the area of a spherical triangle defined by three vertices
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @param[in] xyzC double precision real size(3); vector on the sphere
+!> @return scalar area
+!------------------------------------------------------------------------------
 function SphereTriAreaVector(xyzA, xyzB, xyzC)
 ! Calculates the area of a spherical triangle on the unit sphere
 !   NOTE : This function requires function sphereDistance.
@@ -231,7 +344,23 @@ function SphereTriAreaVector(xyzA, xyzB, xyzC)
 	SphereTriAreaVector = 4.0_KREAL * atan2(sqrt(zz),1.0_KREAL)*EARTH_RADIUS*EARTH_RADIUS
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the area of a spherical triangle defined by three vertices
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xA double precision real  
+!> @param[in] yA double precision real 
+!> @param[in] zA
+!> @param[in] xB
+!> @param[in] yB
+!> @param[in] zB
+!> @param[in] xC
+!> @param[in] yC
+!> @param[in] zC
+!> @return scalar area
+!------------------------------------------------------------------------------
 function SphereTriAreaComponents(xa,ya,za, xb,yb,zb, xc,yc,zc)
 	real(kreal), intent(in) :: xa,ya,za
 	real(kreal), intent(in) :: xb,yb,zb
@@ -251,7 +380,17 @@ function SphereTriAreaComponents(xa,ya,za, xb,yb,zb, xc,yc,zc)
 end function
 
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the area of a planar triangle defined by three vertices
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3); vector on the sphere
+!> @param[in] xyzB double precision real size(3); vector on the sphere
+!> @param[in] xyzC double precision real size(3); vector on the sphere
+!> @return scalar area
+!------------------------------------------------------------------------------
 function PlaneTriArea(xyzA,xyzB,xyzC)
 	! Outputs the area of a planar triangle in R3 with vertices xyzA,B,C.
 	real(kreal) :: PlaneTriArea
@@ -259,7 +398,15 @@ function PlaneTriArea(xyzA,xyzB,xyzC)
 	PlaneTriArea = crossMagnitude( xyzB-xyzA, xyzC-xyzA)/2.0_kreal
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the longitude of a point on the sphere
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
+!> @return Longitude of xyz
+!------------------------------------------------------------------------------
 function longitudeVector(xyz)
 	! Outputs the longitude of a point on the sphere.
 	real(KREAL) :: longitudeVector
@@ -267,21 +414,45 @@ function longitudeVector(xyz)
 	longitudeVector = atan4(xyz(2),xyz(1))
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the longitude of a point on the sphere
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
+!> @return Longitude of xyz
+!------------------------------------------------------------------------------
 function LongitudeComponents(x,y,z)
 	real(kreal), intent(in) :: x, y, z
 	real(kreal) :: LongitudeComponents
 	LongitudeComponents = atan4(y,x)
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the longitude of a point on the sphere
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
+!> @return Longitude of xyz
+!------------------------------------------------------------------------------
 function LongitudeComponents2(x,y)
 	real(kreal), intent(in) :: x, y
 	real(kreal) :: LongitudeComponents2
 	LongitudeCOmponents2 = atan4(y,x)
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the latitude of a point on the sphere
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
+!> @return Latitude of xyz
+!------------------------------------------------------------------------------
 function latitudeVector(xyz)
 	! Outputs the latitude of a point on the unit sphere.
 	real(KREAL) :: latitudeVector
@@ -289,14 +460,31 @@ function latitudeVector(xyz)
 	latitudeVector = atan2(xyz(3),sqrt(xyz(1)**2 + xyz(2)**2))
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Finds the latitude of a point on the sphere
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
+!> @return Latitude of xyz
+!------------------------------------------------------------------------------
 function LatitudeComponents(x,y,z)
 	real(kreal), intent(in) :: x, y, z
 	real(kreal) :: LatitudeComponents
 	LatitudeComponents = atan2(z,sqrt(x*x+y*y))
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief A 4-quadrant inverse tangent function with range 0 to 2*pi instead of -pi to pi.
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] y double precision real
+!> @param[in] x double precision real
+!> @return atan(y/x) in range 0 to 2*pi
+!------------------------------------------------------------------------------
 function atan4(y,x)
 	!This function computes the inverse tangent (like atan2) but outputs angles in the range
 	! 0 to 2 pi (rather than -pi to pi).
@@ -334,7 +522,16 @@ function atan4(y,x)
 	endif
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Magnitude of the vector xyzA X xyzB
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3)
+!> @param[in] xyzB double precision real size(3)
+!> @return |xyzA x xyzB|
+!------------------------------------------------------------------------------
 function crossMagnitude(xyzA,xyzB)
 	! Computes the magnitude of xyzA cross xyzB
 	real(kreal) :: crossMagnitude
@@ -344,7 +541,16 @@ function crossMagnitude(xyzA,xyzB)
 	   					   (xyzA(1)*xyzB(2) - xyzA(2)*xyzB(1))*(xyzA(1)*xyzB(2) - xyzA(2)*xyzB(1)))
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Computes a vector cross product 
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xyzA double precision real size(3)
+!> @param[in] xyzB double precision real size(3)
+!> @return xyzA x xyzB double precision real size(3)
+!------------------------------------------------------------------------------
 function crossProduct(xyzA,xyzB)
 	! Computes the cross product vector xyzA cross xyzB
 	real(kreal) :: crossProduct(3)
@@ -354,6 +560,17 @@ function crossProduct(xyzA,xyzB)
 	crossProduct(3) = xyzA(1)*xyzB(2) - xyzA(2)*xyzB(1)
 end function
 
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Computes a vector triple product
+!
+!> @ingroup SphereGeom
+!
+!> @param[in] xA double precision real size(3)
+!> @param[in] xB double precision real size(3)
+!> @param[in] xC double precision real size(3)
+!> @return \f$ x_A \cdot (x_b \times x_c) $\f double precision real size(3)
+!------------------------------------------------------------------------------
 function Determinant(xA,xB,xC)
 	! Computes the vector determinant (triple product) of xA, xB, and xC
 	! This result will be positive if xA lies to the left of the directed arc
@@ -365,7 +582,14 @@ function Determinant(xA,xB,xC)
 	Determinant = sum(xA*cross)
 end function
 
-
+!------------------------------------------------------------------------------
+!> @author Peter Bosler
+!> @brief Generates a random point on the surface of a sphere
+!
+!> @ingroup SphereGeom
+!
+!> @return random vector satisfying x^2 + y^2 + z^2 = R^2
+!------------------------------------------------------------------------------
 function RandomSpherePoint()
 	! Outputs a random point on the unit sphere.
 	! Note : the seed is not initialized, so each sequence of

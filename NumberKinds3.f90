@@ -8,6 +8,7 @@ module NumberKindsModule
 !
 !> @defgroup NumberKinds Number kinds module
 !> Defines numerical constants for use by all other LPPM modules and executables.
+!> 
 !
 !
 ! DESCRIPTION:
@@ -19,20 +20,20 @@ module NumberKindsModule
 	public
 
 	! Type Constants
-	integer, parameter :: KREAL = kind(0.d0)   ! double precision reals
-	integer, parameter :: KINT = kind(1)	   ! default integer size
-	integer, parameter :: KLOG = kind(.TRUE.)  ! default logical size
+	integer, parameter :: KREAL = kind(0.d0)   !> @var compiler generated kind for double precision reals 
+	integer, parameter :: KINT = kind(1)	   !> @var compiler generated kind for default integer
+	integer, parameter :: KLOG = kind(.TRUE.)  !> @var compiler generated kind logical
 
-	real(KREAL), parameter :: ZERO_TOL = 1.0d-14 ! zero tolerance for real numbers
+	real(KREAL), parameter :: ZERO_TOL = 1.0d-14 !> @var zero tolerance for real numbers
 
 	! Physical constants
-	real(KREAL), parameter :: PI = 3.1415926535897932384626433832795027975_KREAL, & ! Pi
-							  RAD_2_DEG = 180.0_kreal/PI, & ! convert radians to degrees
-							  GRAV = 9.80616, & ! {m s^(-2)} acceleration due to gravity
-							  ONE_DAY = 86140.0_kreal, & ! {s} Earth's sidereal day
-							  EARTH_RADIUS = 6371220_kreal ! { m }
+	real(KREAL), parameter :: PI = 3.1415926535897932384626433832795027975_KREAL, & !> @var Pi
+							  RAD_2_DEG = 180.0_kreal/PI, & !> @var convert radians to degrees
+							  GRAV = 9.80616, & !> @var {m s^(-2)} acceleration due to gravity
+							  ONE_DAY = 86140.0_kreal, & !> @var {s} Earth's sidereal day
+							  EARTH_RADIUS = 6371220_kreal !> @var { m }
 
-    real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  ! {s^(-1)} rotation rate of sphere
+    real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  !>@var {s^(-1)} rotation rate of sphere
 
 
 	! I/O Constants
