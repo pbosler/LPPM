@@ -795,11 +795,11 @@ function TestCase1Velocity(xyz,t)
 ! solid-body rotation wind field from Williamson, Drake, Hack, Jakob, and Swarztrauber, JCP, 1992
 	real(kreal), intent(in) :: xyz(3), t
 	real(kreal) :: TestCase1Velocity(3)
-	real(kreal), parameter :: u0 = 2.0_kreal*PI/(12.0_kreal*ONE_DAY)
+	!real(kreal), parameter :: u0 = 2.0_kreal*PI/(12.0_kreal*ONE_DAY)
 
-	TestCase1Velocity(1) = -u0*xyz(2)*cos(alpha)
-	TestCase1Velocity(2) =  u0*(xyz(1)*cos(alpha) - xyz(3)*sin(alpha))
-	TestCase1Velocity(3) =  u0*xyz(2)*sin(alpha)
+	TestCase1Velocity(1) = -OMEGA*xyz(2)*cos(alpha)
+	TestCase1Velocity(2) =  OMEGA*(xyz(1)*cos(alpha) - xyz(3)*sin(alpha))
+	TestCase1Velocity(3) =  OMEGA*xyz(2)*sin(alpha)
 end function
 
 !---------------------------------------------------------------------------
@@ -821,7 +821,7 @@ function MovingVorticesVelocity( xyz, t)
 	real(kreal) :: MovingVorticesVelocity(3)
 	real(kreal), intent(in) :: xyz(3), t
 	!
-	real(kreal) :: lat, lon, vortCenterLon, vortCenterLat, lonPrime, latPrime, rho, wr, u, v
+	real(kreal) :: lat, lon, vortCenterLon, vortCenterLat, lonPrime, latPrime, rho, awr, u, v
 	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY)!, rho0 = 3.0_kreal
 	!
 	! find lat / lon of this particle, xyz
@@ -831,10 +831,8 @@ function MovingVorticesVelocity( xyz, t)
 	!
 	! find position of vortex center at time t
 	!
-	!vortCenterLon = 1.5_kreal * PI + u0 * t
-	!vortCenterLat = 0.0_kreal
-	vortCenterLon = 0.0_kreal
-	vortCenterLat = PI/2.0_kreal
+	vortCenterLon = 1.5_kreal*PI + OMEGA * t / 12.0_kreal
+	vortCenterLat = 0.0_kreal
 	!
 	! Find coordinates of xyz in a coordinate system whose north pole is at the vortex location
 	!
@@ -843,17 +841,16 @@ function MovingVorticesVelocity( xyz, t)
 	!
 	! Determine angular tangential velocity induced by vortex about its center
 	!
-	rho = 3.0_kreal * cos( lat )
-	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / (cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
+	rho = 3.0_kreal * cos( latPrime )
+	awr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / (cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
 	!
-	! Set velocities of particle at xyz at time t
+	! Set velocities due to vortex
 	!
-	!u = u0 * cos(lat) +  wr * ( sin(vortCenterLat)*cos(lat) - cos(vortCenterLat)*sin(lat)*cos( lon-vortCenterLon) )
-	u = wr * ( sin( vortCenterLat)*cos(lat) - cos(vortCenterLat)*sin(lat)*cos( lon - vortCenterLon) )
-	v = wr * cos(vortCenterLat) * sin( lon - vortCenterLon )
+	u = awr * ( sin( vortCenterLat)*cos(lat) - cos(vortCenterLat)*sin(lat)*cos( lon - vortCenterLon) )
+	v = awr * cos(vortCenterLat) * sin( lon - vortCenterLon )
 
-	MovingVorticesVelocity(1) = -u*sin(lon) - v*sin(lat)*cos(lon)
-	MovingVorticesVelocity(2) =  u*cos(lon) - v*sin(lat)*sin(lon)
+	MovingVorticesVelocity(1) = -OMEGA*xyz(2)/12.0_kreal - u*sin(lon) - v*sin(lat)*cos(lon)
+	MovingVorticesVelocity(2) =  OMEGA*xyz(1)/12.0_kreal + u*cos(lon) - v*sin(lat)*sin(lon)
 	MovingVorticesVelocity(3) =  v*cos(lat)
 end function
 

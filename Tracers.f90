@@ -33,7 +33,7 @@ public New, Delete, NullTracer
 public InitCosineBellTracer, SetCosineBellTracerOnMesh, COS_BELL_NINT, COS_BELL_NREAL
 public SetFlowMapLatitudeTracerOnMesh
 public InitGaussianHillsTracer, SetGaussianHillsTracerOnMesh, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL
-public SetMovingVortsTracerOnMesh
+public InitMovingVortsTracer, SetMovingVortsTracerOnMesh
 public InitOneGaussianHillTracer, SetOneGaussianHillTracerOnMesh
 public TracerVariance
 
@@ -160,6 +160,15 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 	enddo
 end subroutine
 
+subroutine InitMovingVortsTracer(mvTracer, initLon, initLat, tracerID)
+	type(TracerSetup), intent(inout) :: mvTracer
+	real(kreal), intent(in) :: initLon, initLat
+	integer(kint), intent(in) :: tracerID
+	mvTracer%reals(1) = initLon
+	mvTracer%reals(2) = initLat
+	mvTracer%integers(1) = tracerID
+end subroutine
+
 subroutine SetMovingVortsTracerOnMesh( aMesh, mvt)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(TracerSetup), intent(in) :: mvt
@@ -167,31 +176,43 @@ subroutine SetMovingVortsTracerOnMesh( aMesh, mvt)
 	integer(kint) :: j
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
-	real(kreal) :: rho0, gamma, rho, wr, lat, lon, v0
-
+	real(kreal) :: vortStartingLon, vortStartingLat
+	integer(kint) :: tracerID
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
 
-	rho0 = 3.0_kreal
-	gamma = 5.0_kreal
-	v0 = 2.0_kreal * PI * EARTH_RADIUS / (12.0_kreal * ONE_DAY)
+!	vortStartingLon = mvt%reals(1)
+!	vortStartingLat = mvt%reals(1)
+	vortStartingLon = 1.5_kreal * PI
+	vortStartingLat = 0.0_kreal
+	tracerID = mvt%integers(1)
 
 	do j = 1, aParticles%N
-		aParticles%tracer(j, 1 ) = MVTracer(aParticles%x0(:,j), rho0, gamma)
+		aParticles%tracer(j, tracerID ) = MVTracerAtT0(aParticles%x0(:,j), vortStartingLon, vortStartingLat)
 	enddo
 	do j = 1, aPanels%N
 		if ( aPanels%hasChildren(j) ) then
-			aPanels%tracer(j,mvt%integers(1)) = 0.0_kreal
+			aPanels%tracer(j, tracerID ) = 0.0_kreal
 		else
-			aPanels%tracer(j, 1 ) = MVTracer(aPanels%x0(:,j), rho0, gamma)
+			aPanels%tracer(j, tracerID ) = MVTracerAtT0(aPanels%x0(:,j), vortStartingLon, vortStartingLat)
 		endif
 	enddo
 end subroutine
 
-function MVTracer(xyz, rho0, gamma)
-	real(kreal) :: MVTracer
-	real(kreal), intent(in) :: xyz(3), rho0, gamma
-	MVTracer = 1.0_kreal - tanh( rho0 * cos(Latitude(xyz)) * sin( Longitude(xyz) ) / gamma )
+function MVTracerAtT0(xyz, vortStartingLon, vortStartingLat )
+	real(kreal) :: MVTracerAtT0
+	real(kreal), intent(in) :: xyz(3), vortStartingLon, vortStartingLat
+	real(kreal) :: rho, lonPrime, latPrime, lon, lat
+
+	lon = Longitude(xyz)
+	lat = Latitude(xyz)
+
+	lonPrime = atan4( cos(lat)*sin( lon - vortStartingLon),  cos(lat)*sin(vortStartingLat)*cos( lon - vortStartingLon) - cos(vortStartingLat)*sin(lat) )
+	latPrime = asin( sin(lat)*sin(vortStartingLat) + cos(lat)*cos(vortStartingLat)*cos( lon - vortStartingLon ) )
+
+	rho = 3.0_kreal * cos(latPrime)
+
+	MVTracerAtT0 = 1.0_kreal - tanh( 0.2_kreal * rho * sin( lonPrime ) )
 end function
 
 subroutine InitOneGaussianHillTracer(gHill, hMax, beta, tracerID)

@@ -1,13 +1,7 @@
 var searchData=
 [
-  ['nbcnt',['NBCNT',['../interfacenbcnt____genmod_1_1NBCNT.html',1,'nbcnt__genmod']]],
-  ['nbcnt',['nbcnt',['../interfacenbcnt____genmod_1_1NBCNT.html#a31c3527497cfe31e8feb49b09b04b452',1,'nbcnt__genmod::NBCNT::nbcnt()'],['../stripack_8f.html#ac6462118b76690f96b213cdd9c4c35bd',1,'nbcnt():&#160;stripack.f']]],
-  ['nbcnt_5f_5fgenmod',['nbcnt__genmod',['../classnbcnt____genmod.html',1,'']]],
-  ['nbcnt_5f_5fgenmod_2ef90',['nbcnt__genmod.f90',['../nbcnt____genmod_8f90.html',1,'']]],
-  ['nearnd',['nearnd',['../interfacenearnd____genmod_1_1NEARND.html#a78c6c6d6c9d9a3fc2ecae4f4be9df010',1,'nearnd__genmod::NEARND::nearnd()'],['../stripack_8f.html#a71c559853737cc7edb49f7ccf4ae39f3',1,'nearnd():&#160;stripack.f']]],
-  ['nearnd',['NEARND',['../interfacenearnd____genmod_1_1NEARND.html',1,'nearnd__genmod']]],
-  ['nearnd_5f_5fgenmod',['nearnd__genmod',['../classnearnd____genmod.html',1,'']]],
-  ['nearnd_5f_5fgenmod_2ef90',['nearnd__genmod.f90',['../nearnd____genmod_8f90.html',1,'']]],
+  ['nbcnt',['nbcnt',['../stripack_8f.html#ac6462118b76690f96b213cdd9c4c35bd',1,'stripack.f']]],
+  ['nearnd',['nearnd',['../stripack_8f.html#a71c559853737cc7edb49f7ccf4ae39f3',1,'stripack.f']]],
   ['nonlinearsteadyswe',['nonlinearsteadyswe',['../SWETestCase2_8f90.html#aee0117c4e9164b107e5cfaf76d252dfc',1,'SWETestCase2.f90']]],
   ['normalizepositionvectors',['normalizepositionvectors',['../classspheregeommodule.html#a2e5b9715107e0f318ee509592092ecbd',1,'spheregeommodule']]],
   ['null_5frefine',['null_refine',['../classrefineremeshmodule.html#a886ebca459697b07b2016e2760626483',1,'refineremeshmodule']]],

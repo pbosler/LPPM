@@ -93,6 +93,9 @@ Functions/Subroutines</h2></td></tr>
 <tr class="memitem:ga7e822ca8c1c2f3dbb84c1677b73b01d8"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__SphereMesh.html#ga7e822ca8c1c2f3dbb84c1677b73b01d8">spheremeshmodule::renormalize</a> (self)</td></tr>
 <tr class="memdesc:ga7e822ca8c1c2f3dbb84c1677b73b01d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets position vector of all particles in SphereMesh object to satisfy x^2 + y^2 + z^2 = R^2.  <a href="#ga7e822ca8c1c2f3dbb84c1677b73b01d8">More...</a><br /></td></tr>
 <tr class="separator:ga7e822ca8c1c2f3dbb84c1677b73b01d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7e2d1d284ff59b890c4e2cbe2bc7106c"><td class="memItemLeft" align="right" valign="top">integer(kint) function, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__SphereMesh.html#ga7e2d1d284ff59b890c4e2cbe2bc7106c">spheremeshmodule::countsubtriangles</a> (self)</td></tr>
+<tr class="memdesc:ga7e2d1d284ff59b890c4e2cbe2bc7106c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Counts the number of subtriangles in a SphereMesh.  <a href="#ga7e2d1d284ff59b890c4e2cbe2bc7106c">More...</a><br /></td></tr>
+<tr class="separator:ga7e2d1d284ff59b890c4e2cbe2bc7106c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8a8a47063a070aa34913a6ecffd90e62"><td class="memItemLeft" align="right" valign="top">subroutine, public&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__SphereMesh.html#ga8a8a47063a070aa34913a6ecffd90e62">spheremeshmodule::resetspherearea</a> (self)</td></tr>
 <tr class="memdesc:ga8a8a47063a070aa34913a6ecffd90e62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets area of all panels in SphereMesh.  <a href="#ga8a8a47063a070aa34913a6ecffd90e62">More...</a><br /></td></tr>
 <tr class="separator:ga8a8a47063a070aa34913a6ecffd90e62"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -167,7 +170,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>approximate edge length, <img class="formulaInl" alt="$ \sqrt{4\pi R^2/N} $" src="form_9.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00820">820</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00850">850</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>Referenced by <a class="el" href="BVERH4_8f90_source.html#l00457">converttorelativetolerances()</a>.</p>
 
@@ -228,9 +231,39 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00395">395</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00425">425</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>References <a class="el" href="Panels_8f90_source.html#l00458">panelsmodule::getpanelkind()</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ga7e2d1d284ff59b890c4e2cbe2bc7106c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">integer(kint) function, public spheremeshmodule::countsubtriangles </td>
+          <td>(</td>
+          <td class="paramtype">type(spheremesh), intent(in)&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Counts the number of subtriangles in a SphereMesh. </p>
+<dl class="section author"><dt>Author</dt><dd>Peter Bosler </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">self</td><td>SphereMesh object </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>integer number of subtriangles in a SphereMesh </dd></dl>
+
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00367">367</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+
+<p>References <a class="el" href="PlaneMesh_8f90_source.html#l00353">planemeshmodule::ccwedgesandparticlesaroundpanel()</a>.</p>
 
 </div>
 </div>
@@ -258,7 +291,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Rossby Number Ro, double precision real </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00567">567</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00597">597</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>Referenced by <a class="el" href="BVESingleGaussianVortex_8f90_source.html#l00001">bvegaussvort()</a>, and <a class="el" href="BVERH4_8f90_source.html#l00001">rh4wave()</a>.</p>
 
@@ -299,7 +332,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>integer pointer to panel that contains xyz </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00652">652</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00682">682</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>References <a class="el" href="PlaneMesh_8f90_source.html#l00443">planemeshmodule::locatepoint()</a>.</p>
 
@@ -329,7 +362,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>maximum absolute value of circulation over each panel, <img class="formulaInl" alt="$ \max_k |\zeta_k|A_k $" src="form_5.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00711">711</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00741">741</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>References <a class="el" href="PlaneMesh_8f90_source.html#l00508">planemeshmodule::maximumcirculation()</a>.</p>
 
@@ -359,7 +392,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>maximum Lagrangian coordinate variation all panels </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00840">840</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00870">870</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>References <a class="el" href="PlaneMesh_8f90_source.html#l00353">planemeshmodule::ccwedgesandparticlesaroundpanel()</a>, <a class="el" href="PlaneMesh_8f90_source.html#l00559">planemeshmodule::maximumlagrangianparametervariation()</a>, and <a class="el" href="SphereGeom3_8f90_source.html#l00189">spheregeommodule::spheretricenter()</a>.</p>
 
@@ -399,7 +432,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>maximum tracer mass contained in a panel over a SphereMesh, , <img class="formulaInl" alt="$ \max_k \phi_k A_k - \min_k \phi_k A_k $" src="form_6.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00734">734</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00764">764</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>References <a class="el" href="PlaneMesh_8f90_source.html#l00517">planemeshmodule::maximumtracermass()</a>.</p>
 
@@ -440,7 +473,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>maximum tracer variation over the sphere , <img class="formulaInl" alt="$ \max_S \phi - \min_S\phi $" src="form_7.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00757">757</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00787">787</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>References <a class="el" href="PlaneMesh_8f90_source.html#l00527">planemeshmodule::maximumtracervariation()</a>.</p>
 
@@ -470,7 +503,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>maximum relative vorticity variation over the sphere, <img class="formulaInl" alt="$ \max_S \zeta - \min_S\zeta $" src="form_8.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00789">789</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00819">819</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>References <a class="el" href="PlaneMesh_8f90_source.html#l00542">planemeshmodule::maximumvorticityvariation()</a>.</p>
 
@@ -528,7 +561,7 @@ Functions/Subroutines</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00365">365</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00395">395</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 </div>
 </div>
@@ -557,7 +590,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>double precsion real, <img class="formulaInl" alt="$ \int_S \omega \, dA \approx \sum_{k=1}^N \omega_k A_k $" src="form_1.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00501">501</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00531">531</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 </div>
 </div>
@@ -586,7 +619,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>double precsion real, <img class="formulaInl" alt="$ \int_S \zeta^2 \, dA \approx \sum_{k=1}^N \zeta_k^2 A_k $" src="form_4.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00620">620</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00650">650</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>Referenced by <a class="el" href="BVESingleGaussianVortex_8f90_source.html#l00001">bvegaussvort()</a>, <a class="el" href="LambDipole_8f90_source.html#l00001">lambtest()</a>, <a class="el" href="ReversibleDipoles_8f90_source.html#l00001">reversibledipolesmain()</a>, <a class="el" href="BVERH4_8f90_source.html#l00001">rh4wave()</a>, and <a class="el" href="TwoDipoles_8f90_source.html#l00001">twodipolesmain()</a>.</p>
 
@@ -627,7 +660,7 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>double precsion real, <img class="formulaInl" alt="$ \int_S \phi \, dA \approx \sum_{k=1}^N \phi_k A_k $" src="form_0.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00470">470</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00500">500</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 <p>Referenced by <a class="el" href="BVESingleGaussianVortex_8f90_source.html#l00001">bvegaussvort()</a>, <a class="el" href="AdvectGaussHills_8f90_source.html#l00001">gaussianhillsadvection()</a>, <a class="el" href="AdvectGaussHillsDirect_8f90_source.html#l00001">gaussianhillsadvectiondirect()</a>, <a class="el" href="AdvectionCascade_8f90_source.html#l00001">kentcascadeadvection()</a>, <a class="el" href="AdvectMovingVortices_8f90_source.html#l00001">movingvorticesadvection()</a>, and <a class="el" href="PlaneRotationalAdvection_8f90_source.html#l00001">planerotateadvection()</a>.</p>
 
@@ -658,14 +691,14 @@ Functions/Subroutines</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>double precsion real, <img class="formulaInl" alt="$ \int_S \zeta \, dA \approx \sum_{k=1}^N \zeta_k A_k $" src="form_3.png"/> </dd></dl>
 
-<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00588">588</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
+<p>Definition at line <a class="el" href="SphereMesh2_8f90_source.html#l00618">618</a> of file <a class="el" href="SphereMesh2_8f90_source.html">SphereMesh2.f90</a>.</p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Aug 15 2014 16:48:40 for Lagrangian Particle / Panel Methods (LPPM) by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Aug 15 2014 19:35:09 for Lagrangian Particle / Panel Methods (LPPM) by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.7
 </small></address>

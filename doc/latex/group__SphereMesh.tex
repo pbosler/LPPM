@@ -11,6 +11,8 @@ Combines primitives (particles, edges, and panels) to form spherical mesh object
 \item 
 subroutine, public \hyperlink{group__SphereMesh_ga7e822ca8c1c2f3dbb84c1677b73b01d8}{spheremeshmodule\+::renormalize} (self)
 \begin{DoxyCompactList}\small\item\em Resets position vector of all particles in Sphere\+Mesh object to satisfy x$^\wedge$2 + y$^\wedge$2 + z$^\wedge$2 = R$^\wedge$2. \end{DoxyCompactList}\item 
+integer(kint) function, public \hyperlink{group__SphereMesh_ga7e2d1d284ff59b890c4e2cbe2bc7106c}{spheremeshmodule\+::countsubtriangles} (self)
+\begin{DoxyCompactList}\small\item\em Counts the number of subtriangles in a Sphere\+Mesh. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{group__SphereMesh_ga8a8a47063a070aa34913a6ecffd90e62}{spheremeshmodule\+::resetspherearea} (self)
 \begin{DoxyCompactList}\small\item\em Resets area of all panels in Sphere\+Mesh. \end{DoxyCompactList}\item 
 subroutine, public \hyperlink{group__SphereMesh_ga05c2ef27a6cef4f07bacbeae15d7a290}{spheremeshmodule\+::ccwedgesandparticlesaroundpanel} (edge\+List, vert\+List, n\+Verts, self, panel\+Index)
@@ -78,7 +80,7 @@ approximate edge length, $ \sqrt{4\pi R^2/N} $
 \end{DoxyReturn}
 
 
-Definition at line 820 of file Sphere\+Mesh2.\+f90.
+Definition at line 850 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -117,11 +119,41 @@ Peter Bosler
 \end{DoxyParams}
 
 
-Definition at line 395 of file Sphere\+Mesh2.\+f90.
+Definition at line 425 of file Sphere\+Mesh2.\+f90.
 
 
 
 References panelsmodule\+::getpanelkind().
+
+\hypertarget{group__SphereMesh_ga7e2d1d284ff59b890c4e2cbe2bc7106c}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!countsubtriangles@{countsubtriangles}}
+\index{countsubtriangles@{countsubtriangles}!Sphere\+Mesh module@{Sphere\+Mesh module}}
+\subsubsection[{countsubtriangles}]{\setlength{\rightskip}{0pt plus 5cm}integer(kint) function, public spheremeshmodule\+::countsubtriangles (
+\begin{DoxyParamCaption}
+\item[{type(spheremesh), intent(in)}]{self}
+\end{DoxyParamCaption}
+)}}\label{group__SphereMesh_ga7e2d1d284ff59b890c4e2cbe2bc7106c}
+
+
+Counts the number of subtriangles in a Sphere\+Mesh. 
+
+\begin{DoxyAuthor}{Author}
+Peter Bosler 
+\end{DoxyAuthor}
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em self} & Sphere\+Mesh object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+integer number of subtriangles in a Sphere\+Mesh 
+\end{DoxyReturn}
+
+
+Definition at line 367 of file Sphere\+Mesh2.\+f90.
+
+
+
+References planemeshmodule\+::ccwedgesandparticlesaroundpanel().
 
 \hypertarget{group__SphereMesh_ga328b7708b010b001ba36e802abb3c863}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!getrossbynumber@{getrossbynumber}}
 \index{getrossbynumber@{getrossbynumber}!Sphere\+Mesh module@{Sphere\+Mesh module}}
@@ -147,7 +179,7 @@ Rossby Number Ro, double precision real
 \end{DoxyReturn}
 
 
-Definition at line 567 of file Sphere\+Mesh2.\+f90.
+Definition at line 597 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -180,7 +212,7 @@ integer pointer to panel that contains xyz
 \end{DoxyReturn}
 
 
-Definition at line 652 of file Sphere\+Mesh2.\+f90.
+Definition at line 682 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -210,7 +242,7 @@ maximum absolute value of circulation over each panel, $ \max_k |\zeta_k|A_k $
 \end{DoxyReturn}
 
 
-Definition at line 711 of file Sphere\+Mesh2.\+f90.
+Definition at line 741 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -240,7 +272,7 @@ maximum Lagrangian coordinate variation all panels
 \end{DoxyReturn}
 
 
-Definition at line 840 of file Sphere\+Mesh2.\+f90.
+Definition at line 870 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -271,7 +303,7 @@ maximum tracer mass contained in a panel over a Sphere\+Mesh, , $ \max_k \phi_k 
 \end{DoxyReturn}
 
 
-Definition at line 734 of file Sphere\+Mesh2.\+f90.
+Definition at line 764 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -304,7 +336,7 @@ maximum tracer variation over the sphere , $ \max_S \phi - \min_S\phi $
 \end{DoxyReturn}
 
 
-Definition at line 757 of file Sphere\+Mesh2.\+f90.
+Definition at line 787 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -334,7 +366,7 @@ maximum relative vorticity variation over the sphere, $ \max_S \zeta - \min_S\ze
 \end{DoxyReturn}
 
 
-Definition at line 789 of file Sphere\+Mesh2.\+f90.
+Definition at line 819 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -388,7 +420,7 @@ Peter Bosler
 \end{DoxyParams}
 
 
-Definition at line 365 of file Sphere\+Mesh2.\+f90.
+Definition at line 395 of file Sphere\+Mesh2.\+f90.
 
 \hypertarget{group__SphereMesh_ga73b1f415fd585597ed3d213632cbf8d9}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!totalabsvort@{totalabsvort}}
 \index{totalabsvort@{totalabsvort}!Sphere\+Mesh module@{Sphere\+Mesh module}}
@@ -416,7 +448,7 @@ double precsion real, $ \int_S \omega \, dA \approx \sum_{k=1}^N \omega_k A_k $
 \end{DoxyReturn}
 
 
-Definition at line 501 of file Sphere\+Mesh2.\+f90.
+Definition at line 531 of file Sphere\+Mesh2.\+f90.
 
 \hypertarget{group__SphereMesh_ga3bbd7e4f63fe3cffaff0220681c612d4}{\index{Sphere\+Mesh module@{Sphere\+Mesh module}!totalenstrophy@{totalenstrophy}}
 \index{totalenstrophy@{totalenstrophy}!Sphere\+Mesh module@{Sphere\+Mesh module}}
@@ -444,7 +476,7 @@ double precsion real, $ \int_S \zeta^2 \, dA \approx \sum_{k=1}^N \zeta_k^2 A_k 
 \end{DoxyReturn}
 
 
-Definition at line 620 of file Sphere\+Mesh2.\+f90.
+Definition at line 650 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -477,7 +509,7 @@ double precsion real, $ \int_S \phi \, dA \approx \sum_{k=1}^N \phi_k A_k $
 \end{DoxyReturn}
 
 
-Definition at line 470 of file Sphere\+Mesh2.\+f90.
+Definition at line 500 of file Sphere\+Mesh2.\+f90.
 
 
 
@@ -509,5 +541,5 @@ double precsion real, $ \int_S \zeta \, dA \approx \sum_{k=1}^N \zeta_k A_k $
 \end{DoxyReturn}
 
 
-Definition at line 588 of file Sphere\+Mesh2.\+f90.
+Definition at line 618 of file Sphere\+Mesh2.\+f90.
 

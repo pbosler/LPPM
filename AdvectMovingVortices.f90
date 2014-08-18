@@ -31,7 +31,7 @@ type(Panels), pointer :: spherePanels
 !
 type(TracerSetup) :: testCaseTracer
 integer(kint) :: tracerID
-real(kreal) :: rho0, gamma
+real(kreal) :: vortStartLon, vortStartLat
 
 !
 ! vorticity placeholder
@@ -106,9 +106,6 @@ call InitLogger(exeLog, procRank)
 wallclock = MPI_WTIME()
 
 nTracer = 3
-tracerID = 1
-rho0 = 3.0_kreal
-gamma = 5.0_kreal
 
 !
 ! get user input
@@ -118,9 +115,11 @@ call ReadNamelistFile(procRank)
 !
 ! define tracer
 !
-call New(testCaseTracer, 1, 1)
-testCaseTracer%reals(1) = 0.0_kreal
-testCaseTracer%integers(1) = tracerID
+tracerID = 1
+vortStartLon = 0.0_kreal
+vortStartLat = 0.0_kreal
+call New(testCaseTracer, 1, 2)
+call InitMovingVortsTracer(testCaseTracer, vortStartLon, vortStartLat, tracerID)
 
 !
 ! build initial mesh
@@ -155,13 +154,13 @@ sphereParticles => sphere%particles
 spherePanels => sphere%panels
 
 do j = 1, sphereParticles%N
-	sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), 0.0_kreal, rho0, gamma)
+	sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), 0.0_kreal,testCaseTracer)
 enddo
 do j = 1, spherePanels%N
 	if ( spherePanels%hasChildren(j) ) then
 		spherePanels%tracer(j,3) = 0.0_kreal
 	else
-		spherePanels%tracer(j,3) = testCaseTracerExact( spherePanels%x(:,j), 0.0_kreal, rho0, gamma)
+		spherePanels%tracer(j,3) = testCaseTracerExact( spherePanels%x(:,j), 0.0_kreal,testCaseTracer)
 	endif
 enddo
 
@@ -169,7 +168,6 @@ enddo
 ! initialize output
 !
 if ( procrank == 0 ) then
-
 	call LogStats( sphere, exeLog)
 
 	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
@@ -277,16 +275,15 @@ do timeJ = 0, timesteps - 1
 	!
 	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, MovingVorticesVelocity)
 	t = real( timeJ+1, kreal) * dt
-	testCaseTracer%reals(1) = t
 
 	do j = 1, sphereParticles%N
-		sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), t, rho0, gamma)
+		sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), t, testCaseTracer)
 	enddo
 	do j = 1, spherePanels%N
 		if ( spherePanels%hasChildren(j) ) then
 			spherePanels%tracer(j,3) = 0.0_kreal
 		else
-			spherePanels%tracer(j,3) = testCaseTracerExact( spherePanels%x(:,j), t, rho0, gamma)
+			spherePanels%tracer(j,3) = testCaseTracerExact( spherePanels%x(:,j), t, testCaseTracer)
 		endif
 	enddo
 
@@ -294,20 +291,20 @@ do timeJ = 0, timesteps - 1
 	! calculate error
 	!
 	do j = 1, sphereParticles%N
-		sphereParticles%tracer(j,2) = sphereParticles%tracer(j,1) - testCaseTracerExact(sphereParticles%x(:,j), t, rho0, gamma)
+		sphereParticles%tracer(j,2) = (sphereParticles%tracer(j,1) - sphereParticles%tracer(j,3)) / maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
 	enddo
 	do j = 1, spherePanels%N
 		if ( spherePanels%hasChildren(j) ) then
 			spherePanels%tracer(j,2) = 0.0_kreal
 		else
-			spherePanels%tracer(j,2) = spherePanels%tracer(j,1) - testCaseTracerExact( spherePanels%x(:,j), t, rho0, gamma)
+			spherePanels%tracer(j,2) = (spherePanels%tracer(j,1) - spherePanels%tracer(j,3))/ maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
 		endif
 	enddo
 	totalMasstestCaseTracer(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
 
-	particlesLinf(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(sphereParticles%tracer(1:sphereParticles%N,1))
-	panelsLinf(timeJ+1) = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( spherePanels%tracer(1:spherePanels%N,1) )
+	particlesLinf(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
+	panelsLinf(timeJ+1) = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( abs(spherePanels%tracer(1:spherePanels%N,1) ))
 
 	sphereLinf(timeJ+1) = max( particlesLinf(timeJ+1), panelsLinf(timeJ+1) )
 	sphereL2(timeJ+1) = sum( spherePanels%tracer(1:spherePanels%N,2) * spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
@@ -315,7 +312,7 @@ do timeJ = 0, timesteps - 1
 	sphereL2(timeJ+1) = sqrt(sphereL2(timeJ+1))
 
 	sphereL1(timeJ+1) = sum( abs(spherePanels%tracer(1:spherePanels%N,2)) * spherePanels%area(1:spherePanels%N) )
-	sphereL1(timeJ+1) = sphereL1(timeJ+1) / sum( spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
+	sphereL1(timeJ+1) = sphereL1(timeJ+1) / sum( abs(spherePanels%tracer(1:spherePanels%N,1)) * spherePanels%area(1:spherePanels%N) )
 
 	phimax(timeJ+1) = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
 	phimin(timeJ+1) = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
@@ -433,24 +430,37 @@ call MPI_FINALIZE(errCode)
 
 contains
 
-function testCaseTracerExact(xyz, t, rho0, gamma)
+function testCaseTracerExact(xyz, t, mvTracer)
 	real(kreal) :: testCaseTracerExact
-	real(kreal), intent(in) :: xyz(3), rho0, gamma, t
+	real(kreal), intent(in) :: xyz(3), t
+	type(TracerSetup), intent(in) :: mvTracer
 	!
-	real(kreal) :: lat, lon, wr, rho, lamC, thetaC, thetaP
+	real(kreal) :: lat, lon, wr, rho, vortCenterLon, vortCenterLat, vortStartingLon, vortStartingLat
+	real(kreal) :: lonPrime, latPrime
 	real(kreal), parameter :: u0 = 2.0_kreal * PI * EARTH_RADIUS /  (12.0_kreal * ONE_DAY)
 
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
 
-	lamC = 0.0_kreal
-	thetaC = PI/2.0_kreal
+	vortStartingLon = mvTracer%reals(1)
+	vortStartingLat = mvTracer%reals(2)
+	!
+	! find position of vortex center at time t
+	!
+	vortCenterLon = 1.5_kreal*PI + OMEGA * t / 12.0_kreal
+	vortCenterLat = 0.0_kreal
+	!
+	! Find coordinates of xyz in a coordinate system whose north pole is at the vortex location
+	!
+	lonPrime = atan4( cos(lat)*sin( lon - vortCenterLon),  cos(lat)*sin(vortCenterLat)*cos( lon - vortCenterLon) - cos(vortCenterLat)*sin(lat) )
+	latPrime = asin( sin(lat)*sin(vortCenterLat) + cos(lat)*cos(vortCenterLat)*cos( lon - vortCenterLon ) )
+	!
+	! Determine angular tangential velocity induced by vortex about its center
+	!
+	rho = 3.0_kreal * cos( latPrime )
+	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / ( EARTH_RADIUS * cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
 
-	rho = rho0 * cos( lat )
-
-	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / ( EARTH_RADIUS * cosh(rho) * cosh(rho) * (rho*rho + ZERO_TOL*ZERO_TOL))
-
-	testCaseTracerExact = 1.0_kreal - tanh( rho * sin(lon - wr*t) / gamma )
+	testCaseTracerExact = 1.0_kreal - tanh( 0.2_kreal * rho * sin(lonPrime - wr*t) )
 end function
 
 subroutine ConvertFromRelativeTolerances(aMesh, tracerMassTol, tracerVarTol, tracerID, lagVarTol)
