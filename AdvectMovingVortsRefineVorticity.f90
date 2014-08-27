@@ -1,4 +1,4 @@
-program MovingVorticesAdvection
+program MovingVorticesAdvectionAMRVorticity
 
 use NumberKindsModule
 use OutputWriterModule
@@ -37,7 +37,7 @@ real(kreal) :: vortStartLon, vortStartLat
 ! vorticity placeholder
 !
 type(BVESetup) :: nullVort
-
+real(kreal) :: maxCircTol, vortVarTol
 !
 ! remeshing / refinement variables
 !
@@ -87,8 +87,8 @@ integer(kint) :: j
 !
 ! namelists and user input
 !
-character(len=MAX_STRING_LENGTH) :: namelistFile = 'MovingVortices.namelist'
-namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol, lagVarTol
+character(len=MAX_STRING_LENGTH) :: namelistFile = 'MovingVortices2.namelist'
+namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, maxCircTol, vortVarTol, tracerMassTol, tracerVarTol, lagVarTol
 namelist /timestepping/ tfinal, dt, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 
@@ -105,7 +105,7 @@ call InitLogger(exeLog, procRank)
 
 wallclock = MPI_WTIME()
 
-nTracer = 4
+nTracer = 3
 
 !
 ! get user input
@@ -124,22 +124,29 @@ call InitMovingVortsTracer(testCaseTracer, vortStartLon, vortStartLat, tracerID)
 !
 ! build initial mesh
 !
-call New(sphere, panelKind, initNest, AMR, nTracer, ADVECTION_SOLVER)
+call New(sphere, panelKind, initNest, AMR, nTracer, BVE_SOLVER)
 
+sphereParticles => sphere%particles
+spherePanels => sphere%panels
+
+
+
+call SetTestCaseVorticityOnMesh(sphere, nullVort, 0.0_kreal)
 call SetMovingVortsTracerOnMesh(sphere, testCaseTracer)
-call StoreVorticityInTracer(sphere, 0.0_kreal, 4)
 
 !
 ! initialize remeshing and refinement
 !
-call ConvertFromRelativeTolerances(sphere, tracerMassTol, tracerVarTol, tracerID, lagVarTol)
+call ConvertFromRelativeTolerances(sphere, maxCircTol, vortVarTol, tracerMassTol, tracerVarTol, tracerID, lagVarTol)
+	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'maxCircTol = ', maxCircTol )
+	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'vortVarTol  = ', vortVarTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerMassTol = ', tracerMassTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerVarTol  = ', tracerVarTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, '   lagVarTol  = ', lagVarTol )
-call New(remesh, tracerID, tracerMassTol, tracerVarTol, lagVarTol, amrLimit)
+call New(remesh, maxCircTol, vortVarTol, lagVarTol, tracerID, tracerMassTol, tracerVarTol, amrLimit)
 nullify(reference)
 if ( AMR > 0 ) then
-	call InitialRefinement(sphere, remesh, SetMovingVortsTracerOnMesh, testCaseTracer, NullVorticity, nullvort)
+	call InitialRefinement(sphere, remesh, SetMovingVortsTracerOnMesh, testCaseTracer, SetTestCaseVorticityOnMesh, nullvort, 0.0_kreal)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
 	if ( panelKind == TRI_PANEL ) &
@@ -151,8 +158,6 @@ else
 		write(amrstring,'(A,I1,A)') 'triUnif_', initNest, '_'
 endif
 
-sphereParticles => sphere%particles
-spherePanels => sphere%panels
 
 do j = 1, sphereParticles%N
 	sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), 0.0_kreal,testCaseTracer)
@@ -231,13 +236,13 @@ do timeJ = 0, timesteps - 1
 			!
 			! remesh to t = 0
 			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetMovingVortsTracerOnMesh, testCaseTracer)
+			call LagrangianRemeshToInitialTime(sphere, remesh, SetTestCaseVorticityOnMesh, nullVort, SetMovingVortsTracerOnMesh, testCaseTracer,t)
 
 		elseif ( remeshCounter == resetAlphaInterval ) then
 			!
 			! remesh to t = 0, create reference mesh to current time
 			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetMovingVortsTracerOnMesh, testCaseTracer)
+			call LagrangianRemeshToInitialTime(sphere, remesh, SetTestCaseVorticityOnMesh, nullVort, SetMovingVortsTracerOnMesh, testCaseTracer,t)
 			allocate(reference)
 			call New(reference, sphere)
 			call ResetLagrangianParameter(sphere)
@@ -246,7 +251,7 @@ do timeJ = 0, timesteps - 1
 			!
 			! remesh to existing reference, then create new reference to current time
 			!
-			call LagrangianRemeshToReference( sphere, reference, remesh)
+			call LagrangianRemeshToReference( sphere, reference, remesh, SetTestCaseVorticityOnMesh, nullVort, t)
 			call Delete(reference)
 			call New( reference, sphere)
 			call ResetLagrangianParameter(sphere)
@@ -276,7 +281,8 @@ do timeJ = 0, timesteps - 1
 	!
 	call AdvectionRK4Timestep(timekeeper, sphere, dt, t, procRank, numProcs, MovingVorticesVelocity)
 	t = real( timeJ+1, kreal) * dt
-	call StoreVorticityInTracer(sphere, t, 4)
+	call SetTestCaseVorticityOnMesh(sphere, nullVort, t)
+	
 
 	do j = 1, sphereParticles%N
 		sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), t, testCaseTracer)
@@ -476,15 +482,15 @@ function MovingVortsVorticity(xyz, t)
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
 	
-	rho = sqrt( 1.0_kreal - cos(lat)*cos(lat)*sin(lon - u0 * t / EARTH_RADIUS) * sin(lon - OMEGA*t/12.0_kreal) )
+	rho = 3.0_kreal*sqrt( 1.0_kreal - cos(lat)*cos(lat)*sin(lon - u0 * t / EARTH_RADIUS) * sin(lon - OMEGA*t/12.0_kreal) )
 	rhoDenom = rho / (rho*rho + ZERO_TOL*ZERO_TOL)
 	
 	omg = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh( rho ) * rhoDenom / cosh(rho) /cosh(rho)
 	omg_rho = u0 * 1.5_kreal * sqrt(3.0_kreal) * ( rho - tanh(rho)*(cosh(rho)*cosh(rho) + 2.0_kreal*rho*cosh(rho)*sinh(rho))) * &
 		rhoDenom*rhoDenom / (cosh(rho)**4)
 	
-	rho_lam = -cos(lat)*cos(lat)*sin(lon-u0 * t / EARTH_RADIUS)*cos(lon-u0 * t / EARTH_RADIUS) * rhoDenom
-	rho_theta = cos(lat)*sin(lat)*sin(lon-u0 * t / EARTH_RADIUS)*sin(lon-u0 * t / EARTH_RADIUS) * rhoDenom
+	rho_lam = -3.0_kreal*cos(lat)*cos(lat)*sin(lon-u0 * t / EARTH_RADIUS)*cos(lon-u0 * t / EARTH_RADIUS) * rhoDenom
+	rho_theta = 3.0_kreal*cos(lat)*sin(lat)*sin(lon-u0 * t / EARTH_RADIUS)*sin(lon-u0 * t / EARTH_RADIUS) * rhoDenom
 	
 	v_lam = omg_rho * rho_lam * cos(lon-u0 * t / EARTH_RADIUS) - omg * sin(lon-OMEGA*t/12.0_kreal)
 	ucostheta_theta = -omg * sin(lat)*sin(lat)*sin(lon-u0 * t / EARTH_RADIUS) + &
@@ -519,11 +525,39 @@ subroutine StoreVorticityInTracer(aMesh, t, tracerID)
 	enddo
 end subroutine
 
+subroutine SetTestCaseVorticityOnMesh(aMesh, aVorticity, time)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(BVESetup), intent(in) :: aVorticity
+	real(kreal), intent(in) :: time
+	!
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	
+	do j = 1, aParticles%N
+		aParticles%absVort(j) = 0.0_kreal
+		aParticles%relvort(j) = MovingVortsVorticity(aParticles%x(:,j), time)
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasCHildren(j) ) then
+			aPanels%relvort(j) = 0.0_kreal
+			aPanels%absVort(j) = 0.0_kreal
+		else
+			aPanels%relvort(j) = MovingVortsVorticity(aPanels%x(:,j), time)
+			aPanels%absVort(j) = 0.0_kreal
+		endif
+	enddo
+	
+end subroutine
 
-subroutine ConvertFromRelativeTolerances(aMesh, tracerMassTol, tracerVarTol, tracerID, lagVarTol)
+subroutine ConvertFromRelativeTolerances(aMesh, maxCircTol, vortVarTol, tracerMassTol, tracerVarTol, tracerID, lagVarTol)
 	type(SphereMesh), intent(in) :: amesh
-	real(kreal), intent(inout) :: tracerMassTol, tracerVarTol, lagVarTol
+	real(kreal), intent(inout) :: maxCircTol, vortVarTol, tracerMassTol, tracerVarTol, lagVarTol
 	integer(kint), intent(in) :: tracerID
+	maxCircTol = maxCircTol * MaximumCirculation(aMesh)
+	vortVarTol = vortVarTol * MaximumVorticityVariation(aMesh)
 	tracerMassTol = tracerMassTol * MaximumTracerMass(aMesh, tracerID)
 	tracerVarTol = tracerVarTol * MaximumTracerVariation(aMesh, tracerID)
 	lagVarTol = lagVarTol * MaximumLagrangianParameterVariation(aMesh)
@@ -531,7 +565,7 @@ end subroutine
 
 subroutine ReadNamelistFile(rank)
 	integer(kint), intent(in) :: rank
-	integer(kint), parameter :: BCAST_INT_SIZE = 6, BCAST_REAL_SIZE= 5
+	integer(kint), parameter :: BCAST_INT_SIZE = 6, BCAST_REAL_SIZE= 7
 	integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 	real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 
@@ -558,6 +592,8 @@ subroutine ReadNamelistFile(rank)
 		broadcastReals(3) = dt
 		broadcastReals(4) = tfinal
 		broadcastReals(5) = lagVarTol
+		broadcastReals(6) = maxCircTol
+		broadcastReals(7) = vortVarTol
 	endif
 
 	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, errCode)
@@ -574,6 +610,8 @@ subroutine ReadNamelistFile(rank)
 	dt = broadcastReals(3) * ONE_DAY		! convert time to seconds
 	tfinal = broadcastReals(4) * ONE_DAY	! convert time to seconds
 	lagVarTol = broadcastReals(5)
+	maxCircTol = broadcastReals(6)
+	vortVarTol = broadcastReals(7)
 end subroutine
 
 subroutine InitLogger(alog,rank)

@@ -56,9 +56,9 @@ public TotalMass, TotalAbsVort, TotalRelVort, TotalEnstrophy
 public CountSubTriangles
 public LocatePoint
 public DividePanel
-public GetRossbyNumber
+public GetRossbyNumber, GetProblemKind
 public ResetLagrangianParameter
-public MaximumCirculation, MaximumVorticityVariation
+public MaximumCirculation, MaximumVorticityVariation, AverageCirculation
 public MaximumLagrangianParameterVariation, AverageLagrangianParameterVariation
 public MaximumTracerMass, MaximumTracerVariation
 !
@@ -290,6 +290,12 @@ function GetNTracerMesh(self)
 	type(SphereMesh), intent(in) :: self
 	integer(kint) :: GetNTracerMesh
 	GetNTracerMesh = self%nTracer
+end function
+
+function GetProblemKind(self)
+	type(SphereMesh), intent(in) :: self
+	integer(kint) :: GetProblemKind
+	GetProblemKind = self%problemKind
 end function
 
 !---------------------------------------------------------------------------
@@ -742,9 +748,30 @@ function MaximumCirculation(self)
 	real(kreal) :: MaximumCirculation
 	type(SphereMesh), intent(in) :: self
 	!
+!	integer(kint) :: j
+	MaximumCirculation = maxval( abs(self%Panels%relvort(1:self%Panels%N)) * self%Panels%area(1:self%Panels%N) )
+!	MaximumCirculation = 0.0_kreal
+!	do j = 1, self%panels%N
+!		if (.NOT. self%panels%hasChildren(j) ) then
+!			if ( abs(self%panels%relvort(j))*self%panels%area(j) > MaximumCirculation ) MaximumCirculation = abs(self%panels%relvort(j))*self%panels%area(j)
+!		endif
+!	enddo
+end function
+
+function AverageCirculation(self)
+	real(kreal) :: AverageCirculation
+	type(SphereMesh), intent(in) :: self
+	!
 	type(Panels), pointer :: aPanels
-	aPanels => self%panels
-	MaximumCirculation = maxval( abs(aPanels%relvort(1:aPanels%N)) * aPanels%area(1:aPanels%N) )
+	integer(kint) :: j
+	aPanels => self%panels	
+	AverageCirculation = 0.0_kreal
+	do j = 1,aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			AverageCirculation = AverageCirculation + abs(aPanels%relVort(j)) * aPanels%area(j)
+		endif
+	enddo
+	AverageCirculation = AverageCirculation / real(aPanels%N_Active,kreal)
 end function
 
 !---------------------------------------------------------------------------

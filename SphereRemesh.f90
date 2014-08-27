@@ -104,12 +104,13 @@ interface
 end interface
 
 interface
-	subroutine SetVorticityOnMesh(genMesh,genVort)
+	subroutine SetVorticityOnMesh(genMesh,genVort, t)
 		use SphereMeshModule
 		use BVESetupModule
 		implicit none
 		type(SphereMesh), intent(inout) :: genMesh
 		type(BVESetup), intent(in) :: genVort
+		real(8), intent(in), optional :: t
 	end subroutine
 end interface
 
@@ -429,13 +430,14 @@ end subroutine
 !----------------
 !
 
-subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef, updateVorticityOnMesh, vorticityDef)
+subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef, updateVorticityOnMesh, vorticityDef, t)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(RemeshSetup), intent(in) :: remesh
 	procedure(SetTracerOnMesh) :: updateTracerOnMesh
 	type(TracerSetup), intent(in) :: tracerDef
 	procedure(SetVorticityOnMesh) :: updateVorticityOnMesh
 	type(BVESetup), intent(in) :: vorticityDef
+	real(kreal), intent(in), optional :: t
 	!
 	integer(kint) :: refinecount, spaceLeft, counters(5), j
 	integer(kint) :: startIndex, nOldPanels, amrLoopCounter
@@ -500,7 +502,11 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 				! set data on new panels and particles
 				!
 				if ( aMesh%nTracer > 0 ) call UpdateTracerOnMesh(aMesh, tracerDef)
-				call UpdateVorticityOnMesh(aMesh, vorticityDef)
+				if ( present(t) ) then
+					call UpdateVorticityOnMesh(aMesh, vorticityDef, t)
+				else
+					call UpdateVorticityOnMesh(aMesh, vorticityDef)
+				endif
 
 				!
 				! prevent too much refinement
@@ -513,7 +519,7 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 					write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
 					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
-					write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
+					write(logstring,'(A, I8, A)') 'flowmap variation criterion triggered ', counters(3), ' times.'
 					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 					write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
 					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
@@ -554,7 +560,7 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
-						write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
+						write(logstring,'(A, I8, A)') 'flowmap variation criterion triggered ', counters(3), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
@@ -571,7 +577,7 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
-						write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
+						write(logstring,'(A, I8, A)') 'flowmap variation criterion triggered ', counters(3), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 						write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
@@ -590,13 +596,14 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 	call EndSection(log)
 end subroutine
 
-subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vorticityDef, setTracer, tracerDef)
+subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vorticityDef, setTracer, tracerDef, t)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(RemeshSetup), intent(in) :: remesh
 	procedure(SetVorticityOnMesh) :: setVorticity
 	type(BVESetup), intent(in) :: vorticityDef
 	procedure(SetTracerOnMesh) :: setTracer
 	type(TracerSetup) :: tracerDef
+	real(kreal), intent(in), optional :: t
 	!
 	type(STRIPACKData) :: delTri
 	type(SSRFPACKData) :: lagSource
@@ -650,7 +657,11 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 	! set flow data on new mesh
 	!
 	if ( aMesh%nTracer > 0 ) call SetTracer(newMesh, tracerDef)
-	call SetVorticity(newMesh, vorticityDef)
+	if ( present(t) ) then
+		call SetVorticity(newMesh, vorticityDef, t)
+	else
+		call SetVorticity(newMesh, vorticityDef)
+	endif
 
 	!
 	! AMR
@@ -716,7 +727,11 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 					! set flow data on new particles, panels
 					!
 					if ( aMesh%nTracer > 0 ) call SetTracer(newMesh, tracerDef)
-					call SetVorticity(newMesh, vorticityDef)
+					if ( present(t) ) then
+						call SetVorticity(newMesh, vorticityDef, t)
+					else
+						call SetVorticity(newMesh, vorticityDef)
+					endif
 
 					if ( amrLoopCounter >= remesh%refinementLimit ) then
 						!
@@ -729,7 +744,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
 						write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
-						write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
+						write(logstring,'(A, I8, A)') 'flowmap variation criterion triggered ', counters(3), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
 						write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
 						call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
@@ -764,7 +779,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
 							write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
-							write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
+							write(logstring,'(A, I8, A)') 'flowmap variation criterion triggered ', counters(3), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
 							write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
@@ -778,7 +793,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
 							write(logstring,'(A, I8, A)') ' vort. variation criterion triggered ', counters(2), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
-							write(logstring,'(A, I8, A)') 'flwmap variation criterion triggered ', counters(3), ' times.'
+							write(logstring,'(A, I8, A)') 'flowmap variation criterion triggered ', counters(3), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
 							write(logstring,'(A, I8, A)') '       tracermax criterion triggered ', counters(4), ' times.'
 							call LogMessage(log, TRACE_LOGGING_LEVEL,'LagRemeshInitial : ',trim(logstring))
@@ -811,10 +826,13 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 	call Delete(lagSource)
 end subroutine
 
-subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
+subroutine LagrangianRemeshToReference(aMesh, reference, remesh, setVorticity, vortDef, t)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(ReferenceSphere), intent(in) :: reference
 	type(RemeshSetup), intent(in) :: remesh
+	procedure(SetVorticityOnMesh), optional :: setVorticity
+	type(BVESetup), intent(in), optional :: vortDef
+	real(kreal), intent(in), optional :: t
 	!
 	type(SphereMesh) :: newMesh
 	type(Particles), pointer :: newParticles
@@ -841,7 +859,7 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 	call New(newMesh, aMesh%panelKind, aMesh%initNest, aMesh%AMR, aMesh%nTracer, aMesh%problemKind)
 	newParticles => newMesh%particles
 	newPanels => newMesh%panels
-
+ 
 	!
 	! setup old mesh as source for interpolation of Lagrangian parameters
 	!
@@ -879,18 +897,22 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 	enddo
 
 	if ( aMesh%problemKind == BVE_SOLVER) then
-		do j = 1, newParticles%N
-			newParticles%absVort(j) = InterpolateScalar(newParticles%x0(:,j), &
-					reference%absVortSource, reference%delTri)
-			newParticles%relVort(j) = newParticles%absVort(j) - &
-				2.0_kreal * OMEGA * newParticles%x(3,j) / EARTH_RADIUS
-		enddo
-		do j = 1, newPanels%N
-			newPanels%absVort(j) = InterpolateScalar(newPanels%x0(:,j), &
-					reference%absVortSource, reference%delTri)
-			newPanels%relVort(j) = newPanels%absVort(j) - &
-				2.0_kreal * OMEGA * newPanels%x(3,j) / EARTH_RADIUS
-		enddo
+		if ( present(t) ) then
+			call SetVorticity(newMesh, vortDef, t)	
+		else
+			do j = 1, newParticles%N
+				newParticles%absVort(j) = InterpolateScalar(newParticles%x0(:,j), &
+						reference%absVortSource, reference%delTri)
+				newParticles%relVort(j) = newParticles%absVort(j) - &
+					2.0_kreal * OMEGA * newParticles%x(3,j) / EARTH_RADIUS
+			enddo
+			do j = 1, newPanels%N
+				newPanels%absVort(j) = InterpolateScalar(newPanels%x0(:,j), &
+						reference%absVortSource, reference%delTri)
+				newPanels%relVort(j) = newPanels%absVort(j) - &
+					2.0_kreal * OMEGA * newPanels%x(3,j) / EARTH_RADIUS
+			enddo
+		endif
 	endif
 
 	call LogMessage(log, DEBUG_LOGGING_LEVEL,'LagRemeshToRef : ',' uniform mesh ready.')
@@ -975,18 +997,22 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh)
 					enddo
 
 					if ( aMesh%problemKind == BVE_SOLVER) then
-						do j = nOldParticles+1, newParticles%N
-							newParticles%absVort(j) = InterpolateScalar( newParticles%x0(:,j), &
-								reference%absVortSource, reference%delTri)
-							newParticles%relVort(j) = newParticles%absVort(j) - &
-								2.0_kreal * OMEGA * newParticles%x(3,j) / EARTH_RADIUS
-						enddo
-						do j = nOldPanels + 1, newPanels%N
-							newPanels%absVort(j) = InterpolateScalar(newPanels%x0(:,j), &
-								reference%absVortSource, reference%delTri)
-							newPanels%relVort(j) = newPanels%absVort(j) - &
-								2.0_kreal * OMEGA * newPanels%x(3,j) / EARTH_RADIUS
-						enddo
+						if ( present(t) ) then
+							call SetVorticity(newMesh, vortDef, t)	
+						else
+							do j = nOldParticles+1, newParticles%N
+								newParticles%absVort(j) = InterpolateScalar( newParticles%x0(:,j), &
+									reference%absVortSource, reference%delTri)
+								newParticles%relVort(j) = newParticles%absVort(j) - &
+									2.0_kreal * OMEGA * newParticles%x(3,j) / EARTH_RADIUS
+							enddo
+							do j = nOldPanels + 1, newPanels%N
+								newPanels%absVort(j) = InterpolateScalar(newPanels%x0(:,j), &
+									reference%absVortSource, reference%delTri)
+								newPanels%relVort(j) = newPanels%absVort(j) - &
+									2.0_kreal * OMEGA * newPanels%x(3,j) / EARTH_RADIUS
+							enddo
+						endif
 					endif
 
 					!

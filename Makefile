@@ -101,6 +101,8 @@ advectGaussHillsDirectMPI.exe: AdvectGaussHillsDirect.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
 advectMovingVorticesMPI.exe: AdvectMovingVortices.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
+advectMovingVorticesWithVorticityRefinementMPI.exe: AdvectMovingVortsRefineVorticity.o $(ADVECTION_OBJS)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
 advectCascadeMPI.exe: AdvectionCascade.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
 solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)	
@@ -129,6 +131,7 @@ planeAdvectRotationMPI.exe: PlaneRotationalAdvection.o $(PLANE_RUNS)
 AdvectGaussHills.o: AdvectGaussHills.f90 $(ADVECTION_OBJS)
 AdvectGaussHillsDirect.o: AdvectGaussHillsDirect.f90 $(ADVECTION_OBJS)
 AdvectMovingVortices.o: AdvectMovingVortices.f90 $(ADVECTION_OBJS)
+AdvectMovingVortsRefineVorticity.o: AdvectMovingVortsRefineVorticity.f90 $(ADVECTION_OBJS)
 AdvectionCascade.o: AdvectionCascade.f90 $(ADVECTION_OBJS)
 TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)

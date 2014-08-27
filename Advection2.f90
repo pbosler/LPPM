@@ -200,7 +200,7 @@ subroutine NewPrivate(self,aMesh,nProcs,isDivergent)
 
 	panelKind = aMesh%panelKind
 
-	problemKind = ADVECTION_SOLVER
+	problemKind = GetProblemKind(aMesh)
 
 	!
 	!	Allocate MPI variables

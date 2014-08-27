@@ -22,7 +22,7 @@ implicit none
 private
 public Panels
 public New, Delete, Copy
-public GetNTracer, GetPanelKind, GetProblemKind
+public GetNTracer, GetPanelKind
 public GatherPanels, ScatterPanels
 public PanelMax
 public LogStats

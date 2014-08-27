@@ -105,7 +105,7 @@ subroutine NewPrivate(self,aMesh)
 	nPassive = aPanels%N - aPanels%N_active
 	nTracer = GetNTracer(aPanels)
 	panelKind = GetPanelKind(aPanels)
-	problemKind = GetProblemKind(aPanels)
+	problemKind = GetProblemKind(aMesh)
 	!
 	! Allocate Delaunay triangulation data arrays
 	!

@@ -309,7 +309,7 @@ end subroutine
 function OneGaussianHillTracer(xyz, cent, hmax, beta)
 		real(kreal) :: OneGaussianHillTracer
 		real(kreal), intent(in) :: xyz(3), cent(3), hmax, beta
-		OneGaussianHillTracer = exp( -beta * ( sum( (xyz-cent)*(xyz-cent) ) ) )
+		OneGaussianHillTracer = hmax * exp( -beta * ( sum( (xyz-cent)*(xyz-cent) ) ) )
 end function
 
 function GaussianHillsTracer(xyz, cent1, cent2, hmax, beta)

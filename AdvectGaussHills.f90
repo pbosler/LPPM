@@ -131,7 +131,7 @@ call SetGaussianHillsTracerOnMesh(sphere, gHills)
 call ConvertFromRelativeTolerances(sphere, tracerMassTol, tracerVarTol, tracerID)
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerMassTol = ', tracerMassTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerVarTol  = ', tracerVarTol )
-call New(remesh, tracerID, tracerMassTol, tracerVarTol, amrLimit)
+call New(remesh, tracerID, tracerMassTol, tracerVarTol, AMR)
 nullify(reference)
 if ( AMR > 0 ) then
 	call InitialRefinement(sphere, remesh, SetGaussianHillsTracerOnMesh, gHills, NullVorticity, nullvort)
