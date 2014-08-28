@@ -3,11 +3,11 @@
 	AMR = 4
 	panelKind = 4
 	amrLimit = 4
-	maxCircTol = 0.7
+	maxCircTol = 0.2
 	vortVarTol = 1.0
 	tracerMassTol = 2.0
 	tracerVarTol = 1.0
-	lagVarTol = 1.6
+	lagVarTol = 2.2
 /
 
 &timestepping
@@ -19,6 +19,6 @@
 
 &fileIO
 	outputDir = '~/Desktop/modelData/'
-	jobPrefix = 'advMovingVorts_refineVort_'
+	jobPrefix = 'advMovingVorts_refineVortCore_'
 	frameOut = 1
 /
