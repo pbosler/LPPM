@@ -301,9 +301,10 @@ subroutine SetRH4WaveOnMesh(aMesh,rhWave)
 	enddo
 end subroutine
 
-subroutine NullVorticity(aMesh,nullVort)
+subroutine NullVorticity(aMesh,nullVort, t0)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(BVESetup), intent(in) :: nullVort
+	real(kreal), intent(in), optional :: t0
 end subroutine
 
 !

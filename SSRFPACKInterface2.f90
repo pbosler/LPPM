@@ -30,9 +30,10 @@ public SetSourceAbsVort, SetSourceRelVort
 public SetSourceTracer
 public SetSourceVelocity
 public SetSourceKineticEnergy
+public SetSourceGeneralScalar
 public SetSigmaTol
 public SIGMA_FLAG, GRAD_FLAG
-public InterpolateVector, InterpolateScalar, InterpolateTracer
+public InterpolateVector, InterpolateScalar, InterpolateTracer, InterpScalarToLLGrid
 public SetSourceH
 
 !
@@ -64,14 +65,6 @@ integer(kint), parameter :: SIGMA_FLAG = 1,& ! Flag indicates smoothing paramete
 						    GRAD_FLAG = 1	 ! Flag indicates gradient estimates are pre-computed
 integer(kint), save :: startTriangle = 1	 ! Stores initial guesses for locating new points within a Delaunay triangulation.
 
-interface SetSourceVelocity
-	module procedure SetSourceVelocityFromMeshData
-	module procedure SetSourceVelocityFromArrays
-end interface
-
-interface SetSourceH
-	module procedure SetSourceHFromArrays
-end interface
 
 !
 !----------------
@@ -97,6 +90,17 @@ end interface
 interface Delete
 	module procedure DeletePrivate
 end interface
+
+interface SetSourceVelocity
+	module procedure SetSourceVelocityFromMeshData
+	module procedure SetSourceVelocityFromArrays
+end interface
+
+interface SetSourceH
+	module procedure SetSourceHFromArrays
+end interface
+
+
 
 contains
 !
@@ -470,7 +474,38 @@ subroutine SetSourceRelVort(self,delTri)
 	!call LogMessage(log,TRACE_LOGGING_LEVEL,'SSRFPACK : dSig relVort = ',self%dSig1)
 end subroutine
 
+subroutine SetSourceGeneralScalar(self, delTri, scalarData)
+	type(SSRFPACKData), intent(inout) :: self
+	type(STRIPACKData), intent(in) :: delTri
+	real(kreal), intent(in) :: scalarData(:)
+	!
+	integer(kint) :: j, errCode
+	
+	do j = 1, delTri%n
+		self%data1(j) = scalarData(j)
+	enddo
+	do j=1,delTri%n
+		call GRADL(delTri%n,j,delTri%x,delTri%y,delTri%z,self%data1,&
+				   delTri%list,delTri%lptr,delTri%lend,self%grad1(:,j),errCode)
+	enddo	
+	call GETSIG(delTri%n,delTri%x,delTri%y,delTri%z,self%data1,&
+			delTri%list,delTri%lptr,delTri%lend,&
+			self%grad1,self%sigmaTol,self%sigma1,self%dSig1,errCode)
+end subroutine
 
+subroutine InterpScalarToLLGrid(llOutput , self, delTri, lon, lat, nlon, nlat)
+	real(kreal), intent(out) :: llOutput(:,:)
+	type(SSRFPACKData), intent(in) :: self
+	type(STRIPACKData), intent(in) :: delTri
+	real(kreal), intent(in) :: lon(:), lat(:)
+	integer(kint), intent(in) :: nLon, nLat
+	!
+	integer(kint) :: errCode
+	
+	call UNIF(delTri%n, delTri%x, delTri%y, delTri%z, self%data1, &
+		      delTri%list, delTri%lptr, delTri%lend, SIGMA_FLAG, self%sigma1, &
+		      nLat, nLat, nLon, lat, lon, GRAD_FLAG, self%grad1, llOutput, errCode)	
+end subroutine
 
 !subroutine SetSourceEnergy(self,delTri)
 !	type(SSRFPACKData), intent(inout) :: self

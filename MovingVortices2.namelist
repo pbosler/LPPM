@@ -19,6 +19,6 @@
 
 &fileIO
 	outputDir = '~/Desktop/modelData/'
-	jobPrefix = 'advMovingVorts_refineVortCore_'
+	jobPrefix = 'advMovingVorts_'
 	frameOut = 1
 /

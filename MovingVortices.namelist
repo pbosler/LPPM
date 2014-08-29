@@ -1,5 +1,5 @@
 &meshDefine
-	initNest = 5
+	initNest = 6
 	AMR = 0
 	panelKind = 4
 	amrLimit = 4
@@ -10,13 +10,13 @@
 
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
-	tfinal = 6.0		! days
+	tfinal = 12.0		! days
 	remeshInterval = 20
 	resetAlphaInterval = 4
 /
 
 &fileIO
 	outputDir = '~/Desktop/modelData/'
-	jobPrefix = 'advMovingVorts_withVort_'
+	jobPrefix = 'advMovingVorts_restartTrial_'
 	frameOut = 1
 /

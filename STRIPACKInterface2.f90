@@ -71,6 +71,7 @@ character(len=128) :: logString
 interface New
 	module procedure NewPrivate
 	module procedure NewFromArrays
+	module procedure NewFromCombinedData
 end interface
 
 interface Delete
@@ -208,8 +209,42 @@ subroutine NewFromArrays(self,particlesX, nParticles, activePanelsX, nActive)
 	enddo
 
 	call DelaunayTriangulation(self)
-
 end subroutine
+
+subroutine NewFromCombinedData(self, xyz, n )
+	type(STRIPACKData), intent(out) :: self
+	real(kreal), intent(in) :: xyz(:,:)
+	integer(kint), intent(in) :: n
+	!
+	integer(kint) :: j
+	real(kreal) :: norm
+	
+	self%n = n
+	! Allocate Delaunay triangulation data arrays
+	allocate(self%x(n))
+	self%x = 0.0_kreal
+	allocate(self%y(n))
+	self%y = 0.0_kreal
+	allocate(self%z(n))
+	self%z = 0.0_kreal
+	allocate(self%lend(n))
+	self%lend = 0
+	allocate(self%list(6*n-12))
+	self%list = 0
+	allocate(self%lptr(6*n-12))
+	self%lptr = 0
+	self%memoryReady = .TRUE.
+	
+	do j = 1, n
+		norm = sqrt(sum( xyz(:,j)*xyz(:,j) ) )
+		self%x(j) = xyz(1,j)/norm
+		self%y(j) = xyz(2,j)/norm
+		self%z(j) = xyz(3,j)/norm
+	enddo
+		
+	call DelaunayTriangulation(self)	
+end subroutine
+
 
 subroutine DeletePrivate(self)
 !	Free memory associated with an instance of STRIPACKData

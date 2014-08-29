@@ -1,0 +1,5 @@
+&filenames
+	inputfile = "/Users/pabosle/Desktop/modelData/vtkOut/advMovingVorts_refineVortCore_quadAMR_5to09__0400.vtk"
+	outputPrefix = "/Users/pabosle/Desktop/movingVort_AMR_day12"
+	degreeSpacing = 0.5
+/

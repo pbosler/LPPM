@@ -35,6 +35,7 @@ public SetFlowMapLatitudeTracerOnMesh
 public InitGaussianHillsTracer, SetGaussianHillsTracerOnMesh, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL
 public InitMovingVortsTracer, SetMovingVortsTracerOnMesh
 public InitOneGaussianHillTracer, SetOneGaussianHillTracerOnMesh
+public InitSlottedCylindersTracer, SetSlottedCylindersTracerOnMesh
 public TracerVariance
 
 
@@ -159,6 +160,69 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 		endif
 	enddo
 end subroutine
+
+subroutine InitSlottedCylindersTracer(slotC, tracerID)
+	type(TracerSetup), intent(inout) :: slotC
+	integer(kint), intent(in) :: tracerID
+	slotC%tracerID = tracerID
+end subroutine
+
+subroutine SetSlottedCylindersTracerOnMesh(aMesh, slotC)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(TracerSetup), intent(in) :: slotC
+	!
+	integer(kint) :: J
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	
+	do j = 1, aParticles%n
+		aParticles%tracer(j,slotC%tracerID) = SlottedCylindersX(aParticles%x0(:,j))
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%tracer(j,slotC%tracerID) = 0.0_kreal
+		else
+			aPanels%tracer(j,slotC%tracerID) = SlottedCylindersX(aPanels%x0(:,j))
+		endif 
+	enddo
+end subroutine
+
+function SlottedCylindersX(xyz)
+	real(kreal) :: SlottedCylindersX
+	real(kreal), intent(in) :: xyz(3)
+	!
+	real(kreal), parameter :: xx1 = -0.866025403784439_kreal*EARTH_RADIUS, yy1 = 0.5_kreal*EARTH_RADIUS, zz1 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: xx2 = -0.866025403784439_kreal*EARTH_RADIUS, yy2 = -0.5_kreal*EARTH_RADIUS, zz2 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: lat1 = 0.0_kreal, long1 = 5.0_kreal*PI/6.0_kreal
+	real(kreal), parameter :: lat2 = 0.0_kreal, long2 = 7.0_kreal*PI/6.0_kreal
+	real(kreal), parameter :: RR = 0.5_kreal, b = 0.1_kreal, c = 1.0_kreal
+	real(kreal) :: r1, r2, lat, lon
+	
+	lat = Latitude(xyz)
+	lon = Longitude(xyz)
+	r1 = SphereArcLength(xyz,[xx1,yy1,zz1])
+	r2 = SphereArcLength(xyz,[xx2,yy2,zz2])
+	
+	SlottedCylindersX = b
+	
+	if ( r1 <= RR ) then
+		if ( abs(lon-long1) >= RR/6.0_kreal ) then
+			SlottedCylindersX = c
+		elseif ( lat - lat1  < -5.0_kreal * RR / 12.0_kreal ) then
+			SlottedCylindersX = c
+		endif
+	endif
+	if ( r2 <= RR ) then
+		if ( abs(lon - long2) >= RR /6.0_kreal ) then
+			SlottedCylindersX = c
+		elseif ( lat - lat2 > 5.0_kreal*RR/12.0_kreal) then
+			SlottedCylindersX = c
+		endif
+	endif	
+end function
 
 subroutine InitMovingVortsTracer(mvTracer, initLon, initLat, tracerID)
 	type(TracerSetup), intent(inout) :: mvTracer

@@ -1,9 +1,10 @@
 SHELL = /bin/bash
 
 #MACHINE='FERRARI'
-MACHINE='TANK'
+#MACHINE='TANK'
 #MACHINE='VORTEX'
 #MACHINE='LING'
+MACHINE='WORK-LAPTOP'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -45,6 +46,16 @@ else ifeq ($(MACHINE),'TANK')
 else ifeq ($(MACHINE),'LING')  
   FF=gfortran
   FF_FLAGS=-O2 -fopenmp -ffree-line-length-none
+else ifeq ($(MACHINE),'WORK-LAPTOP')
+  FF = ifort
+  #FF_FLAGS = -O0 -g -check bounds -check pointers -check uninit -traceback -warn all -debug extended -openmp
+  FF_FLAGS= -O2 -openmp -warn all #-opt_report 1
+  MKL_ROOT=/opt/intel/mkl
+  MKL_COMPILE=-openmp -I$(MKLROOT)/include/lp64 -mkl=parallel 
+  MKL_LINK=$(MKLROOT)/lib/libmkl_blas95_lp64 $(MKLROOT)/lib/libmkl_lapack95_lp64 -lpthread -lm
+  NETCDF_INCLUDE_DIR=-I/opt/local/include
+  NETCDF_LIB_DIR=-L/opt/local/lib
+  NETCDF_LIBS=-lnetcdff
 endif
 #-----------------------------------------------------------------------------#
 
@@ -122,7 +133,17 @@ reversibleDipolesMPI.exe: ReversibleDipoles.o $(PLANE_RUNS)
 planeAdvectRotationMPI.exe: PlaneRotationalAdvection.o $(PLANE_RUNS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`			
 
-
+#############################################################
+## Utilities
+#############################################################
+convertVTKtoNCL.exe: ConvertVTKtoNativeNCL.o NumberKinds3.o SphereGeom3.o
+	$(FF) -O3 -o $@ $^
+ConvertVTKtoNativeNCL.o: ConvertVTKtoNativeNCL.f90 NumberKinds3.o SphereGeom3.o
+	$(FF) -c -O3 $<
+interpVTKtoNCL.exe: InterpDataFromVTKtoNCL.o NumberKinds3.o SphereGeom3.o $(INTERP_OBJS)
+	$(FF) -O3 -openmp -o $@ $^ 
+InterpDataFromVTKToNCL.o: InterpDataFromVTKtoNCL.f90 NumberKinds3.o SphereGeom3.o $(INTERP_OBJS)
+	$(FF) -O3 -c InterpDataFromVTKtoNCL.f90
 
 #############################################################
 ## LPPM MODEL OBJECT FILES
@@ -142,6 +163,7 @@ LambDipole.o: LambDipole.f90 $(PLANE_RUNS)
 TwoDipoles.o: TwoDipoles.f90 $(PLANE_RUNS)
 PlaneRotationalAdvection.o: PlaneRotationalAdvection.f90 $(PLANE_RUNS)
 ReversibleDipoles.o: ReversibleDipoles.f90 $(PLANE_RUNS)
+
 #############################################################
 ## UNIT TEST EXECUTABLES
 #############################################################
