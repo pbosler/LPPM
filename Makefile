@@ -117,9 +117,11 @@ advectMovingVorticesWithVorticityRefinementMPI.exe: AdvectMovingVortsRefineVorti
 advectSlottedCylindersMPI.exe: AdvectSlottedCylinders.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
 advectSlottedCylindersDirectMPI.exe: AdvectSlottedCylindersDirect.o $(ADVECTION_OBJS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`		
 advectCorrelatedMPI.exe: AdvectCorrelated.o $(ADVECTION_OBJS)
-	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`
+advectCorrelatedDirectMPI.exe: AdvectCorrelatedDirect.o $(ADVECTION_OBJS)
+	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`		
 advectCascadeMPI.exe: AdvectionCascade.o $(ADVECTION_OBJS)
 	$(FF) $(FF_FLAGS) -o $@ $^ `mpif90 -showme:link`	
 solidBodyRotationMPI.exe: BVESolidBodyRotation.o $(BVE_OBJS)	
@@ -162,6 +164,7 @@ AdvectMovingVortsRefineVorticity.o: AdvectMovingVortsRefineVorticity.f90 $(ADVEC
 AdvectSlottedCylinders.o: AdvectSlottedCylinders.f90 $(ADVECTION_OBJS)
 AdvectSlottedCylindersDirect.o: AdvectSlottedCylindersDirect.f90 $(ADVECTION_OBJS)
 AdvectCorrelated.o: AdvectCorrelated.f90 $(ADVECTION_OBJS)
+AdvectCorrelatedDirect.o: AdvectCorrelated.f90 $(ADVECTION_OBJS)
 AdvectionCascade.o: AdvectionCascade.f90 $(ADVECTION_OBJS)
 TestCase1.o: TestCase1.f90 $(ADVECTION_OBJS)
 BVESolidBodyRotation.o: BVESolidBodyRotation.f90 $(BVE_OBJS)

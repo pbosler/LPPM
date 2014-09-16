@@ -1,4 +1,4 @@
-program CorrelatedTracerAdvection
+program correlatedTracerAdvection
 
 use NumberKindsModule
 use OutputWriterModule
@@ -187,41 +187,9 @@ do timeJ = 0, timesteps - 1
 		! remesh before timestep
 		!
 		remeshCounter = remeshCounter + 1
-		!
-		! choose appropriate remeshing procedure
-		!
-		if ( remeshCounter < resetAlphaInterval ) then
-			!
-			! remesh to t = 0
-			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, &
-						 SetCorrelatedCosineBellsTracerOnMesh, cCBells)
-
-		elseif ( remeshCounter == resetAlphaInterval ) then
-			!
-			! remesh to t = 0, create reference mesh to current time
-			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, & 
-						SetCorrelatedCosineBellsTracerOnMesh, cCBells)
-			allocate(reference)
-			call New(reference, sphere)
-			call ResetLagrangianParameter(sphere)
-
-		elseif ( remeshCounter > resetAlphaInterval .AND. mod(remeshCounter, resetAlphaInterval) == 0 ) then
-			!
-			! remesh to existing reference, then create new reference to current time
-			!
-			call LagrangianRemeshToReference( sphere, reference, remesh)
-			call Delete(reference)
-			call New( reference, sphere)
-			call ResetLagrangianParameter(sphere)
-		else
-			!
-			! remesh to existing reference
-			!
-			call LagrangianRemeshToReference(sphere, reference, remesh)
-
-		endif
+		
+		call DirectRemesh(sphere, remesh)
+		
 		!
 		! delete objects associated with old mesh
 		!
