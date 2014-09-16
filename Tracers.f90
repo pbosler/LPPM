@@ -35,7 +35,7 @@ public SetFlowMapLatitudeTracerOnMesh
 public InitGaussianHillsTracer, SetGaussianHillsTracerOnMesh, GAUSS_HILLS_N_INT, GAUSS_HILLS_N_REAL
 public InitMovingVortsTracer, SetMovingVortsTracerOnMesh
 public InitOneGaussianHillTracer, SetOneGaussianHillTracerOnMesh
-public InitSlottedCylindersTracer, SetSlottedCylindersTracerOnMesh
+public InitSlottedCylindersTracer, SetSlottedCylindersTracerOnMesh, SlottedCylindersX
 public TracerVariance
 
 
