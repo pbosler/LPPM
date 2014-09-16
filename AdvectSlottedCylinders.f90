@@ -127,7 +127,7 @@ call ConvertFromRelativeTolerances(sphere, tracerMassTol, tracerVarTol, tracerID
 call New(remesh, tracerID, tracerMassTol, tracerVarTol, AMR)
 nullify(reference)
 if ( AMR > 0 ) then
-	call InitialRefinement(sphere, remesh, SetGaussianHillsTracerOnMesh, slotC, NullVorticity, nullvort)
+	call InitialRefinement(sphere, remesh, SetSlottedCylindersTracerOnMesh, slotC, NullVorticity, nullvort)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
 	if ( panelKind == TRI_PANEL ) &

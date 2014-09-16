@@ -224,6 +224,63 @@ function SlottedCylindersX(xyz)
 	endif	
 end function
 
+function CosineBellsX(xyz)
+	real(kreal) :: CosineBellsX
+	real(kreal), intent(in) :: xyz(3)
+	real(kreal), parameter :: xx1 = -0.866025403784439_kreal*EARTH_RADIUS, yy1 = 0.5_kreal*EARTH_RADIUS, zz1 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: xx2 = -0.866025403784439_kreal*EARTH_RADIUS, yy2 = -0.5_kreal*EARTH_RADIUS, zz2 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: hmax = 1.0_kreal, RR = 0.5_kreal, b = 0.1_kreal, c = 0.9_kreal
+	real(kreal) :: r1, r2, h1, h2
+	r1 = SphereArcLength(xyz,[xx1,yy1,zz1])
+	r2 = SphereArcLength(xyz,[xx2,yy2,zz2])
+	h1 = hmax*(1.0_kreal + cos(PI*r1/RR))/2.0_kreal
+	h2 = hmax*(1.0_kreal + cos(PI*r2/RR))/2.0_kreal
+	
+	if ( r1 < RR ) then
+		CosineBellsX = b + c * h1
+	elseif ( r2 < RR) then	
+		CosineBellsX = b + c * h2
+	else 
+		CosineBellsX = b
+	endif
+end function
+
+subroutine InitCorrelatedCosineBellsTracer(corrCosBells,tracerID1, tracerID2)
+	type(TracerSetup), intent(inout) :: corrCosBells
+	integer(kint), intent(in) :: tracerID1, tracerID2
+	corrCosBells%integers(1) = tracerID1
+	corrCosBells%integers(2) = tracerID2
+end subroutine
+
+subroutine SetCorrelatedCosineBellsTracerOnMesh(aMesh, corrCosBells)
+	type(SphereMesh), intent(inout) :: aMesh
+	type(TracerSetup), intent(in) :: corrCosBells
+	!
+	integer(kint) :: j
+	type(Particles), pointer :: aParticles
+	type(Panels), pointer :: aPanels
+	
+	aParticles => aMesh%particles
+	aPanels => aMesh%panels
+	
+	do j = 1, aParticles%N
+		aParticles%tracer(j, corrCosBells%integers(1)) = CosineBellsX(aParticles%x0(:,j))
+		aParticles%tracer(j, corrCosBells%integers(2)) = -0.8_kreal * & 
+			CosineBellsX(aParticles%x0(:,j)) * CosineBellsX(aParticles%x0(:,j)) + 0.9_kreal
+	enddo
+	do j = 1, aPanels%N
+		if ( aPanels%hasChildren(j) ) then
+			aPanels%tracer(j,corrCosBells%integers(1)) = 0.0_kreal
+			aPanels%tracer(j,corrCosBells%integers(2)) = 0.0_kreal
+		else
+			aPanels%tracer(j,corrCosBells%integers(1)) = CosineBellsX(aPanels%x0(:,j))
+			aPanels%tracer(j,corrCosBells%integers(2)) = -0.8_kreal * &
+				CosineBellsX(aPanels%x0(:,j)) * CosineBellsX(aPanels%x0(:,j)) + 0.9_kreal
+		endif
+	enddo
+	
+end subroutine
+
 subroutine InitMovingVortsTracer(mvTracer, initLon, initLat, tracerID)
 	type(TracerSetup), intent(inout) :: mvTracer
 	real(kreal), intent(in) :: initLon, initLat
