@@ -36,6 +36,7 @@ public InitGaussianHillsTracer, SetGaussianHillsTracerOnMesh, GAUSS_HILLS_N_INT,
 public InitMovingVortsTracer, SetMovingVortsTracerOnMesh
 public InitOneGaussianHillTracer, SetOneGaussianHillTracerOnMesh
 public InitSlottedCylindersTracer, SetSlottedCylindersTracerOnMesh, SlottedCylindersX
+public InitCorrelatedCosineBellsTracer, SetCorrelatedCosineBellsTracerOnMesh
 public TracerVariance
 
 

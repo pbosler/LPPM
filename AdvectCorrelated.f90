@@ -110,7 +110,7 @@ call ReadNamelistFile(procRank)
 !
 ! define tracer
 !
-call InitSlottedCylindersTracer(cCBells, tracerID, tracerID+1)
+call InitCorrelatedCosineBellsTracer(cCBells, tracerID, tracerID+1)
 
 !
 ! build initial mesh
@@ -191,13 +191,15 @@ do timeJ = 0, timesteps - 1
 			!
 			! remesh to t = 0
 			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetCorrelatedCosineBellsTracerOnMesh, slotC)
+			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, &
+						 SetCorrelatedCosineBellsTracerOnMesh, cCBells)
 
 		elseif ( remeshCounter == resetAlphaInterval ) then
 			!
 			! remesh to t = 0, create reference mesh to current time
 			!
-			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, SetCorrelatedCosineBellsTracerOnMesh, slotC)
+			call LagrangianRemeshToInitialTime(sphere, remesh, NullVorticity, nullVort, & 
+						SetCorrelatedCosineBellsTracerOnMesh, cCBells)
 			allocate(reference)
 			call New(reference, sphere)
 			call ResetLagrangianParameter(sphere)
@@ -332,7 +334,7 @@ call Delete(timekeeper)
 call Delete(remesh)
 if ( procrank == 0 ) call Delete(vtkOut)
 call Delete(sphere)
-call Delete(slotC)
+call Delete(cCBells)
 call Delete(exeLog)
 
 call MPI_FINALIZE(errCode)
