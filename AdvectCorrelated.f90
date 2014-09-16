@@ -110,6 +110,7 @@ call ReadNamelistFile(procRank)
 !
 ! define tracer
 !
+call New(cCBells,2,0)
 call InitCorrelatedCosineBellsTracer(cCBells, tracerID, tracerID+1)
 
 !
@@ -117,6 +118,8 @@ call InitCorrelatedCosineBellsTracer(cCBells, tracerID, tracerID+1)
 !
 call New(sphere, panelKind, initNest, AMR, nTracer, ADVECTION_SOLVER)
 call SetCorrelatedCosineBellsTracerOnMesh(sphere,cCBells)
+
+
 !
 ! initialize remeshing and refinement
 !
@@ -308,9 +311,10 @@ if ( procRank == 0 ) then
 				write(WRITE_UNIT_1, '(F24.15,A,F24.15,A)') sphereParticles%tracer(j,tracerID),' , ', sphereParticles%tracer(j,tracerID+1), ' ; ...'
 			enddo
 			write(WRITE_UNIT_1, '(F24.15,A,F24.15,A)') sphereParticles%tracer(sphereParticles%N,tracerID),' , ',sphereParticles%tracer(sphereParticles%N,tracerID+1), ' ]; '
-			write(WRITE_UNIT_1,'(A, F24.15,A,F24.15,A)') 'tracerPanels = [ ', spherePanels%tracer(1,tracerID),' , ', spherePanels%tracer(1,tracerID+1), ' ; ...'
-			do j=2,spherePanels%N-1
-				write(WRITE_UNIT_1, '(F24.15,A,F24.15,A)') spherePanels%tracer(j,tracerID),' , ', spherePanels%tracer(j,tracerID+1), ' ; ...'
+			write(WRITE_UNIT_1,'(A)', advance='NO') 'tracerPanels = [ '
+			do j=1,spherePanels%N-1
+				if ( .NOT. spherePanels%hasChildren(j) ) &
+					write(WRITE_UNIT_1, '(F24.15,A,F24.15,A)') spherePanels%tracer(j,tracerID),' , ', spherePanels%tracer(j,tracerID+1), ' ; ...'
 			enddo
 			write(WRITE_UNIT_1, '(F24.15,A,F24.15,A)') spherePanels%tracer(spherePanels%N,tracerID),' , ',spherePanels%tracer(spherePanels%N,tracerID+1), ' ]; '
 		endif
