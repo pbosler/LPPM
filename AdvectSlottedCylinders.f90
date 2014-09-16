@@ -30,7 +30,7 @@ type(Panels), pointer :: spherePanels
 !
 type(TracerSetup) :: slotC
 integer(kint) :: tracerID
-
+real(kreal) :: tracerMassTol, tracerVarTol
 !
 ! vorticity placeholder
 !
@@ -127,7 +127,7 @@ call ConvertFromRelativeTolerances(sphere, tracerMassTol, tracerVarTol, tracerID
 call New(remesh, tracerID, tracerMassTol, tracerVarTol, AMR)
 nullify(reference)
 if ( AMR > 0 ) then
-	call InitialRefinement(sphere, remesh, SetGaussianHillsTracerOnMesh, gHills, NullVorticity, nullvort)
+	call InitialRefinement(sphere, remesh, SetGaussianHillsTracerOnMesh, slotC, NullVorticity, nullvort)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
 	if ( panelKind == TRI_PANEL ) &
@@ -257,8 +257,8 @@ enddo
 !	OUTPUT FINAL DATA
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-do j = 1, sphereParticles%particlesLinf
-	sphereParticles%tracer(j, 2) = abs(SlottedCylindersX(sphereParticles%xyz(:,j)) - sphereParticles%tracer(j,tracerID))
+do j = 1, sphereParticles%N
+	sphereParticles%tracer(j, 2) = abs(SlottedCylindersX(sphereParticles%x(:,j)) - sphereParticles%tracer(j,tracerID))
 enddo
 do j = 1, spherePanels%N
 	if ( spherePanels%hasChildren(j) ) then
@@ -276,8 +276,8 @@ sphereL2 = sum( spherePanels%tracer(1:spherePanels%N,2)*spherePanels%tracer(1:sp
 sphereL2 = sphereL2 / (sum(spherePanels%tracer(1:spherePanels%N,1) * spherePanels%tracer(1:spherePanels%N,1)*spherePanels%area(1:spherePanels%n)))
 sphereL2 = sqrt(sphereL2)
 
-phiMax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherPanels%tracer(1:spherePanels%N,1))) - phiMax0 ) / deltaPhi
-phiMin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval(spherPanels%tracer(1:spherePanels%N,1))) - phimin0 ) / deltaPhi
+phiMax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1))) - phiMax0 ) / deltaPhi
+phiMin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval(spherePanels%tracer(1:spherePanels%N,1))) - phimin0 ) / deltaPhi
 
 if ( procRank == 0 ) then
 	open( unit = WRITE_UNIT_1, file = datafile, status = 'REPLACE', action = 'WRITE', iostat = readwritestat)
@@ -323,7 +323,7 @@ call Delete(timekeeper)
 call Delete(remesh)
 if ( procrank == 0 ) call Delete(vtkOut)
 call Delete(sphere)
-call Delete(gHills)
+call Delete(slotC)
 call Delete(exeLog)
 
 call MPI_FINALIZE(errCode)
