@@ -243,6 +243,18 @@ do timeJ = 0, timesteps - 1
 	t = real( timeJ+1, kreal) * dt
 
 	if ( procRank == 0 .AND. mod( timeJ+1, frameOut) == 0 ) then
+		if ( timeJ + 1 == timesteps ) then
+			do j = 1, sphereParticles%N
+				sphereParticles%tracer(j, 2) = abs(SlottedCylindersX(sphereParticles%x(:,j)) - sphereParticles%tracer(j,tracerID))
+			enddo
+			do j = 1, spherePanels%N
+				if ( spherePanels%hasChildren(j) ) then
+					spherePanels%tracer(j,2) = 0.0_kreal
+				else
+					spherePanels%tracer(j,2) = abs( SlottedCylindersX(spherePanels%x(:,j)) - spherePanels%tracer(j,tracerID))
+				endif
+			enddo
+		endif
 		call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'day = ', t/ONE_DAY)
 
 		write(vtkFile, '(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
@@ -256,17 +268,6 @@ enddo
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	OUTPUT FINAL DATA
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-do j = 1, sphereParticles%N
-	sphereParticles%tracer(j, 2) = abs(SlottedCylindersX(sphereParticles%x(:,j)) - sphereParticles%tracer(j,tracerID))
-enddo
-do j = 1, spherePanels%N
-	if ( spherePanels%hasChildren(j) ) then
-		spherePanels%tracer(j,2) = 0.0_kreal
-	else
-		spherePanels%tracer(j,2) = abs( SlottedCylindersX(spherePanels%x(:,j)) - spherePanels%tracer(j,tracerID))
-	endif
-enddo
 
 particlesLinf = maxval(sphereParticles%tracer(1:sphereParticles%N,2))
 panelsLinf = maxval(spherePanels%tracer(1:spherePanels%N,2))
