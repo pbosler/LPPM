@@ -56,8 +56,8 @@ integer(kint) :: timesteps, timeJ
 !
 ! output variables
 !
-type(VTKSource) :: vtkOut
-character(len = MAX_STRING_LENGTH) :: vtkRoot, vtkFile, outputDir, jobPrefix, dataFile, summaryFile
+type(VTKSource) :: vtkOut, vtkMeshOut
+character(len = MAX_STRING_LENGTH) :: vtkRoot, vtkFile, vtkMeshFile, outputDir, jobPrefix, dataFile, summaryFile
 character(len = 56) :: amrString
 integer(kint) :: frameCounter, frameOut, readWriteStat
 type(OutputWriter) :: writer
@@ -178,10 +178,15 @@ if ( procrank == 0 ) then
 
 	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
+	
+	write(vtkMeshFile,'(A,A,I0.4,A)') trim(vtkRoot), '_mesh_',0,'.vtk'
+	
 	write(summaryFile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrString), '_summary.txt'
 	write(datafile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrstring), '_calculatedData.m'
 	call New(vtkOut, sphere, vtkFile, 'moving vortices')
+	call New(vtkMeshOut, sphere, vtkMeshFile, 'moving vortices')
 	call VTKOutput(vtkOut, sphere)
+	call VTKOutputMidpointRule(vtkMeshOut,sphere)
 endif
 
 !
@@ -266,12 +271,18 @@ do timeJ = 0, timesteps - 1
 		! delete objects associated with old mesh
 		!
 		call Delete(timekeeper)
-		if ( procrank == 0 ) call Delete(vtkOUt)
+		if ( procrank == 0 ) then
+			call Delete(vtkOUt)
+			call Delete(vtkMeshOut)
+		endif
 		!
 		! create new associated objects for new mesh
 		!
 		call New(timekeeper, sphere, numProcs)
-		if ( procRank == 0 ) call New(vtkOut, sphere, vtkFile, 'Gaussian hills advection')
+		if ( procRank == 0 ) then	
+			call New(vtkOut, sphere, vtkFile, 'moving vortices')
+			call New(vtkMeshOut, sphere, vtkMeshFile, 'moving vortices')
+		endif
 		sphereParticles => sphere%particles
 		spherePanels => sphere%panels
 	endif ! remesh
@@ -332,8 +343,12 @@ do timeJ = 0, timesteps - 1
 		call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'day = ', t/ONE_DAY)
 
 		write(vtkFile, '(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
+		write(vtkMeshFile, '(A,A,I0.4,A)') trim(vtkRoot),'_mesh_',frameCounter,'.vtk'
+		
 		call UpdateFilename(vtkOut, vtkFile)
+		call UpdateFilename(vtkMeshOut,vtkMeshFile)
 		call VTKOutput(vtkOut, sphere)
+		call VTKOutputMidpointRule(vtkMeshOut,sphere)
 
 		frameCounter = frameCounter + 1
 	endif

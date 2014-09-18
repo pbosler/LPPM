@@ -4,7 +4,8 @@ SHELL = /bin/bash
 #MACHINE='TANK'
 #MACHINE='VORTEX'
 #MACHINE='LING'
-MACHINE='WORK-LAPTOP'
+#MACHINE='WORK-LAPTOP'
+MACHINE='WORK-DESKTOP'
 
 ## MAKEFILE FOR Lagrangian Particle/Panel Method on an Earth-Sized Sphere
 
@@ -56,7 +57,11 @@ else ifeq ($(MACHINE),'WORK-LAPTOP')
   NETCDF_INCLUDE_DIR=-I/opt/local/include
   NETCDF_LIB_DIR=-L/opt/local/lib
   NETCDF_LIBS=-lnetcdff
-endif
+else ifeq ($(MACHINE),'WORK-DESKTOP')
+  FF = mpifort
+  FF_FLAGS= -O2 -openmp -warn all 
+endif 
+
 #-----------------------------------------------------------------------------#
 
 #############################################################
