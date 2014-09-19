@@ -9,13 +9,13 @@
 
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
-	tfinal = 12.0		! days
+	tfinal = 6.0		! days
 	remeshInterval = 20
 	resetAlphaInterval = 5000
 /
 
 &fileIO
 	outputDir = '/Users/pabosle/Desktop/modelData/'
-	jobPrefix = 'advectCorrCosBells_'
+	jobPrefix = 'advectCorrCosBells_halfTime_'
 	frameOut = 200
 /

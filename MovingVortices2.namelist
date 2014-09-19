@@ -1,7 +1,7 @@
 &meshDefine
-	initNest = 5
-	AMR = 0
-	panelKind = 4
+	initNest = 4
+	AMR = 4
+	panelKind = 3
 	amrLimit = 4
 	maxCircTol = 0.2
 	vortVarTol = 1.0
@@ -18,7 +18,7 @@
 /
 
 &fileIO
-	outputDir = '~/modelData/'
-	jobPrefix = 'advMovingVorts_noRemesh_'
+	outputDir = '~/Desktop/modelData/'
+	jobPrefix = 'advMovingVorts_'
 	frameOut = 20
 /

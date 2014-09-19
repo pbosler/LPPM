@@ -444,7 +444,10 @@ deallocate(phiMax)
 deallocate(phiMin)
 call Delete(timekeeper)
 call Delete(remesh)
-if ( procrank == 0 ) call Delete(vtkOut)
+if ( procrank == 0 ) then
+	call Delete(vtkOut)
+	call Delete(vtkMeshOUt)
+endif
 call Delete(sphere)
 call Delete(testCaseTracer)
 call Delete(exeLog)
