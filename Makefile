@@ -60,6 +60,10 @@ else ifeq ($(MACHINE),'WORK-LAPTOP')
 else ifeq ($(MACHINE),'WORK-DESKTOP')
   FF = mpifort
   FF_FLAGS= -O2 -openmp -warn all 
+  MKLROOT=/opt/intel/mkl
+  MKL_COMPILE= -I$(MKLROOT)/include/intel64/lp64 -I$(MKLROOT)/include
+  MKL_LINK = $(MKLROOT)/lib/libmkl_blas95_lp64.a $(MKLROOT)/lib/libmkl_lapack95_lp64.a $(MKLROOT)/lib/libmkl_intel_lp64.a \
+  	$(MKLROOT)/lib/libmkl_core.a $(MKLROOT)/lib/libmkl_intel_thread.a -lpthread -lm
 endif 
 
 #-----------------------------------------------------------------------------#

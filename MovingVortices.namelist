@@ -1,9 +1,5 @@
 &meshDefine
-<<<<<<< HEAD
-	initNest = 7
-=======
 	initNest = 3
->>>>>>> namelists for merge
 	AMR = 0
 	panelKind = 4
 	amrLimit = 0
@@ -15,21 +11,18 @@
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
-<<<<<<< HEAD
 	remeshInterval = 20
 	resetAlphaInterval = 40000
 /
 
 &fileIO
 	outputDir = '~/modelData/'
-=======
 	remeshInterval = 25
 	resetAlphaInterval = 50000
 /
 
 &fileIO
 	outputDir = '~/Desktop/modelData/'
->>>>>>> namelists for merge
 	jobPrefix = 'advMovingVorts_conv_'
 	frameOut = 200
 /
