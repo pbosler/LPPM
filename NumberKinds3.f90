@@ -20,7 +20,7 @@ module NumberKindsModule
 	public
 
 	!> @defgroup TypeConstants Type Constants 
-	!> @detail sets compiler-dependent kind variables for primitive data types
+	!> @brief sets compiler-dependent kind variables for primitive data types
 	integer, parameter :: KREAL = kind(0.d0)   !<< compiler generated kind for double precision reals @ingroup TypeConstants
 	integer, parameter :: KINT = kind(1)	   !<< compiler generated kind for default integer @ingroup TypeConstants
 	integer, parameter :: KLOG = kind(.TRUE.)  !<< compiler generated kind logical @ingroup TypeConstants
@@ -28,7 +28,7 @@ module NumberKindsModule
 	real(KREAL), parameter :: ZERO_TOL = 1.0d-14 !<< zero tolerance for real numbers @ingroup TypeConstants
 
 	!> @defgroup PhysicalConstants Physical Constants
-	!> @detail Physical constants referenced from @cite CAM3.0
+	!> @brief Physical constants referenced from @cite CAM3.0
 	real(KREAL), parameter :: PI = 3.1415926535897932384626433832795027975_KREAL !<< Pi @ingroup PhysicalConstants
 	real(KREAL), parameter :: RAD_2_DEG = 180.0_kreal/PI !<<  convert radians to degrees @ingroup PhysicalConstants
 	real(KREAL), parameter :: GRAV = 9.80616 !<< acceleration due to gravity {m s^(-2)} @ingroup PhysicalConstants
@@ -38,7 +38,7 @@ module NumberKindsModule
 
 
 	!> @defgroup IOConstants I/O Constants
-	!> @detail constants for file input and output
+	!> @brief constants for file input and output
 	integer(KINT), parameter :: STD_ERR = 0
 	integer(KINT), parameter :: STD_IN  = 5
 	integer(KINT), parameter :: STD_OUT = 6
@@ -49,7 +49,7 @@ module NumberKindsModule
 	integer(KINT), parameter :: MAX_STRING_LENGTH = 256
 	
 	!> @defgroup MeshConstants Mesh and application constants
-	!> @detail constants for mesh and problem definition
+	!> @brief constants for mesh and problem definition
 	integer(KINT), parameter ::	QUAD_PANEL = 4 !<< panelKind parameter for quadrilateral panels @ingroup MeshConstants
 	integer(KINT), parameter ::	TRI_PANEL = 3 !<< panelKind parameter for triangular panels @ingroup MeshConstants
 	integer(KINT), parameter ::	ADVECTION_SOLVER = 90 !<< problemKind parameter for spherical advection @ingroup MeshConstants
@@ -62,7 +62,7 @@ module NumberKindsModule
 
 
 	!> @defgroup MPIVariables MPI Variables
-	!> @detail variables to define MPI computing environment
+	!> @brief variables to define MPI computing environment
 	integer(KINT), save :: numProcs = 1 !<< number of processess @ingroup MPIVariables
 	integer(KINT), save :: procRank = 0 !<< process rank @ingroup MPIVariables
 

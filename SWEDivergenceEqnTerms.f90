@@ -121,26 +121,26 @@ call TestLinearFunction(sphere)
 	!
 	!	method 1 : trivariate quadratic polynomials, least squares
 	!
-	write(logstring,'(A,I8,A)') 'trivariate least squares : ', spherePanels%N_Active, ' panels'
-	call StartSection(exeLog, trim(logstring))
-	testClock = MPI_WTIME()
-	call TrivariateQuadraticApproximations(sphere)
-
-	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
-	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 1, method 1 : ', trim(logString) )
-
-	call CalculateError(sphere, test1method1Error(1), test1method1Error(2), test1method1Error(3), test1method1Error(4), &
-		test1method1Error(5), test1method1Error(6) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp linf err = ', test1method1Error(5) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp err = ', test1method1Error(6) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient linf err = ', test1method1Error(1) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient l2 err = ', test1method1Error(2) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian linf err = ', test1method1Error(3) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian l2 err = ', test1method1Error(4) )
-	if ( procRank == 0 ) then
-		call VTKOutput(vtkOut, sphere)
-	endif
-	call EndSection(exeLog)
+!	write(logstring,'(A,I8,A)') 'trivariate least squares : ', spherePanels%N_Active, ' panels'
+!	call StartSection(exeLog, trim(logstring))
+!	testClock = MPI_WTIME()
+!	call TrivariateQuadraticApproximations(sphere)
+!
+!	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
+!	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 1, method 1 : ', trim(logString) )
+!
+!	call CalculateError(sphere, test1method1Error(1), test1method1Error(2), test1method1Error(3), test1method1Error(4), &
+!		test1method1Error(5), test1method1Error(6) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp linf err = ', test1method1Error(5) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp err = ', test1method1Error(6) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient linf err = ', test1method1Error(1) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient l2 err = ', test1method1Error(2) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian linf err = ', test1method1Error(3) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian l2 err = ', test1method1Error(4) )
+!	if ( procRank == 0 ) then
+!		call VTKOutput(vtkOut, sphere)
+!	endif
+!	call EndSection(exeLog)
 
 
 	!
@@ -203,33 +203,33 @@ if ( procRank == 0 ) then
 endif
 
 call StartSection(exeLog,'Test function 2 : f(x,y,z) = RESCALED P_10^3( z/R) * cos(3 atan(y,x) ) ')
-	call TestSphericalHarmonic10_3(sphere, .TRUE.)
-	!
-	!	method 1 : trivariate quadratic polynomials, least squares
-	!
-	write(logstring,'(A,I8,A)') 'trivariate least squares : ', spherePanels%N_Active, ' panels'
-	call StartSection(exeLog, trim(logstring))
-	testClock = MPI_WTIME()
-	call TrivariateQuadraticApproximations(sphere)
-
-	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
-	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 2, method 1 : ', trim(logString) )
-
-	call CalculateError(sphere, test2method1Error(1), test2method1Error(2), test2method1Error(3), test2method1Error(4), &
-		test2method1Error(5), test2method1Error(6) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp linf err = ', test2method1Error(5) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp err = ', test2method1Error(6) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient linf err = ', test2method1Error(1) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient l2 err = ', test2method1Error(2) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian linf err = ', test2method1Error(3) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian l2 err = ', test2method1Error(4) )
-	if ( procRank == 0 ) then
-		write(vtkFile,'(A,A,I0.4,A)') trim(vtkRoot), 'test2_', 0, '.vtk'
-		call UpdateFilename(vtkOut, vtkFile)
-		call UpdateTitle(vtkOut, 'trivariate least squares')
-		call VTKOutput(vtkOut, sphere)
-	endif
-	call EndSection(exeLog)
+!	call TestSphericalHarmonic10_3(sphere, .TRUE.)
+!	!
+!	!	method 1 : trivariate quadratic polynomials, least squares
+!	!
+!	write(logstring,'(A,I8,A)') 'trivariate least squares : ', spherePanels%N_Active, ' panels'
+!	call StartSection(exeLog, trim(logstring))
+!	testClock = MPI_WTIME()
+!	call TrivariateQuadraticApproximations(sphere)
+!
+!	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
+!	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 2, method 1 : ', trim(logString) )
+!
+!	call CalculateError(sphere, test2method1Error(1), test2method1Error(2), test2method1Error(3), test2method1Error(4), &
+!		test2method1Error(5), test2method1Error(6) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp linf err = ', test2method1Error(5) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp err = ', test2method1Error(6) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient linf err = ', test2method1Error(1) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient l2 err = ', test2method1Error(2) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian linf err = ', test2method1Error(3) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian l2 err = ', test2method1Error(4) )
+!	if ( procRank == 0 ) then
+!		write(vtkFile,'(A,A,I0.4,A)') trim(vtkRoot), 'test2_', 0, '.vtk'
+!		call UpdateFilename(vtkOut, vtkFile)
+!		call UpdateTitle(vtkOut, 'trivariate least squares')
+!		call VTKOutput(vtkOut, sphere)
+!	endif
+!	call EndSection(exeLog)
 
 
 	!
@@ -277,33 +277,33 @@ if ( procRank == 0 ) then
 endif
 
 call StartSection(exeLog,'Test function 3 : f(x,y,z) = NORMAL  P_10^3( z/R) * cos(3 atan(y,x) ) ')
-	call TestSphericalHarmonic10_3(sphere, .FALSE.)
-	!
-	!	method 1 : trivariate quadratic polynomials, least squares
-	!
-	write(logstring,'(A,I8,A)') 'trivariate least squares : ', spherePanels%N_Active, ' panels'
-	call StartSection(exeLog, trim(logstring))
-	testClock = MPI_WTIME()
-	call TrivariateQuadraticApproximations(sphere)
-
-	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
-	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 2, method 1 : ', trim(logString) )
-
-	call CalculateError(sphere, test3method1Error(1), test3method1Error(2), test3method1Error(3), test3method1Error(4), &
-		test3method1Error(5), test3method1Error(6) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp linf err = ', test3method1Error(5) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp err = ', test3method1Error(6) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient linf err = ', test3method1Error(1) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient l2 err = ', test3method1Error(2) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian linf err = ', test3method1Error(3) )
-	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian l2 err = ', test3method1Error(4) )
-	if ( procRank == 0 ) then
-		write(vtkFile,'(A,A,I0.4,A)') trim(vtkRoot), 'test3_', 0, '.vtk'
-		call UpdateFilename(vtkOut, vtkFile)
-		call UpdateTitle(vtkOut, 'trivariate least squares')
-		call VTKOutput(vtkOut, sphere)
-	endif
-	call EndSection(exeLog)
+!	call TestSphericalHarmonic10_3(sphere, .FALSE.)
+!	!
+!	!	method 1 : trivariate quadratic polynomials, least squares
+!	!
+!	write(logstring,'(A,I8,A)') 'trivariate least squares : ', spherePanels%N_Active, ' panels'
+!	call StartSection(exeLog, trim(logstring))
+!	testClock = MPI_WTIME()
+!	call TrivariateQuadraticApproximations(sphere)
+!
+!	write(logstring,'(A,F15.4,A)') 'trivariate quadratic elapsed time = ', MPI_WTIME() - testClock, ' seconds.'
+!	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,'test 2, method 1 : ', trim(logString) )
+!
+!	call CalculateError(sphere, test3method1Error(1), test3method1Error(2), test3method1Error(3), test3method1Error(4), &
+!		test3method1Error(5), test3method1Error(6) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp linf err = ', test3method1Error(5) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'scalar interp err = ', test3method1Error(6) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient linf err = ', test3method1Error(1) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'gradient l2 err = ', test3method1Error(2) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian linf err = ', test3method1Error(3) )
+!	call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'Laplacian l2 err = ', test3method1Error(4) )
+!	if ( procRank == 0 ) then
+!		write(vtkFile,'(A,A,I0.4,A)') trim(vtkRoot), 'test3_', 0, '.vtk'
+!		call UpdateFilename(vtkOut, vtkFile)
+!		call UpdateTitle(vtkOut, 'trivariate least squares')
+!		call VTKOutput(vtkOut, sphere)
+!	endif
+!	call EndSection(exeLog)
 
 
 	!
@@ -594,13 +594,13 @@ subroutine SSRFPACKApproximations( aMesh )
 
 	do j = 1, aParticles%N
 		aParticles%div(j) = InterpolateScalar(aParticles%x(:,j), relVortSource, delTri)
-		aParticles%u(:,j) = relVortSource%grad1(:,aPanels%N_Active + j)
+		aParticles%u(:,j) = relVortSource%grad1(:,aPanels%N_Active + j)/EARTH_RADIUS
 	enddo
 	k = 1
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			aPanels%div(j) = InterpolateScalar(aPanels%x(:,j), relVortSource, delTri)
-			aPanels%u(:,delTri%activeMap(k)) = relVortSource%grad1(:,k)
+			aPanels%u(:,delTri%activeMap(k)) = relVortSource%grad1(:,k)/EARTH_RADIUS
 			k = k+1
 		endif
 	enddo
@@ -614,7 +614,7 @@ subroutine SSRFPACKApproximations( aMesh )
 				delTri%list, delTri%lptr, delTri%lend, grad2grad, errCode)
 			call GRADL(delTri%n, k, delTri%x, delTri%y, delTri%z, relVortSource%grad1(3,:), &
 				delTri%list, delTri%lptr, delTri%lend, grad3grad, errCode)
-			aPanels%h(j) = grad1grad(1) + grad2grad(2) + grad3grad(3)
+			aPanels%h(j) = (grad1grad(1) + grad2grad(2) + grad3grad(3))!/EARTH_RADIUS
 			k = k + 1
 		endif
 	enddo
@@ -625,10 +625,8 @@ subroutine SSRFPACKApproximations( aMesh )
 			delTri%list, delTri%lptr, delTri%lend, grad2grad, errCode)
 		call GRADL(delTri%n, aPanels%N_Active + j, delTri%x, delTri%y, delTRi%z, relVortSource%grad1(3,:), &
 			delTri%list, delTri%lptr, delTri%lend, grad3grad, errCode)
-		aParticles%h(j) = grad1grad(1) + grad2grad(2) + grad3grad(3)
+		aParticles%h(j) = (grad1grad(1) + grad2grad(2) + grad3grad(3))!/EARTH_RADIUS
 	enddo
-
-
 	call Delete(delTri)
 end subroutine
 
@@ -650,7 +648,7 @@ subroutine TrivariateQuadraticApproximations( aMesh )
 	aPanels => aMesh%panels
 	allocate(particleChecked(aParticles%N))
 	particleChecked = 0
-
+print *, "Trivariate do loop ..."
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			! start fresh
