@@ -1,7 +1,7 @@
 &meshDefine
-	initNest = 3
+	initNest = 5
 	AMR = 0
-	panelKind = 4
+	panelKind = 3
 	amrLimit = 0
 	tracerMassTol = 2.0
 	tracerVarTol = 0.25
@@ -17,12 +17,6 @@
 
 &fileIO
 	outputDir = '~/modelData/'
-	remeshInterval = 25
-	resetAlphaInterval = 50000
-/
-
-&fileIO
-	outputDir = '~/Desktop/modelData/'
-	jobPrefix = 'advMovingVorts_conv_'
+	jobPrefix = 'advMovingVorts_conv1_'
 	frameOut = 200
 /

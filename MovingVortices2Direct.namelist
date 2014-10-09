@@ -19,6 +19,6 @@
 
 &fileIO
 	outputDir = '~/modelData/'
-	jobPrefix = 'advMovingVorts_noRemesh1_'
+	jobPrefix = 'advMovingVorts_direct_'
 	frameOut = 20
 /
