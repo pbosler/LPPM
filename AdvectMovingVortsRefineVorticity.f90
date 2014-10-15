@@ -143,6 +143,12 @@ call ConvertFromRelativeTolerances(sphere, maxCircTol, vortVarTol, tracerMassTol
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerMassTol = ', tracerMassTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerVarTol  = ', tracerVarTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, '   lagVarTol  = ', lagVarTol )
+	
+	if ( procRank == 0 ) then
+		print *, "maxCircTol = ", maxCircTol
+		print *, "lagVarTol = ", lagVarTol
+	endif
+	
 call New(remesh, maxCircTol, vortVarTol, lagVarTol, tracerID, tracerMassTol, tracerVarTol, amrLimit)
 nullify(reference)
 if ( AMR > 0 ) then
