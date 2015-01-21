@@ -1,4 +1,4 @@
-LPPM : Lagrangian Particle / Panel Method
+LPM : Lagrangian Particle Method
 =========
 
 Code associated with 
@@ -25,6 +25,14 @@ The PlaneDirectSum.f90 module defines the Runge-Kutta time stepping data type fo
 
 Each object must be created in memory using its New method, many objects must then be initialized using a call to an Init or Initialize subroutine.  
 For clean code, every time a New subroutine is called on an object, a corresponding call to that object's Delete subroutine should be used when the object is no longer needed or goes out of scope.
+
+Build/Install:
+---------
+LPM has recently been upgraded to support the CMake (<www.cmake.org>) build system.  
+Users should make their own configure script (or edit the file `do-configure-LPPM.sh`) to configure the software.
+This script calls the cmake executable, which builds all of the Makefiles.
+The code is then compiled by typing `make -j n`, where `n` is the number of processors you'd like to use for compilation.
+The command `make install` then installs the code (libraries and executables) to the location specified in the configure script.
 
 Example: 
 ---------

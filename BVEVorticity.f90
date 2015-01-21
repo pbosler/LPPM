@@ -135,11 +135,12 @@ subroutine InitSolidBodyRotation(solidBody, rotRate)
 	solidBody%reals(1) = rotRate
 end subroutine
 
-subroutine SetSolidBodyRotationOnMesh(aMesh, solidBody)
+subroutine SetSolidBodyRotationOnMesh(aMesh, solidBody, t)
 ! sets absolute and relative vorticity for solid body test case
 ! NOTE : the role of absolute and relative vorticity is reversed for this test case only.
 	type(SphereMesh), intent(inout) :: aMesh
 	type(BVESetup), intent(in) :: solidBody
+	real(kreal), intent(in) :: t
 	integer(kint) :: j
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
@@ -173,9 +174,10 @@ subroutine InitDecayingVortices(decayingVorts)
 	type(BVESetup), intent(inout) :: decayingVorts
 end subroutine
 
-subroutine SetDecayingVorticesOnMesh(aMesh,decayingVorts)
+subroutine SetDecayingVorticesOnMesh(aMesh,decayingVorts, t)
 	type(SphereMesh), intent(inout) :: amesh
 	type(BVESetup), intent(in) :: decayingVorts
+	real(kreal), intent(in) :: t
 	!
 	integer(kint) :: j
 	type(Particles), pointer :: aParticles
@@ -215,9 +217,10 @@ subroutine SetDecayingVorticesOnMesh(aMesh,decayingVorts)
 	enddo
 end subroutine
 
-subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort)
+subroutine SetSingleGaussianVortexOnMesh(aMesh,gaussVort, t)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(BVESetup), intent(in) :: gaussVort
+	real(kreal), intent(in) :: t
 	! local variables
 	integer(kint) :: j
 	real(kreal) :: xyzCent(3)
@@ -274,9 +277,10 @@ subroutine InitRH4Wave(rh4Wave, alpha, amplitude)
 	rh4Wave%reals(2) = amplitude
 end subroutine
 
-subroutine SetRH4WaveOnMesh(aMesh,rhWave)
+subroutine SetRH4WaveOnMesh(aMesh,rhWave, t)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(BVESetup), intent(in) :: rhWave
+	real(kreal), intent(in) :: t
 	!
 	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels

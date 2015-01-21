@@ -138,7 +138,7 @@ call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,trim(logKey),' null tracer object don
 call New(sphere,panelKind,initNest,AMR,nTracer,problemKind)
 call SetFlowMapLatitudeTracerOnMesh(sphere,1)
 call SetFlowMapLatitudeTracerOnMesh(sphere,2)
-call SetRH4WaveOnMesh(sphere,rhWave)
+call SetRH4WaveOnMesh(sphere,rhWave, 0.0_kreal)
 call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,trim(logKey),' base sphere (t = 0) done.')
 
 !
@@ -154,7 +154,7 @@ call New(remesh, maxCircTol, vortVarTol, lagVarTol, amrLimit)
 
 
 if ( AMR > 0 ) then
-	call InitialRefinement(sphere, remesh, nullTracer, nullScalar, SetRH4WaveOnMesh, rhWave)
+	call InitialRefinement(sphere, remesh, nullTracer, nullScalar, SetRH4WaveOnMesh, rhWave, 0.0_kreal)
 	call LogMessage(exeLog,DEBUG_LOGGING_LEVEL,logKey,' initial refinement done.')
 
 	if ( panelKind == QUAD_PANEL) then

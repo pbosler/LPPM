@@ -85,14 +85,14 @@ TARGET_LINK_LIBRARIES(advectCorrelatedTracers base mesh interp remesh problemSet
 ADD_EXECUTABLE( advectCorrelatedTracersDirect AdvectCorrelatedDirect.f90 )
 TARGET_LINK_LIBRARIES(advectCorrelatedTracersDirect base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( solidBodyRotationBVE BVESolidBodyRotation.f90 ) 
-TARGET_LINK_LIBRARIES(solidBodyRotationBVE base mesh interp remesh problemSet output )
+#ADD_EXECUTABLE( solidBodyRotationBVE BVESolidBodyRotation.f90 ) 
+#TARGET_LINK_LIBRARIES(solidBodyRotationBVE base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( singleGaussianVortexBVE BVESingleGaussianVortex.f90 )
-TARGET_LINK_LIBRARIES(singleGaussianVortexBVE base mesh interp remesh problemSet output )
+#ADD_EXECUTABLE( singleGaussianVortexBVE BVESingleGaussianVortex.f90 )
+#TARGET_LINK_LIBRARIES(singleGaussianVortexBVE base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( rossbyHaurwitz4Wave BVERH4.f90 ) 
-TARGET_LINK_LIBRARIES(rossbyHaurwitz4Wave base mesh interp remesh problemSet output )
+#ADD_EXECUTABLE( rossbyHaurwitz4Wave BVERH4.f90 ) 
+#TARGET_LINK_LIBRARIES(rossbyHaurwitz4Wave base mesh interp remesh problemSet output )
 
 ADD_EXECUTABLE(sweTestCase2 SWETestCase2.f90 ) 
 TARGET_LINK_LIBRARIES(sweTestCase2 base mesh interp remesh problemSet output )
