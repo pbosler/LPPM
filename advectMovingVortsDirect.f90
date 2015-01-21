@@ -88,7 +88,8 @@ integer(kint) :: j
 ! namelists and user input
 !
 character(len=MAX_STRING_LENGTH) :: namelistFile = 'MovingVortices2Direct.namelist'
-namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, maxCircTol, vortVarTol, tracerMassTol, tracerVarTol, lagVarTol
+namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, maxCircTol, vortVarTol,&
+	 tracerMassTol, tracerVarTol, lagVarTol
 namelist /timestepping/ tfinal, dt, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 
@@ -146,7 +147,8 @@ call ConvertFromRelativeTolerances(sphere, maxCircTol, vortVarTol, tracerMassTol
 call New(remesh, maxCircTol, vortVarTol, lagVarTol, tracerID, tracerMassTol, tracerVarTol, amrLimit)
 nullify(reference)
 if ( AMR > 0 ) then
-	call InitialRefinement(sphere, remesh, SetMovingVortsTracerOnMesh, testCaseTracer, SetTestCaseVorticityOnMesh, nullvort, 0.0_kreal)
+	!call InitialRefinement(sphere, remesh, SetMovingVortsTracerOnMesh,&
+	!	testCaseTracer,SetTestCaseVorticityOnMesh,nullvort,0.0_kreal)
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
 	if ( panelKind == TRI_PANEL ) &
@@ -278,31 +280,40 @@ do timeJ = 0, timesteps - 1
 	! calculate error
 	!
 	do j = 1, sphereParticles%N
-		sphereParticles%tracer(j,2) = (sphereParticles%tracer(j,1) - sphereParticles%tracer(j,3)) / maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
+		sphereParticles%tracer(j,2) = (sphereParticles%tracer(j,1) - sphereParticles%tracer(j,3)) /&
+			 maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
 	enddo
 	do j = 1, spherePanels%N
 		if ( spherePanels%hasChildren(j) ) then
 			spherePanels%tracer(j,2) = 0.0_kreal
 		else
-			spherePanels%tracer(j,2) = (spherePanels%tracer(j,1) - spherePanels%tracer(j,3))/ maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
+			spherePanels%tracer(j,2) = (spherePanels%tracer(j,1) - spherePanels%tracer(j,3))/&
+				 maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
 		endif
 	enddo
 	totalMasstestCaseTracer(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
 
-	particlesLinf(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
+	particlesLinf(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,2)) /&
+		 maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
 	panelsLinf(timeJ+1) = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( abs(spherePanels%tracer(1:spherePanels%N,1) ))
 
 	sphereLinf(timeJ+1) = max( particlesLinf(timeJ+1), panelsLinf(timeJ+1) )
-	sphereL2(timeJ+1) = sum( spherePanels%tracer(1:spherePanels%N,2) * spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
-	sphereL2(timeJ+1) = sphereL2(timeJ+1) / sum( spherePanels%tracer(1:spherePanels%N,1) * spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
+	sphereL2(timeJ+1) = sum( spherePanels%tracer(1:spherePanels%N,2) * &
+		spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
+	sphereL2(timeJ+1) = sphereL2(timeJ+1) / sum( spherePanels%tracer(1:spherePanels%N,1) *&
+		 spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
 	sphereL2(timeJ+1) = sqrt(sphereL2(timeJ+1))
 
-	sphereL1(timeJ+1) = sum( abs(spherePanels%tracer(1:spherePanels%N,2)) * spherePanels%area(1:spherePanels%N) )
-	sphereL1(timeJ+1) = sphereL1(timeJ+1) / sum( abs(spherePanels%tracer(1:spherePanels%N,1)) * spherePanels%area(1:spherePanels%N) )
+	sphereL1(timeJ+1) = sum( abs(spherePanels%tracer(1:spherePanels%N,2)) *&
+		 spherePanels%area(1:spherePanels%N) )
+	sphereL1(timeJ+1) = sphereL1(timeJ+1) / &
+		sum( abs(spherePanels%tracer(1:spherePanels%N,1)) * spherePanels%area(1:spherePanels%N) )
 
-	phimax(timeJ+1) = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
-	phimin(timeJ+1) = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
+	phimax(timeJ+1) = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)),&
+		 maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
+	phimin(timeJ+1) = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
+		 minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
 
 	!
 	! output data
@@ -446,13 +457,15 @@ function testCaseTracerExact(xyz, t, mvTracer)
 	!
 	! Find coordinates of xyz in a coordinate system whose north pole is at the vortex location
 	!
-	lonPrime = atan4( cos(lat)*sin( lon - vortCenterLon),  cos(lat)*sin(vortCenterLat)*cos( lon - vortCenterLon) - cos(vortCenterLat)*sin(lat) )
+	lonPrime = atan4( cos(lat)*sin( lon - vortCenterLon),  &
+		cos(lat)*sin(vortCenterLat)*cos( lon - vortCenterLon) - cos(vortCenterLat)*sin(lat) )
 	latPrime = asin( sin(lat)*sin(vortCenterLat) + cos(lat)*cos(vortCenterLat)*cos( lon - vortCenterLon ) )
 	!
 	! Determine angular tangential velocity induced by vortex about its center
 	!
 	rho = 3.0_kreal * cos( latPrime )
-	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / ( EARTH_RADIUS * cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
+	wr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho /&
+		 ( EARTH_RADIUS * cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
 
 	testCaseTracerExact = 1.0_kreal - tanh( 0.2_kreal * rho * sin(lonPrime - wr*t) )
 end function
@@ -472,7 +485,8 @@ function MovingVortsVorticity(xyz, t)
 	rhoDenom = rho / (rho*rho + ZERO_TOL*ZERO_TOL)
 	
 	omg = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh( rho ) * rhoDenom / cosh(rho) /cosh(rho)
-	omg_rho = u0 * 1.5_kreal * sqrt(3.0_kreal) * ( rho - tanh(rho)*(cosh(rho)*cosh(rho) + 2.0_kreal*rho*cosh(rho)*sinh(rho))) * &
+	omg_rho = u0 * 1.5_kreal * sqrt(3.0_kreal) * &
+		( rho - tanh(rho)*(cosh(rho)*cosh(rho) + 2.0_kreal*rho*cosh(rho)*sinh(rho))) * &
 		rhoDenom*rhoDenom / (cosh(rho)**4)
 	
 	rho_lam = -3.0_kreal*cos(lat)*cos(lat)*sin(lon-u0 * t / EARTH_RADIUS)*cos(lon-u0 * t / EARTH_RADIUS) * rhoDenom

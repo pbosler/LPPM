@@ -148,14 +148,17 @@ subroutine SetCosineBellTracerOnMesh(aMesh,cosBell)
 	aParticles => aMesh%particles
 	aPanels => aMesh%panels
 
-	xyzCent = EARTH_RADIUS * [cos(cosBell%reals(1))*cos(cosBell%reals(2)), cos(cosBell%reals(1))*sin(cosBell%reals(2)), sin(cosBell%reals(1)) ]
+	xyzCent = EARTH_RADIUS * [cos(cosBell%reals(1))*cos(cosBell%reals(2)), &
+		cos(cosBell%reals(1))*sin(cosBell%reals(2)), sin(cosBell%reals(1)) ]
 
 	do j=1,aParticles%N
-		aParticles%tracer(j,cosBell%tracerID) = CosineBellX(aParticles%x0(:,j),xyzCent,cosBell%reals(3),cosBell%reals(4))
+		aParticles%tracer(j,cosBell%tracerID) = CosineBellX(aParticles%x0(:,j),&
+			xyzCent,cosBell%reals(3),cosBell%reals(4))
 	enddo
 	do j=1,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			aPanels%tracer(j,cosBell%tracerID) = CosineBellX(aPanels%x0(:,j),xyzCent,cosBell%reals(3), cosBell%reals(4))
+			aPanels%tracer(j,cosBell%tracerID) = CosineBellX(aPanels%x0(:,j),&
+				xyzCent,cosBell%reals(3), cosBell%reals(4))
 		else
 			aPanels%tracer(j,cosBell%tracerID) = 0.0_kreal
 		endif
@@ -195,8 +198,10 @@ function SlottedCylindersX(xyz)
 	real(kreal) :: SlottedCylindersX
 	real(kreal), intent(in) :: xyz(3)
 	!
-	real(kreal), parameter :: xx1 = -0.866025403784439_kreal*EARTH_RADIUS, yy1 = 0.5_kreal*EARTH_RADIUS, zz1 = 0.0_kreal*EARTH_RADIUS
-	real(kreal), parameter :: xx2 = -0.866025403784439_kreal*EARTH_RADIUS, yy2 = -0.5_kreal*EARTH_RADIUS, zz2 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: xx1 = -0.866025403784439_kreal*EARTH_RADIUS, &	
+							  yy1 = 0.5_kreal*EARTH_RADIUS, zz1 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: xx2 = -0.866025403784439_kreal*EARTH_RADIUS, &
+							  yy2 = -0.5_kreal*EARTH_RADIUS, zz2 = 0.0_kreal*EARTH_RADIUS
 	real(kreal), parameter :: lat1 = 0.0_kreal, long1 = 5.0_kreal*PI/6.0_kreal
 	real(kreal), parameter :: lat2 = 0.0_kreal, long2 = 7.0_kreal*PI/6.0_kreal
 	real(kreal), parameter :: RR = 0.5_kreal, b = 0.1_kreal, c = 1.0_kreal
@@ -228,8 +233,10 @@ end function
 function CosineBellsX(xyz)
 	real(kreal) :: CosineBellsX
 	real(kreal), intent(in) :: xyz(3)
-	real(kreal), parameter :: xx1 = -0.866025403784439_kreal*EARTH_RADIUS, yy1 = 0.5_kreal*EARTH_RADIUS, zz1 = 0.0_kreal*EARTH_RADIUS
-	real(kreal), parameter :: xx2 = -0.866025403784439_kreal*EARTH_RADIUS, yy2 = -0.5_kreal*EARTH_RADIUS, zz2 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: xx1 = -0.866025403784439_kreal*EARTH_RADIUS, &
+							  yy1 = 0.5_kreal*EARTH_RADIUS, zz1 = 0.0_kreal*EARTH_RADIUS
+	real(kreal), parameter :: xx2 = -0.866025403784439_kreal*EARTH_RADIUS,&
+		  					  yy2 = -0.5_kreal*EARTH_RADIUS, zz2 = 0.0_kreal*EARTH_RADIUS
 	real(kreal), parameter :: hmax = 1.0_kreal, RR = 0.5_kreal, b = 0.1_kreal, c = 0.9_kreal
 	real(kreal) :: r1, r2, h1, h2
 	r1 = SphereArcLength(xyz,[xx1,yy1,zz1])
@@ -329,7 +336,8 @@ function MVTracerAtT0(xyz, vortStartingLon, vortStartingLat )
 	lon = Longitude(xyz)
 	lat = Latitude(xyz)
 
-	lonPrime = atan4( cos(lat)*sin( lon - vortStartingLon),  cos(lat)*sin(vortStartingLat)*cos( lon - vortStartingLon) - cos(vortStartingLat)*sin(lat) )
+	lonPrime = atan4( cos(lat)*sin( lon - vortStartingLon),  &
+		cos(lat)*sin(vortStartingLat)*cos( lon - vortStartingLon) - cos(vortStartingLat)*sin(lat) )
 	latPrime = asin( sin(lat)*sin(vortStartingLat) + cos(lat)*cos(vortStartingLat)*cos( lon - vortStartingLon ) )
 
 	rho = 3.0_kreal * cos(latPrime)
@@ -391,13 +399,15 @@ subroutine SetGaussianHillsTracerOnMesh(aMesh, gHills)
 	xyzCent2 = [ cos(7.0_kreal * PI / 6.0_kreal), sin( 7.0_kreal * PI / 6.0_kreal ), 0.0_kreal ]
 
 	do j = 1, aParticles%N
-		aParticles%tracer(j, gHills%integers(1) ) = GaussianHillsTracer(aParticles%x0(:,j)/EARTH_RADIUS, xyzcent1, xyzcent2, gHills%reals(1), gHills%reals(2))
+		aParticles%tracer(j, gHills%integers(1) ) = &
+		GaussianHillsTracer(aParticles%x0(:,j)/EARTH_RADIUS, xyzcent1, xyzcent2, gHills%reals(1), gHills%reals(2))
 	enddo
 	do j = 1, aPanels%N
 		if ( aPanels%hasChildren(j) ) then
 			aPanels%tracer(j, gHills%integers(1) ) = 0.0_kreal
 		else
-			aPanels%tracer(j, gHills%integers(1) ) = GaussianHillsTracer(aPanels%x0(:,j)/EARTH_RADIUS, xyzcent1, xyzcent2, gHills%reals(1), gHills%reals(2))
+			aPanels%tracer(j, gHills%integers(1) ) = &
+			GaussianHillsTracer(aPanels%x0(:,j)/EARTH_RADIUS, xyzcent1, xyzcent2, gHills%reals(1), gHills%reals(2))
 		endif
 	enddo
 end subroutine
@@ -417,13 +427,15 @@ subroutine SetOneGaussianHillTracerOnMesh(aMesh, gHill)
 	xyzCent = [ 0.0_kreal, -1.0_kreal, 0.0_kreal ]
 
 	do j = 1, aParticles%N
-		aParticles%tracer(j, gHill%integers(1) ) = OneGaussianHillTracer(aParticles%x0(:,j)/EARTH_RADIUS, xyzcent, gHill%reals(1), gHill%reals(2))
+		aParticles%tracer(j, gHill%integers(1) ) = &
+			OneGaussianHillTracer(aParticles%x0(:,j)/EARTH_RADIUS, xyzcent, gHill%reals(1), gHill%reals(2))
 	enddo
 	do j = 1, aPanels%N
 		if ( aPanels%hasChildren(j) ) then
 			aPanels%tracer(j, gHill%integers(1) ) = 0.0_kreal
 		else
-			aPanels%tracer(j, gHill%integers(1) ) = OneGaussianHillTracer(aPanels%x0(:,j)/EARTH_RADIUS, xyzcent, gHill%reals(1), gHill%reals(2))
+			aPanels%tracer(j, gHill%integers(1) ) = &
+				OneGaussianHillTracer(aPanels%x0(:,j)/EARTH_RADIUS, xyzcent, gHill%reals(1), gHill%reals(2))
 		endif
 	enddo
 end subroutine
@@ -477,7 +489,8 @@ function TracerVariance(aMesh, tracerID)
 	!
 	type(Panels), pointer :: aPanels
 	aPanels => aMesh%panels
-	tracerVariance = sum( aPanels%tracer(1:aPanels%N,tracerID) * aPanels%tracer(1:aPanels%N,tracerID) * aPanels%area(1:aPanels%N) )
+	tracerVariance = sum( aPanels%tracer(1:aPanels%N,tracerID) *&
+		 aPanels%tracer(1:aPanels%N,tracerID) * aPanels%area(1:aPanels%N) )
 end function
 
 !

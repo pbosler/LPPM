@@ -273,12 +273,16 @@ particlesLinf = maxval(sphereParticles%tracer(1:sphereParticles%N,2))
 panelsLinf = maxval(spherePanels%tracer(1:spherePanels%N,2))
 sphereLinf = max(particlesLinf, panelsLinf)
 
-sphereL2 = sum( spherePanels%tracer(1:spherePanels%N,2)*spherePanels%tracer(1:spherePanels%N,2)*spherePanels%area(1:spherePanels%N))
-sphereL2 = sphereL2 / (sum(spherePanels%tracer(1:spherePanels%N,1) * spherePanels%tracer(1:spherePanels%N,1)*spherePanels%area(1:spherePanels%n)))
+sphereL2 = sum( spherePanels%tracer(1:spherePanels%N,2)*&
+	spherePanels%tracer(1:spherePanels%N,2)*spherePanels%area(1:spherePanels%N))
+sphereL2 = sphereL2 / (sum(spherePanels%tracer(1:spherePanels%N,1) * &
+	spherePanels%tracer(1:spherePanels%N,1)*spherePanels%area(1:spherePanels%n)))
 sphereL2 = sqrt(sphereL2)
 
-phiMax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1))) - phiMax0 ) / deltaPhi
-phiMin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval(spherePanels%tracer(1:spherePanels%N,1))) - phimin0 ) / deltaPhi
+phiMax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), &
+	maxval(spherePanels%tracer(1:spherePanels%N,1))) - phiMax0 ) / deltaPhi
+phiMin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
+	minval(spherePanels%tracer(1:spherePanels%N,1))) - phimin0 ) / deltaPhi
 
 if ( procRank == 0 ) then
 	open( unit = WRITE_UNIT_1, file = datafile, status = 'REPLACE', action = 'WRITE', iostat = readwritestat)

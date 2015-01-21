@@ -1018,9 +1018,11 @@ function QuadPanelArea(self, panelIndex)
 		call CCWEdgesAndParticlesAroundPanel(edgeList,vertList,nVerts,self,panelIndex)
 
 		do j=1,nVerts-1
-			QuadPanelArea = QuadPanelArea + TriArea(aParticles%x(:,vertList(j)), centerX, aParticles%x(:,vertList(j+1)) )
+			QuadPanelArea = QuadPanelArea + TriArea(aParticles%x(:,vertList(j)), centerX,&
+				 aParticles%x(:,vertList(j+1)) )
 		enddo
-		QuadPanelArea = QuadPanelArea + TriArea(aParticles%x(:,vertList(nVerts)), centerX, aParticles%x(:,vertList(1)) )
+		QuadPanelArea = QuadPanelArea + TriArea(aParticles%x(:,vertList(nVerts)), &
+			centerX, aParticles%x(:,vertList(1)) )
 	endif
 
 !	call EndSection(log)

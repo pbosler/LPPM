@@ -836,13 +836,15 @@ function MovingVorticesVelocity( xyz, t)
 	!
 	! Find coordinates of xyz in a coordinate system whose north pole is at the vortex location
 	!
-	lonPrime = atan4( cos(lat)*sin( lon - vortCenterLon),  cos(lat)*sin(vortCenterLat)*cos( lon - vortCenterLon) - cos(vortCenterLat)*sin(lat) )
+	lonPrime = atan4( cos(lat)*sin( lon - vortCenterLon),  &
+		cos(lat)*sin(vortCenterLat)*cos( lon - vortCenterLon) - cos(vortCenterLat)*sin(lat) )
 	latPrime = asin( sin(lat)*sin(vortCenterLat) + cos(lat)*cos(vortCenterLat)*cos( lon - vortCenterLon ) )
 	!
 	! Determine angular tangential velocity induced by vortex about its center
 	!
 	rho = 3.0_kreal * cos( latPrime )
-	awr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * rho / (cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
+	awr = u0 * 1.5_kreal * sqrt(3.0_kreal) * tanh(rho) * &
+		rho / (cosh(rho) * cosh(rho) * (rho * rho + ZERO_TOL*ZERO_TOL))
 	!
 	! Set velocities due to vortex
 	!

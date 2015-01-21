@@ -199,12 +199,14 @@ subroutine SetDecayingVorticesOnMesh(aMesh,decayingVorts)
 		deallocate(gVort)
 	endif
 	do j=1,aParticles%N
-		aParticles%absVort(j) = DecayingVorticesRelVort(aParticles%x0(:,j)) - GAUSS_CONST + 2.0_kreal*OMEGA*aParticles%x0(3,j)
+		aParticles%absVort(j) = DecayingVorticesRelVort(aParticles%x0(:,j)) - &
+			GAUSS_CONST + 2.0_kreal*OMEGA*aParticles%x0(3,j)
 		aParticles%relVort(j) = aParticles%absVort(j) - 2.0_kreal*OMEGA*aParticles%x(3,j)
 	enddo
 	do j=1,aPanels%N
 		if (.NOT. aPanels%hasChildren(j) ) then
-			aPanels%relVort(j) = DecayingVorticesRelVort(aPanels%x0(:,j)) - GAUSS_CONST + 2.0_kreal*OMEGA*aPanels%x0(3,j)
+			aPanels%relVort(j) = DecayingVorticesRelVort(aPanels%x0(:,j)) - &
+				GAUSS_CONST + 2.0_kreal*OMEGA*aPanels%x0(3,j)
 			aPanels%relVort(j) = aPanels%absVort(j) - 2.0_kreal*OMEGA*aPanels%x(3,j)
 		else
 			aPanels%absVort(j) = 0.0_kreal
@@ -346,7 +348,8 @@ end function
 function RH54Vorticity(xyz, alpha, amp)
 	real(kreal) :: RH54Vorticity
 	real(kreal), intent(in) :: xyz(3), alpha, amp
-	RH54Vorticity = 2.0_kreal*alpha*xyz(3)/EARTH_RADIUS + 30.0_kreal*amp*cos(4.0_kreal*Longitude(xyz))*Legendre54(xyz(3)/EARTH_RADIUS)/EARTH_RADIUS
+	RH54Vorticity = 2.0_kreal*alpha*xyz(3)/EARTH_RADIUS + 30.0_kreal*amp*&
+		cos(4.0_kreal*Longitude(xyz))*Legendre54(xyz(3)/EARTH_RADIUS)/EARTH_RADIUS
 end function
 
 function Legendre54(z)

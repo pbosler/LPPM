@@ -244,26 +244,34 @@ enddo
 	sphereParticles => sphere%particles
 	spherePanels => sphere%panels
 	do j = 1, sphereParticles%N
-		sphereParticles%tracer(j,2) = abs( GHillsExact(sphereParticles%x(:,j)/EARTH_RADIUS, hmax, beta) - sphereParticles%tracer(j,1))
+		sphereParticles%tracer(j,2) = abs( GHillsExact(sphereParticles%x(:,j)/EARTH_RADIUS, hmax, beta) &
+			- sphereParticles%tracer(j,1))
 	enddo
 	do j = 1, spherePanels%N
 		if ( spherePanels%hasChildren(j) ) then
 			spherePanels%tracer(j,2) = 0.0_kreal
 		else
-			spherePanels%tracer(j,2) = abs( GHillsExact(spherePanels%x(:,j)/EARTH_RADIUS, hmax, beta) - spherePanels%tracer(j,1) )
+			spherePanels%tracer(j,2) = abs( GHillsExact(spherePanels%x(:,j)/EARTH_RADIUS, hmax, beta) &
+				- spherePanels%tracer(j,1) )
 		endif
 	enddo
 
-	particlesLinf = maxval(sphereParticles%tracer(1:sphereParticles%N,2))  / maxval(sphereParticles%tracer(1:sphereParticles%N,1))
-	panelsLinf = maxval( spherePanels%tracer(1:spherePanels%N,2) ) / maxval( spherePanels%tracer(1:spherePanels%N,1) )
+	particlesLinf = maxval(sphereParticles%tracer(1:sphereParticles%N,2)) /&
+		 maxval(sphereParticles%tracer(1:sphereParticles%N,1))
+	panelsLinf = maxval( spherePanels%tracer(1:spherePanels%N,2) ) /&
+		 maxval( spherePanels%tracer(1:spherePanels%N,1) )
 
 	sphereLinf = max( particlesLinf, panelsLinf )
-	sphereL2 = sum( spherePanels%tracer(1:spherePanels%N,2) * spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
-	sphereL2 = sphereL2 / sum( spherePanels%tracer(1:spherePanels%N,1) * spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
+	sphereL2 = sum( spherePanels%tracer(1:spherePanels%N,2) * &
+		spherePanels%tracer(1:spherePanels%N,2) * spherePanels%area(1:spherePanels%N) )
+	sphereL2 = sphereL2 / sum( spherePanels%tracer(1:spherePanels%N,1) *&
+		 spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
 	sphereL2 = sqrt(sphereL2)
 
-	phimax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
-	phimin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
+	phimax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)),&
+		 maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
+	phimin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
+		 minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
 	if ( procRank == 0 ) then
 		open( unit = WRITE_UNIT_1, file = datafile, status = 'REPLACE', action = 'WRITE', iostat = readwritestat)
 		if ( readwritestat /= 0 ) then
