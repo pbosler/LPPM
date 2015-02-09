@@ -7,7 +7,7 @@ use ParticlesModule
 use EdgesModule
 use PanelsModule
 use SphereMeshModule
-use LAPACK95
+!use LAPACK95
 use STRIPACKInterfaceModule
 use SSRFPACKInterfaceModule
 use VTKOutputModule

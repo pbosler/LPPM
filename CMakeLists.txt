@@ -55,71 +55,71 @@ TARGET_LINK_LIBRARIES( problemSet base mesh remesh interp )
 add_library( output VTKOutput.f90 PlaneOutput.f90 LatLonOutput.f90 ) 
 TARGET_LINK_LIBRARIES( output base mesh interp)
 
-ADD_EXECUTABLE( sweTestCase1 TestCase1.f90 )
-TARGET_LINK_LIBRARIES(sweTestCase1 base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( sweTestCase1.exe TestCase1.f90 )
+TARGET_LINK_LIBRARIES(sweTestCase1.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectGaussHills AdvectGaussHills.f90 )
-TARGET_LINK_LIBRARIES(advectGaussHills base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectGaussHills.exe AdvectGaussHills.f90 )
+TARGET_LINK_LIBRARIES(advectGaussHills.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectGaussHillsDirect AdvectGaussHillsDirect.f90 )
-TARGET_LINK_LIBRARIES(advectGaussHillsDirect base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectGaussHillsDirect.exe AdvectGaussHillsDirect.f90 )
+TARGET_LINK_LIBRARIES(advectGaussHillsDirect.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectMovingVortices AdvectMovingVortices.f90 )
-TARGET_LINK_LIBRARIES(advectMovingVortices base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectMovingVortices.exe AdvectMovingVortices.f90 )
+TARGET_LINK_LIBRARIES(advectMovingVortices.exe base mesh interp remesh problemSet output )
 
-#ADD_EXECUTABLE( advectMovingVorticesWithVorticityRefinement AdvectMovingVortsRefineVorticity.f90 )
-#TARGET_LINK_LIBRARIES(advectMovingVorticesWithVorticityRefinement base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectMovingVorticesWithVorticityRefinement.exe AdvectMovingVortsRefineVorticity.f90 )
+TARGET_LINK_LIBRARIES(advectMovingVorticesWithVorticityRefinement.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectMovingVorticesDirect AdvectMovingVortsDirect.f90 )
-TARGET_LINK_LIBRARIES(advectMovingVorticesDirect base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectMovingVorticesDirect.exe advectMovingVortsDirect.f90 )
+TARGET_LINK_LIBRARIES(advectMovingVorticesDirect.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectSlottedCylinders AdvectSlottedCylinders.f90  )
-TARGET_LINK_LIBRARIES(advectSlottedCylinders base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectSlottedCylinders.exe AdvectSlottedCylinders.f90  )
+TARGET_LINK_LIBRARIES(advectSlottedCylinders.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectSlottedCylindersDirect AdvectSlottedCylindersDirect.f90 ) 
-TARGET_LINK_LIBRARIES(advectSlottedCylindersDirect base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectSlottedCylindersDirect.exe AdvectSlottedCylindersDirect.f90 ) 
+TARGET_LINK_LIBRARIES(advectSlottedCylindersDirect.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectCorrelatedTracers AdvectCorrelated.f90 ) 
-TARGET_LINK_LIBRARIES(advectCorrelatedTracers base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectCorrelatedTracers.exe AdvectCorrelated.f90 ) 
+TARGET_LINK_LIBRARIES(advectCorrelatedTracers.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( advectCorrelatedTracersDirect AdvectCorrelatedDirect.f90 )
-TARGET_LINK_LIBRARIES(advectCorrelatedTracersDirect base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( advectCorrelatedTracersDirect.exe AdvectCorrelatedDirect.f90 )
+TARGET_LINK_LIBRARIES(advectCorrelatedTracersDirect.exe base mesh interp remesh problemSet output )
 
-#ADD_EXECUTABLE( solidBodyRotationBVE BVESolidBodyRotation.f90 ) 
-#TARGET_LINK_LIBRARIES(solidBodyRotationBVE base mesh interp remesh problemSet output )
+#ADD_EXECUTABLE( solidBodyRotationBVE.exe BVESolidBodyRotation.f90 ) 
+#TARGET_LINK_LIBRARIES(solidBodyRotationBVE.exe base mesh interp remesh problemSet output )
 
-#ADD_EXECUTABLE( singleGaussianVortexBVE BVESingleGaussianVortex.f90 )
-#TARGET_LINK_LIBRARIES(singleGaussianVortexBVE base mesh interp remesh problemSet output )
+#ADD_EXECUTABLE( singleGaussianVortexBVE.exe BVESingleGaussianVortex.f90 )
+#TARGET_LINK_LIBRARIES(singleGaussianVortexBVE.exe base mesh interp remesh problemSet output )
 
-#ADD_EXECUTABLE( rossbyHaurwitz4Wave BVERH4.f90 ) 
-#TARGET_LINK_LIBRARIES(rossbyHaurwitz4Wave base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( rossbyHaurwitz4Wave.exe BVERH4.f90 ) 
+TARGET_LINK_LIBRARIES(rossbyHaurwitz4Wave.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE(sweTestCase2 SWETestCase2.f90 ) 
-TARGET_LINK_LIBRARIES(sweTestCase2 base mesh interp remesh problemSet output )
+ADD_EXECUTABLE(sweTestCase2.exe SWETestCase2.f90 ) 
+TARGET_LINK_LIBRARIES(sweTestCase2.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( lambDipole LambDipole.f90 )
-TARGET_LINK_LIBRARIES(lambDipole base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( lambDipole.exe LambDipole.f90 )
+TARGET_LINK_LIBRARIES(lambDipole.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( twoDipoles TwoDipoles.f90 )
-TARGET_LINK_LIBRARIES(twoDipoles base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( twoDipoles.exe TwoDipoles.f90 )
+TARGET_LINK_LIBRARIES(twoDipoles.exe base mesh interp remesh problemSet output )
 
-#ADD_EXECUTABLE( convertVTK2NCL ConvertVTKtoNativeNCL.f90 )
-#TARGET_LINK_LIBRARIES(convertVTK2NCL base )
+ADD_EXECUTABLE( convertVTK2NCL.exe ConvertVTKtoNativeNCL.f90 )
+TARGET_LINK_LIBRARIES(convertVTK2NCL.exe base )
 
-#ADD_EXECUTABLE( interpVTK2NCL InterpDataFromVTKtoNCL.f90 )
-#TARGET_LINK_LIBRARIES(interpVTK2NCL base interp )
+ADD_EXECUTABLE( interpVTK2NCL.exe InterpDataFromVTKtoNCL.f90 )
+TARGET_LINK_LIBRARIES(interpVTK2NCL.exe base interp )
 
-ADD_EXECUTABLE( sweDivergenceTerms SWEDivergenceEqnTerms.f90 )
-TARGET_LINK_LIBRARIES(sweDivergenceTerms base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( sweDivergenceTerms.exe SWEDivergenceEqnTerms.f90 )
+TARGET_LINK_LIBRARIES(sweDivergenceTerms.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( planeTest planeTester.f90 )
-TARGET_LINK_LIBRARIES(planeTest base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( planeTest.exe planeTester.f90 )
+TARGET_LINK_LIBRARIES(planeTest.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( icosTriTest IcosTriTest2.f90 )
-TARGET_LINK_LIBRARIES(icosTriTest base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( icosTriTest.exe IcosTriTest2.f90 )
+TARGET_LINK_LIBRARIES(icosTriTest.exe base mesh interp remesh problemSet output )
 
-ADD_EXECUTABLE( cubedSphereTest CubedSphereTest2.f90 )
-TARGET_LINK_LIBRARIES(cubedSphereTest base mesh interp remesh problemSet output )
+ADD_EXECUTABLE( cubedSphereTest.exe CubedSphereTest2.f90 )
+TARGET_LINK_LIBRARIES(cubedSphereTest.exe base mesh interp remesh problemSet output )
 
 
 

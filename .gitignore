@@ -4,6 +4,7 @@
 *.o
 *.mod
 *genmod.f90
+*.a
 
 # Packages #
 ############
@@ -23,8 +24,13 @@
 *.log
 *.vtk
 *.txt
+CMakeFiles/
+Makefile
+*.cmake
+*~
 
 # OS generated files #
 ######################
 .DS_Store
 .DS_Store?
+
