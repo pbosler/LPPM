@@ -43,6 +43,7 @@ public LauritzenEtAlNonDivergentWind, LauritzenEtAlDivergentWind
 public TestCase1Velocity, SetAlpha
 public MovingVorticesVelocity
 public KentCascadeVelocity
+public rh4velocity
 
 !
 !----------------
@@ -776,6 +777,21 @@ function LauritzenEtAlDivergentWind(xyz,t)
 	LauritzenEtAlDivergentWind(3) =  v*cos(lat)
 end function
 
+!---------------------------------------------------------------------------
+!> @author
+!> Peter Bosler
+!<
+!
+! DESCRIPTION:
+!> @brief
+!> Outputs velocity at postion xyz and time t corresponding to an RH4 wave
+!<
+!> @ingroup AdvectionRK4
+!
+!> @param[in] xyz double precision real, size(3); position vector in Cartesian coordinates of a point on the sphere
+!> @param[in] t double precision real; current value of simulation time variable
+!> @return velocity vector double precision real, size(3); tangent to sphere
+!---------------------------------------------------------------------------
 function rh4velocity( xyz, t )
   real(kreal), intent(in) :: xyz(3), t
   real(kreal) :: rh4velocity(3)
