@@ -776,6 +776,21 @@ function LauritzenEtAlDivergentWind(xyz,t)
 	LauritzenEtAlDivergentWind(3) =  v*cos(lat)
 end function
 
+function rh4velocity( xyz, t )
+  real(kreal), intent(in) :: xyz(3), t
+  real(kreal) :: rh4velocity(3)
+  real(kreal), parameter :: alpha = 0.0_kreal
+  real(kreal), parameter :: c = 1.0_kreal
+  real(kreal) :: u, v, lat, lon
+  lat = Latitude(xyz)
+  lon = Longitude(xyz)
+  u = alpha * cos(lat) + c * cos(lat)**5 * cos(4.0_kreal * lon) - 4.0_kreal * c * cos(lat)**3 * cos(4.0_kreal*lon) * sin(lat)**2
+  v = 4.0_kreal * c * cos(lat)**3 * sin(lat) * sin(4.0_kreal * lon)
+  rh4velocity(1) = -u * sin(lon) - v * sin(lat) * cos(lon)
+  rh4velocity(2) =  u * cos(lon) - v * sin(lat) * sin(lon)
+  rh4velocity(3) =  v * cos(lat)
+end function
+
 !---------------------------------------------------------------------------
 !> @author
 !> Peter Bosler
