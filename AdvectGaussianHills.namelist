@@ -1,6 +1,6 @@
 &meshDefine
-	initNest = 4
-	AMR = 4
+	initNest = 2
+	AMR = 0
 	panelKind = 3
 	amrLimit = 4
 	tracerMassTol = 0.1
@@ -15,7 +15,7 @@
 /
 
 &fileIO
-	outputDir = '~/modelData/'
-	jobPrefix = 'advectGaussHills_amrA2_'
+	outputDir = '~/modelData'
+	jobPrefix = 'advectGaussHills_'
 	frameOut = 200
 /
