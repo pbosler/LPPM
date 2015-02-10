@@ -55,6 +55,9 @@ TARGET_LINK_LIBRARIES( problemSet base mesh remesh interp )
 add_library( output VTKOutput.f90 PlaneOutput.f90 LatLonOutput.f90 ) 
 TARGET_LINK_LIBRARIES( output base mesh interp)
 
+ADD_EXECUTABLE( advectRH4.exe AdvectRH4.f90 )
+TARGET_LINK_LIBRARIES(advectRH4.exe base mesh interp remesh problemSet output )
+
 ADD_EXECUTABLE( sweTestCase1.exe TestCase1.f90 )
 TARGET_LINK_LIBRARIES(sweTestCase1.exe base mesh interp remesh problemSet output )
 
