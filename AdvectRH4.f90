@@ -242,7 +242,7 @@ do timeJ = 0, timesteps-1
 	call AdvectionRK4Timestep( timekeeper, sphere, dt, t, procRank, numProcs, rh4velocity)
 	
 	totalTracer(timeJ+1) = TotalMass(sphere, 1)
-	tracerVar(timeJ+1) = tracerVar(sphere, 1)
+	tracerVar(timeJ+1) = TracerVariance(sphere, 1)
 	
 	t = real( timeJ+1, kreal) * dt
 	

@@ -1,5 +1,5 @@
 &meshDefine
-	initNest = 5
+	initNest = 6
 	AMR = 0
 	panelKind = 3
 	amrLimit = 4
@@ -8,14 +8,14 @@
 /
 
 &timestepping
-	dt = 0.03			! days 
-	tfinal = 12.0		! days
-	remeshInterval = 20
-	resetAlphaInterval = 50000
+	dt = 0.01		! days 
+	tfinal = 24.0		! days
+	remeshInterval = 10
+	resetAlphaInterval = 200000
 /
 
 &fileIO
 	outputDir = '~/modelData'
 	jobPrefix = 'advectRH4_'
-	frameOut = 1
+	frameOut = 4
 /
