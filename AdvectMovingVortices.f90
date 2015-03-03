@@ -43,7 +43,7 @@ type(BVESetup) :: nullVort
 !
 type(RemeshSetup) :: remesh
 integer(kint) :: remeshInterval, resetAlphaInterval, amrLimit, remeshCounter
-real(kreal) :: tracerMassTol, tracerVarTol, lagVarTol
+real(kreal) :: tracerMassTol, tracerVarTol, lagVarTol, tracerRefVal, tracerRefTol
 type(ReferenceSphere), pointer :: reference
 
 !
@@ -88,7 +88,7 @@ integer(kint) :: j
 ! namelists and user input
 !
 character(len=MAX_STRING_LENGTH) :: namelistFile = 'MovingVortices.namelist'
-namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol, lagVarTol
+namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol, lagVarTol, tracerRefVal, tracerRefTol
 namelist /timestepping/ tfinal, dt, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
 

@@ -31,7 +31,7 @@ include 'mpif.h'
 
 private
 public RefinementSetup
-public New, Delete
+public New, Delete, SetReferenceValues
 public LagrangianRemesh !, DirectRemesh
 public InitialRefinement
 public NULL_REFINE, TRACER_REFINE, RELVORT_REFINE, FLOWMAP_REFINE
@@ -52,6 +52,9 @@ integer(kint), parameter :: NULL_REFINE = 70, &
 type RefinementSetup
 	real(kreal) :: maxTol			! tolerance for extrema
 	real(kreal) :: varTol			! tolerance for variation
+	real(kreal) :: refVal			! reference value
+	real(kreal) :: refTol			! tolerance for difference from reference
+	logical(klog) :: useReferenceCriterion = .FALSE. ! true if reference val and reference tol are used
 	integer(kint) :: type = NULL_REFINE	! identifier for physical data field
 	integer(kint) :: tracerID
 	integer(kint) :: limit
@@ -155,6 +158,14 @@ end subroutine
 ! Public functions
 !----------------
 !
+subroutine SetReferenceValues( refineObj, refVal, refTol )
+	type(RefinementSetup), intent(inout) :: refineObj
+	real(kreal), intent(in) :: refVal, refTol
+	refineObj%refVal = refVal
+	refineObj%refTol = refTol
+	refineObj%useReferenceCriterion = .TRUE.
+end subroutine
+
 subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef, &
 									refineRelVort, updateVorticityOnMesh, vortDef)
 	type(SphereMesh), intent(inout) :: aMesh
@@ -201,7 +212,11 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 	startIndex = 1
 	if ( refineTracer%type /= NULL_REFINE ) then
 		limit = max(limit,refineTracer%limit)
-		call FlagPanelsForTracerMaxRefinement(refineFlag,aMesh,refineTracer,startIndex)
+		if ( refineTracer%useReferenceCriterion ) then
+			call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, refineTracer, startIndex)
+		else
+			call FlagPanelsForTracerMaxRefinement(refineFlag,aMesh,refineTracer,startIndex)
+		endif
 		counter1 = count(refineFlag)
 		call FlagPanelsForTracerVariationRefinement(refineFlag,aMesh,refineTracer,startIndex)
 		counter2 = count(refineFlag) - counter1
@@ -291,7 +306,11 @@ subroutine InitialRefinement(aMesh, refineTracer, updateTracerOnMesh, tracerDef,
 		startIndex = nOldPanels+1
 		nOldPanels = aPanels%N
 		if ( refineTracer%type /= NULL_REFINE ) then
-			call FlagPanelsForTracerMaxRefinement(refineFlag,aMesh,refineTracer,startIndex)
+			if ( refineTracer%useReferenceCriterion ) then
+				call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, refineTracer, startIndex)
+			else
+				call FlagPanelsForTracerMaxRefinement(refineFlag,aMesh,refineTracer,startIndex)
+			endif
 			counter1 = count(refineFlag)
 			call FlagPanelsForTracerVariationRefinement(refineFlag,aMesh,refineTracer,startIndex)
 			counter2 = count(refineFlag) - counter1
@@ -451,7 +470,11 @@ subroutine LagrangianRemeshPrivate(aMesh, setVorticity, vortDef, vortRefine, &
 		!
 		if ( refineTracer ) then
 			limit = max(limit,tracerRefine%limit)
-			call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+			if ( refineTracer%useReferenceCriterion ) then
+				call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, refineTracer, startIndex)
+			else
+				call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+			endif
 			counter1 = count(refineFlag)
 			call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,tracerRefine,startIndex)
 			counter2 = count(refineFlag) - counter1
@@ -560,7 +583,11 @@ subroutine LagrangianRemeshPrivate(aMesh, setVorticity, vortDef, vortRefine, &
 			nOldPanels = newPanels%N
 			if ( refineTracer ) then
 				limit = max(limit,tracerRefine%limit)
-				call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+				if ( refineTracer%useReferenceCriterion ) then
+					call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, refineTracer, startIndex)
+				else
+					call FlagPanelsForTracerMaxRefinement(refineFlag,newMesh,tracerRefine,startIndex)
+				endif
 				counter1 = count(refineFlag)
 				call FlagPanelsForTracerVariationRefinement(refineFlag,newMesh,tracerRefine,startIndex)
 				counter2 = count(refineFlag) - counter1
@@ -785,6 +812,32 @@ subroutine FlagPanelsForTracerMaxRefinement(refineFlag,aMesh,refineTracer,startI
 	do j=startIndex,aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
 			if ( abs(aPanels%tracer(j,refineTracer%tracerID))*aPanels%area(j) > refineTracer%maxTol ) refineFlag(j) = .TRUE.
+		endif
+	enddo
+end subroutine
+
+subroutine FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, refineTracer, startIndex)
+	logical(klog), intent(inout) :: refineFlag(:)
+	type(SphereMesh), intent(in) :: aMesh
+	type(RefinementSetup), intent(in) :: refineTracer
+	integer(kint), intent(in) :: startIndex
+	!local variables
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+	if ( refineTracer%type /= TRACER_REFINE ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'FlagPanelsTracerInterface ERROR :',' invalid refinement type.')
+		return
+	endif
+	if ( .NOT. refineTracer%useReferenceCriterion ) then
+		call LogMessage(log, WARNING_LOGGING_LEVEL, 'FlagPanelsTracerInterface WARNING : ', 'reference values not set.')
+		return
+	endif 
+	
+	aPanels => aMesh%panels
+	do j = startIndex, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			if ( abs( aPanels%tracer(j,refineTracer%tracerID) - refineTracer%refVal ) < refineTracer%refTol ) &
+				refineFlage(j) = .TRUE.
 		endif
 	enddo
 end subroutine
