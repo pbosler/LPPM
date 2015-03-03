@@ -177,7 +177,7 @@ if ( procrank == 0 ) then
 	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
 	
-	write(vtkMeshFile'(A,A,I0.4,A)') trim(vtkRoot), '_mesh_', 0, '.vtk'
+	write(vtkMeshFile, '(A,A,I0.4,A)') trim(vtkRoot), '_mesh_', 0, '.vtk'
 	
 	write(summaryFile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrString), '_summary.txt'
 	write(datafile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrstring), '_calculatedData.m'
