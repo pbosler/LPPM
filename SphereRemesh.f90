@@ -1462,7 +1462,7 @@ subroutine FlagPanelsForTracerInterfaceRefinement( refineFlag, aMEsh, remesh, st
 	aPanels=>aMesh%panels
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			if ( abs(aPanels%tracer(j, remesh%tracerID) - remesh%refVal)*aPanels%area(j)/EARTH_SURFACE_AREA < remesh%refTol ) then
+			if ( abs(aPanels%tracer(j, remesh%tracerID) - remesh%refVal) < remesh%refTol ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif		
