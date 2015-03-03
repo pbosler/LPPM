@@ -1,5 +1,5 @@
 &meshDefine
-	initNest = 5
+	initNest = 2
 	AMR = 4
 	panelKind = 3
 	amrLimit = 0
