@@ -1523,7 +1523,7 @@ subroutine FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIn
 			do k = 1, nAdj
 				adjNestLevels(k) = aPanels%nest( adjPanels(k) )
 			enddo	
-			if ( maxval(adjNestLevels) - aPanels%nest(j) >= 2 ) then
+			if ( maxval(adjNestLevels) - aPanels%nest(j) >= 3 ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif
