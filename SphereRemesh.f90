@@ -1504,7 +1504,7 @@ subroutine FlagPanelsForVorticityVariationRefinement(refineFlag, amesh, remesh, 
 end subroutine
 
 subroutine FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIndex, counter )
-	logical(klog), intent(inout) :: refineFlag
+	logical(klog), intent(inout) :: refineFlag(:)
 	type(SphereMesh), intent(inout) :: aMesh
 	type(RemeshSetup), intent(in) :: remesh
 	integer(kint), intent(in) :: startIndex
