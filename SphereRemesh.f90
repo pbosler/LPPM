@@ -735,7 +735,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 				keepGoing = .TRUE.
 				do while (keepGoing)
 					amrLoopCounter = amrLoopCounter + 1
-					write(logString,*) 'AMR Loop ', amrLoopCounter, ' : refining ', refineCount, ' of ', aMesh%panels%N, 'panels.'
+					write(logString,*) 'AMR Loop ', amrLoopCounter, ' : refining ', refineCount, ' of ', aMesh%panels%N, ' panels.'
 					call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : ',trim(logstring))
 					!
 					! refine flagged panels
@@ -1453,7 +1453,7 @@ subroutine FlagPanelsForTracerInterfaceRefinement( refineFlag, aMEsh, remesh, st
 	aPanels=>aMesh%panels
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			if ( abs(aPanels%tracer(j, remesh%tracerID) - remesh%refVal) < remesh%refTol ) then
+			if ( abs(aPanels%tracer(j, remesh%tracerID) - remesh%refVal)*aPanels%area(j)/EARTH_SURFACE_AREA < remesh%refTol ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif		

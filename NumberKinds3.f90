@@ -35,6 +35,7 @@ module NumberKindsModule
 	real(KREAL), parameter :: ONE_DAY = 86140.0_kreal !<< Earth's sidereal day {s} @ingroup PhysicalConstants
 	real(KREAL), parameter :: EARTH_RADIUS = 6371220_kreal !<< mean radius of the Earth { m } @ingroup PhysicalConstants
     real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  !<< rotation rate of sphere {s^(-1)} @ingroup PhysicalConstants
+    real(KREAL), parameter :: EARTH_SURFACE_AREA = 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS
 
 
 	!> @defgroup IOConstants I/O Constants
