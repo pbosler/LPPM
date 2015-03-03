@@ -1435,6 +1435,32 @@ subroutine FlagPanelsForMaxCirculationRefinement(refineFlag, aMesh, remesh, star
 	enddo
 end subroutine
 
+subroutine FlagPanelsForTracerInterfaceRefinement( refineFlag, aMEsh, remesh, startIndex, counter )
+	logical(klog), intent(inout) :: refineFlag(:)
+	type(SphereMesh), intent(in) :: aMesh
+	type(RemeshSetup), intent(in) :: remesh
+	integer(kint), intent(in) :: startIndex
+	integer(kint), intent(inout) :: counter
+	!
+	type(Panels), pointer :: aPanels
+	integer(kint) :: j
+	
+	if ( .NOT. remesh%useReferenceVal ) then
+		call LogMessage(log, WARNING_LOGGING_LEVEL, 'FlagPanelsTracerInterface WARNING : ', 'reference values not set.')
+		return
+	endif
+	
+	aPanels=>aMesh%panels
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			if ( abs(aPanels%tracer(j, remesh%tracerID) - remesh%refVal) < remesh%refTol ) then
+				refineFlag(j) = .TRUE.
+				counter = counter + 1
+			endif		
+		endif
+	enddo
+end subroutine
+
 subroutine FlagPanelsForVorticityVariationRefinement(refineFlag, amesh, remesh, startINdex, counter)
 	logical(klog), intent(inout) :: refineFlag(:)
 	type(SphereMesh), intent(in) :: aMesh
