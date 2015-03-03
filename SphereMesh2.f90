@@ -2176,8 +2176,10 @@ subroutine FindAdjacentPanels(adjPanels,nNeighbors,self,panelIndex)
 	do k=1,nVerts
 		if ( anEdges%leftPanel(edgeList(k)) == panelIndex) then
 			adjPanels(k) = anEdges%rightPanel(edgeList(k))
-		else
+		elseif ( anEdges%rightPanel(edgeList(k)) == panelIndex ) then
 			adjPanels(k) = anEdges%leftPanel(edgeList(k))
+		else	
+			call LogMessage(log, ERROR_LOGGING_LEVEL, 'FindAdjacentPanels ERROR : ',' connectivity error')
 		endif
 	enddo
 
