@@ -532,7 +532,7 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 				!
 				!	TO DO : ensure adjacent panels differ by at most one level of refinement
 				!
-				call FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIndex, counters(6) )
+				call !FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIndex, counters(6) )
 				!
 				! set data on new panels and particles
 				!
@@ -729,7 +729,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 			endif
 			call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 		endif
-		call FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
+		call !FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
 		
 		refineCount = count(refineFlag)
 		spaceLeft = newPanels%N_Max - newPanels%N
@@ -818,7 +818,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 							endif
 							call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 						endif
-						call FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
+						call !FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
 
 						refineCount = count(refineFlag)
 						spaceLeft = newPanels%N_Max - newPanels%N
@@ -996,7 +996,7 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh, setVorticity, v
 			endif
 			call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 		endif
-		call FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
+		call !FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
 
 		refineCount = count(refineFlag)
 		spaceLeft = newPanels%N_Max - newPanels%N
@@ -1110,7 +1110,7 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh, setVorticity, v
 							endif
 							call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 						endif
-						call FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
+						call !FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
 
 						refineCount = count(refineFlag)
 						spaceLeft = newPanels%N_Max - newPanels%N
@@ -1275,7 +1275,7 @@ subroutine DirectRemesh( aMesh, remesh )
 			call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 			call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 		endif
-		call FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
+		call !FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
 
 		refineCount = count(refineFlag)
 		spaceLeft = newPanels%N_Max - newPanels%N
@@ -1354,7 +1354,7 @@ subroutine DirectRemesh( aMesh, remesh )
 							call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 							call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 						endif
-						call FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
+						call !FlagPanelsForTransitionRefinement( refineFlag, newMesh, remesh, startIndex, counters(6) )
 
 						refineCount = count(refineFlag)
 						spaceLeft = newPanels%N_Max - newPanels%N
