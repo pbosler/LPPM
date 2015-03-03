@@ -55,6 +55,9 @@ type RemeshSetup
 	integer(kint) :: tracerID
 	real(kreal) :: tracerMassTol
 	real(kreal) :: tracerVarTol
+	logical(klog) :: useReferenceVal = .FALSE.
+	real(kreal) :: refVal
+	real(kreal) :: refTol
 	integer(kint) :: refinementLimit
 end type
 
@@ -185,6 +188,9 @@ subroutine NewPrivateAll(self, maxCircTol, vortVarTol, lagVarTol, tracerID, trac
 		self%tracerRefine = .FALSE.
 		self%refinementLimit = 0
 	endif
+	self%useReferenceVal = .FALSE.
+	self%refTol = 1.0e20
+	self%refVal = 0.0
 end subroutine
 
 subroutine NewPrivateVorticity(self, maxCircTol, vortVarTol, limit)
@@ -218,6 +224,9 @@ subroutine NewPrivateVorticity(self, maxCircTol, vortVarTol, limit)
 	self%tracerID = 0
 	self%tracerMassTol = 0.0_kreal
 	self%tracerVarTol = 0.0_kreal
+	self%useReferenceVal = .FALSE.
+	self%refTol = 1.0e20
+	self%refVal = 0.0
 end subroutine
 
 subroutine NewPrivateVorticityAndFlowMap(self, maxCircTol, vortVarTol, lagVarTol, limit)
@@ -259,6 +268,9 @@ subroutine NewPrivateVorticityAndFlowMap(self, maxCircTol, vortVarTol, lagVarTol
 	self%tracerID = 0
 	self%tracerMassTol = 0.0_kreal
 	self%tracerVarTol = 0.0_kreal
+	self%useReferenceVal = .FALSE.
+	self%refTol = 1.0e20
+	self%refVal = 0.0
 end subroutine
 
 subroutine NewPrivateTracer(self, tracerID, tracerMassTol, tracerVarTol, limit)
@@ -300,6 +312,9 @@ subroutine NewPrivateTracer(self, tracerID, tracerMassTol, tracerVarTol, limit)
 	self%vortVarTol = 0.0_kreal
 	self%flowMapRefine = .FALSE.
 	self%lagVarTol = 0.0_kreal
+	self%useReferenceVal = .FALSE.
+	self%refTol = 1.0e20
+	self%refVal = 0.0
 end subroutine
 
 subroutine NewPrivateTracerAndFlowMap(self, tracerID, tracerMassTol, tracerVarTol, lagVarTol, limit)
@@ -347,7 +362,9 @@ subroutine NewPrivateTracerAndFlowMap(self, tracerID, tracerMassTol, tracerVarTo
 	self%vorticityRefine = .FALSE.
 	self%maxCircTol = 0.0_kreal
 	self%vortVarTol = 0.0_kreal
-
+	self%useReferenceVal = .FALSE.
+	self%refTol = 1.0e20
+	self%refVal = 0.0
 end subroutine
 
 subroutine NewPrivateNoAMR(self)
@@ -366,6 +383,9 @@ subroutine NewPrivateNoAMR(self)
 	self%tracerMassTol = 0.0_kreal
 	self%tracerVarTol = 0.0_kreal
 	self%refinementLimit = 0
+	self%useReferenceVal = .FALSE.
+	self%refTol = 1.0e20
+	self%refVal = 0.0
 end subroutine
 
 subroutine DeletePrivate(self)
@@ -381,6 +401,9 @@ subroutine DeletePrivate(self)
 	self%tracerMassTol = 0.0_kreal
 	self%tracerVarTol = 0.0_kreal
 	self%refinementLimit = 0
+	self%useReferenceVal = .FALSE.
+	self%refTol = 1.0e20
+	self%refVal = 0.0
 end subroutine
 
 subroutine NewReference(self, aMesh)
@@ -429,6 +452,14 @@ end subroutine
 ! Public functions
 !----------------
 !
+subroutine SetReferenceValues( refineObj, refVal, refTol )
+	type(RemeshSetup), intent(inout) :: refineObj
+	real(kreal), intent(in) :: refVal, refTol
+	refineObj%refVal = refVal
+	refineObj%refTol = refTol
+	refineObj%useReferenceVal = .TRUE.
+end subroutine
+
 
 subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef, updateVorticityOnMesh, vorticityDef, t)
 	type(SphereMesh), intent(inout) :: aMesh
@@ -469,7 +500,11 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 		call FlagPanelsForFlowMapRefinement(refineFlag, aMesh, remesh, startIndex, counters(3))
 	endif
 	if ( remesh%tracerRefine ) then
-		call FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+		if ( remesh%useReferenceVal ) then
+			call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+		else
+			call FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+		endif
 		call FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remesh, startIndex, counters(5))
 	endif
 
@@ -539,7 +574,11 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 						call FlagPanelsForFlowMapRefinement(refineFlag, aMesh, remesh, startIndex, counters(3))
 					endif
 					if ( remesh%tracerRefine ) then
-						call FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+						if ( remesh%useReferenceVal ) then
+							call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+						else
+							call FlagPanelsForTracerMassRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+						endif
 						call FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remesh, startIndex, counters(5))
 					endif
 
@@ -680,7 +719,11 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 			call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 		endif
 		if ( remesh%tracerRefine ) then
-			call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+			if ( remesh%useReferenceVal ) then
+				call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+			else
+				call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+			endif
 			call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 		endif
 
@@ -764,7 +807,11 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 							call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 						endif
 						if ( remesh%tracerRefine ) then
-							call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+							if ( remesh%useReferenceVal ) then
+								call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+							else
+								call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+							endif
 							call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 						endif
 
@@ -937,7 +984,11 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh, setVorticity, v
 			call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 		endif
 		if ( remesh%tracerRefine ) then
-			call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+			if ( remesh%useReferenceVal ) then
+				call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+			else
+				call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+			endif
 			call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 		endif
 
@@ -1046,7 +1097,11 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh, setVorticity, v
 							call FlagPanelsForFlowMapRefinement(refineFlag, newMesh, remesh, startIndex, counters(3))
 						endif
 						if ( remesh%tracerRefine ) then
-							call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+							if ( remesh%useReferenceVal ) then
+								call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+							else
+								call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
+							endif
 							call FlagPanelsForTracerVariationRefinement(refineFlag, newMesh, remesh, startIndex, counters(5))
 						endif
 
