@@ -548,7 +548,7 @@ end subroutine
 
 subroutine ReadNamelistFile(rank)
 	integer(kint), intent(in) :: rank
-	integer(kint), parameter :: BCAST_INT_SIZE = 6, BCAST_REAL_SIZE= 5
+	integer(kint), parameter :: BCAST_INT_SIZE = 6, BCAST_REAL_SIZE= 7
 	integer(kint) :: broadcastIntegers(BCAST_INT_SIZE)
 	real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 
@@ -575,6 +575,8 @@ subroutine ReadNamelistFile(rank)
 		broadcastReals(3) = dt
 		broadcastReals(4) = tfinal
 		broadcastReals(5) = lagVarTol
+		broadcastReals(6) = tracerRefVal
+		broadcastReals(7) = tracerRefTol
 	endif
 
 	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, errCode)
@@ -591,6 +593,8 @@ subroutine ReadNamelistFile(rank)
 	dt = broadcastReals(3) * ONE_DAY		! convert time to seconds
 	tfinal = broadcastReals(4) * ONE_DAY	! convert time to seconds
 	lagVarTol = broadcastReals(5)
+	tracerRefVal = broadcastReals(6)
+	tracerRefTol = broadcastReals(7)
 end subroutine
 
 subroutine InitLogger(alog,rank)
