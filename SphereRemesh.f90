@@ -720,7 +720,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 		endif
 		if ( remesh%tracerRefine ) then
 			if ( remesh%useReferenceVal ) then
-				call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+				call FlagPanelsForTracerInterfaceRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 			else
 				call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 			endif
@@ -735,7 +735,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 				keepGoing = .TRUE.
 				do while (keepGoing)
 					amrLoopCounter = amrLoopCounter + 1
-					write(logString,'(A,I2,A,I8,A)') 'AMR Loop ', amrLoopCounter, ' : refining ', refineCount, ' panels.'
+					write(logString,*) 'AMR Loop ', amrLoopCounter, ' : refining ', refineCount, ' of ', aMesh%panels%N, 'panels.'
 					call LogMessage(log, TRACE_LOGGING_LEVEL, 'LagRemeshInitTime : ',trim(logstring))
 					!
 					! refine flagged panels
@@ -808,7 +808,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 						endif
 						if ( remesh%tracerRefine ) then
 							if ( remesh%useReferenceVal ) then
-								call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+								call FlagPanelsForTracerInterfaceRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 							else
 								call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 							endif
@@ -985,7 +985,7 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh, setVorticity, v
 		endif
 		if ( remesh%tracerRefine ) then
 			if ( remesh%useReferenceVal ) then
-				call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+				call FlagPanelsForTracerInterfaceRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 			else
 				call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 			endif
@@ -1098,7 +1098,7 @@ subroutine LagrangianRemeshToReference(aMesh, reference, remesh, setVorticity, v
 						endif
 						if ( remesh%tracerRefine ) then
 							if ( remesh%useReferenceVal ) then
-								call FlagPanelsForTracerInterfaceRefinement(refineFlag, aMesh, remesh, startIndex, counters(4))
+								call FlagPanelsForTracerInterfaceRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 							else
 								call FlagPanelsForTracerMassRefinement(refineFlag, newMesh, remesh, startIndex, counters(4))
 							endif

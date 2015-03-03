@@ -598,6 +598,8 @@ subroutine ReadNamelistFile(rank)
 		broadcastReals(7) = tracerRefTol
 	endif
 
+	!call MPI_BARRIER(errCode)
+	
 	call MPI_BCAST(broadcastIntegers, BCAST_INT_SIZE, MPI_INTEGER, 0, MPI_COMM_WORLD, errCode)
 	panelKind = broadcastIntegers(1)
 	initNest = broadcastIntegers(2)
