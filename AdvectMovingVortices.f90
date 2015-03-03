@@ -137,7 +137,10 @@ call ConvertFromRelativeTolerances(sphere, tracerMassTol, tracerVarTol, tracerID
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerVarTol  = ', tracerVarTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, '   lagVarTol  = ', lagVarTol )
 call New(remesh, tracerID, tracerMassTol, tracerVarTol, lagVarTol, amrLimit)
+call SetReferenceValues( remesh, tracerRefVal, tracerRefTol )
+
 nullify(reference)
+
 if ( AMR > 0 ) then
 	call InitialRefinement(sphere, remesh, SetMovingVortsTracerOnMesh, testCaseTracer, NullVorticity, nullvort)
 	if ( panelKind == QUAD_PANEL ) &
