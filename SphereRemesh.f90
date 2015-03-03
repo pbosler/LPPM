@@ -562,6 +562,8 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 					write(logstring,'(A, I8, A)') 'tracer variation criterion triggered ', counters(5), ' times.'
 					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
+					write(logstring,'(A, I8, A)') 'transition region criterion triggered ', counters(6), ' times.'
+					call LogMessage(log, TRACE_LOGGING_LEVEL,'InitRefine : ',trim(logstring))
 				else ! proceed with next round of amr
 					!
 					! apply refinement criteria
