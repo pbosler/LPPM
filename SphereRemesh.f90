@@ -33,7 +33,7 @@ include 'mpif.h'
 
 private
 public RemeshSetup, ReferenceSphere
-public New, Delete
+public New, Delete, SetReferenceValues
 public LagrangianRemeshToInitialTime, LagrangianRemeshToReference
 public InitialRefinement
 public ResetLagrangianParameter
