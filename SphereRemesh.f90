@@ -508,8 +508,6 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 		call FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remesh, startIndex, counters(5))
 	endif
 
-	call FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIndex, counters(6) )
-	
 	refineCount = count(refineFlag)
 	spaceLeft = aPanels%N_Max - aPanels%N
 
@@ -534,7 +532,7 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 				!
 				!	TO DO : ensure adjacent panels differ by at most one level of refinement
 				!
-
+				call FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIndex, counters(6) )
 				!
 				! set data on new panels and particles
 				!
@@ -585,7 +583,7 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 						endif
 						call FlagPanelsForTracerVariationRefinement(refineFlag, aMesh, remesh, startIndex, counters(5))
 					endif
-					call FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIndex, counters(6) )
+					
 					
 					refineCount = count(refineFlag)
 					spaceLeft = aPanels%N_Max - aPanels%N
@@ -1523,7 +1521,7 @@ subroutine FlagPanelsForTransitionRefinement( refineFlag, aMesh, remesh, startIn
 			do k = 1, nAdj
 				adjNestLevels(k) = aPanels%nest( adjPanels(k) )
 			enddo	
-			if ( maxval(adjNestLevels) - aPanels%nest(j) >= 3 ) then
+			if ( maxval(adjNestLevels) - aPanels%nest(j) >= 4 ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif
