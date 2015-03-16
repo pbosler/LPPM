@@ -1,13 +1,13 @@
 &meshDefine
-	initNest = 2
-	AMR = 4
+	initNest = 3
+	AMR = 2
 	panelKind = 3
-	amrLimit = 0
+	amrLimit = 2
 	tracerMassTol = 1.0e20
-	tracerVarTol = 1.0e20
+	tracerVarTol =0.025
 	lagVarTol = 1.0e20
 	tracerRefVal = 1.0
-	tracerRefTol = 0.01
+	tracerRefTol = 0.1
 /
 
 &timestepping
@@ -19,6 +19,6 @@
 
 &fileIO
 	outputDir = '~/modelData/'
-	jobPrefix = 'advMovingVorts_interfaceAMR_'
-	frameOut = 2
+	jobPrefix = 'advMovingVorts_amrFinal_'
+	frameOut = 100
 /
