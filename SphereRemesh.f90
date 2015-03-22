@@ -545,6 +545,8 @@ subroutine InitialRefinementPrivate(aMesh, remesh, updateTracerOnMesh, tracerDef
 		endif		
 	enddo
 
+	call PrintRefinementCounters( counters(1:5), "InitRefine : " )
+	
 	call EndSection(log)
 end subroutine
 
@@ -693,6 +695,7 @@ subroutine LagrangianRemeshToInitialTimePrivate(aMesh, remesh, setVorticity, vor
 		enddo
 		call LogMessage(log,TRACE_LOGGING_LEVEL,"N_Active = ",newPanels%N_Active)
 		deallocate(refineFlag)
+		call PrintRefinementCounters( counters(1:5), "LagRemeshInit : " )
 		call EndSection(log)
 	endif ! AMR
 
@@ -1361,8 +1364,9 @@ subroutine FlagPanelsForTracerInterfaceRefinement( refineFlag, aMEsh, remesh, st
 	integer(kint), intent(in) :: startIndex
 	integer(kint), intent(inout) :: counter
 	!
+	type(Particles), pointer :: aParticles
 	type(Panels), pointer :: aPanels
-	integer(kint) :: j
+	integer(kint) :: j, edgeList(8), vertList(8), nVerts, k
 	
 	if ( .NOT. remesh%useReferenceVal ) then
 		call LogMessage(log, WARNING_LOGGING_LEVEL, 'FlagPanelsTracerInterface WARNING : ', 'reference values not set.')
@@ -1370,9 +1374,18 @@ subroutine FlagPanelsForTracerInterfaceRefinement( refineFlag, aMEsh, remesh, st
 	endif
 	
 	aPanels=>aMesh%panels
+	aParticles => aMesh%particles
 	do j = 1, aPanels%N
 		if ( .NOT. aPanels%hasChildren(j) ) then
-			if ( abs(aPanels%tracer(j, remesh%tracerID) - remesh%refVal) < remesh%refTol ) then
+			call CCWEdgesAndParticlesAroundPanel( edgeList, vertList, nVerts, aMesh, j )
+			do k = 1, nVerts
+				if ( abs(aParticles%tracer(vertList(k), remesh%tracerID) - remesh%refVal) < remesh%refTol ) then
+					refineFlag(j) = .TRUE.
+					counter = counter + 1
+					exit
+				endif
+			enddo
+			if ( abs(aPanels%tracer(j, remesh%tracerID) - remesh%refVal) < remesh%refTol .and. (.not. refineFlag(j)) ) then
 				refineFlag(j) = .TRUE.
 				counter = counter + 1
 			endif		
@@ -1529,6 +1542,18 @@ subroutine FlagPanelsForTracerVariationRefinement(refineFlag, amesh, remesh, sta
 				counter = counter + 1
 			endif
 		endif
+	enddo
+end subroutine
+
+subroutine PrintRefinementCounters( counters, codeLoc )
+	integer(kint), intent(in) :: counters(:)
+	character(len=*), intent(in) :: codeLoc
+	!
+	integer(kint) :: j
+	
+	do j = 1, size(counters)
+		write(logString,'(A,I2,A,I8,A)') "criterion ", j, " triggered ", counters(j), " times."
+		call LogMessage(log, TRACE_LOGGING_LEVEL, codeLoc, logString )
 	enddo
 end subroutine
 

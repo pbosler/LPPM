@@ -157,8 +157,8 @@ if ( procrank == 0 ) then
 	
 	write(vtkMeshFile,'(A,A,I0.4,A)') trim(vtkRoot),'_mesh_',0,'.vtk'
 	
-	write(summaryFile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrString), '_summary.txt'
-	write(datafile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrstring), '_calculatedData.m'
+	write(summaryFile,'(A,A,A,A,A)') trim(outputDir), '/', trim(jobPrefix), trim(amrString), '_summary.txt'
+	write(datafile,'(A,A,A,A,A)') trim(outputDir), '/', trim(jobPrefix), trim(amrstring), '_calculatedData.m'
 
 	call New(vtkOut, sphere, vtkFile, 'Gaussian hills advection')
 	call VTKOutput(vtkOut, sphere)
