@@ -112,6 +112,9 @@ TARGET_LINK_LIBRARIES(convertVTK2NCL.exe base )
 ADD_EXECUTABLE( interpVTK2NCL.exe InterpDataFromVTKtoNCL.f90 )
 TARGET_LINK_LIBRARIES(interpVTK2NCL.exe base interp )
 
+ADD_EXECUTABLE( nearestNeighborInterpToLL.exe NearestNeighborVTK2NCL.f90)
+TARGET_LINK_LIBRARIES(nearestNeighborInterpToLL.exe base)
+
 ADD_EXECUTABLE( sweDivergenceTerms.exe SWEDivergenceEqnTerms.f90 )
 TARGET_LINK_LIBRARIES(sweDivergenceTerms.exe base mesh interp remesh problemSet output )
 
