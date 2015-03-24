@@ -1,10 +1,10 @@
 &meshDefine
-	initNest = 5
-	AMR = 0
-	panelKind = 4
-	amrLimit = 0
-	tracerMassTol = 0.1
-	tracerVarTol = 1.0
+	initNest = 2
+	AMR = 3
+	panelKind = 3
+	amrLimit = 5
+	tracerMassTol = 0.07
+	tracerVarTol = 0.05
 /
 
 &timestepping
@@ -15,7 +15,7 @@
 /
 
 &fileIO
-	outputDir = '/Users/pabosle/Desktop/modelData/'
-	jobPrefix = 'advectSlotC_'
-	frameOut = 200
+	outputDir = '~/modelData/'
+	jobPrefix = 'advectSlotC_newAMR'
+	frameOut = 100
 /

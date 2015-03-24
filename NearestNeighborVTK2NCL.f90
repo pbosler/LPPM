@@ -19,8 +19,8 @@ integer(kint) :: readStat, writeStat
 !
 character(len=MAX_STRING_LENGTH) :: lineIn, scratch1, scratch2, foundName
 integer(kint) :: lineNumber, scalarCount, polygonHeaderLine, pointDataLine
-integer(kint) :: i, j, k, i1, i2, i3, ndim, ii, jj
-logical(klog) :: keepGoing
+integer(kint) :: i, j, k, i1, i2, i3, ndim, ii, jj, kk
+logical(klog) :: keepGoing, neighborsFound
 !
 ! data conversion
 !
@@ -104,6 +104,7 @@ allocate(lat(nLat))
 allocate(lon(nLon))
 allocate(outputData(nLat,nLon))
 allocate(nearest(nLat,nLon))
+neighborsFound = .FALSE.
 outputData = 0.0_kreal
 radSpacing = degreeSpacing * PI / 180.0_kreal
 do j = 1, nLon
@@ -139,8 +140,6 @@ do while (keepGoing)
 		endif
 		if ( lineNumber == polygonHeaderLine ) then
 			j = 1 ! reset counter
-			call New(delTri, xyz, nTotal)
-			call New(scalarInterp, delTri, .FALSE.)
 		! DEBUG	print '("Max lat = ",F5.3)', maxval(lat)
 		endif
 		if ( lineNumber > polygonHeaderLine .AND. lineNumber > pointDataLine ) then 
@@ -171,20 +170,25 @@ do while (keepGoing)
 			endif
 			if ( j == nTotal + 1 .AND. ndim == 1) then
 				
-				currentMin = PI * EARTH_RADIUS
-				do jj = 1, nLon
-					do ii = 1, nLat
-						currentMin = PI * EARTH_RADIUS
-						xTest = EARTH_RADIUS * [ cos(lat(ii)) * cos(lon(jj)), cos(lat(ii))*sin(lon(jj)), sin(lat(ii))]
-						do k = 1, nTotal
-							testDist = SphereDistance( xTest, xyz(:,k) )
-							if ( testDist < currentMin ) then
-								nearest(ii,jj) = k
-								currentMin = testDist
-							endif
+				if ( .NOT. neighborsFound ) then
+					write(6,*) "... finding closest particles to output points."
+					currentMin = PI * EARTH_RADIUS
+					do jj = 1, nLon
+						do ii = 1, nLat
+							currentMin = PI * EARTH_RADIUS
+							xTest = EARTH_RADIUS * [ cos(lat(ii)) * cos(lon(jj)), cos(lat(ii))*sin(lon(jj)), sin(lat(ii))]
+							do kk = 1, nTotal
+								testDist = SphereDistance( xTest, xyz(:,kk) )
+								if ( testDist < currentMin ) then
+									nearest(ii,jj) = kk
+									currentMin = testDist
+								endif
+							enddo
 						enddo
 					enddo
-				enddo
+					write(6,*) "... nearest neighbors found."
+					neighborsFound = .TRUE.
+				endif
 				
 				do jj = 1, nLon
 					do ii = 1, nLat

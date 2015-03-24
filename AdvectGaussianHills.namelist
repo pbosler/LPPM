@@ -1,21 +1,21 @@
 &meshDefine
 	initNest = 3
-	AMR = 3
+	AMR = 0
 	panelKind = 3
-	amrLimit = 4
-	tracerMassTol = 0.02
-	tracerVarTol = 0.18
+	amrLimit = 5
+	tracerMassTol = 0.008
+	tracerVarTol = 0.09
 /
 
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
-	tfinal = 12.0		! days
+	tfinal = 6.0		! days
 	remeshInterval = 20
 	resetAlphaInterval = 50000
 /
 
 &fileIO
 	outputDir = '~/modelData'
-	jobPrefix = 'gaussHillsAdv_amrB'
-	frameOut = 100
+	jobPrefix = 'gaussHill_remesh20_'
+	frameOut = 1
 /

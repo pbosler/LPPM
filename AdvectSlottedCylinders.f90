@@ -53,8 +53,8 @@ integer(kint) :: timesteps, timeJ
 !
 ! output variables
 !
-type(VTKSource) :: vtkOut
-character(len = MAX_STRING_LENGTH) :: vtkRoot, vtkFile, outputDir, jobPrefix, dataFile, summaryFile
+type(VTKSource) :: vtkOut, meshOut
+character(len = MAX_STRING_LENGTH) :: vtkRoot, vtkFile, vtkMeshFile, outputDir, jobPrefix, dataFile, summaryFile
 character(len = 56) :: amrString
 integer(kint) :: frameCounter, frameOut, readWriteStat
 
@@ -124,7 +124,7 @@ call SetSlottedCylindersTracerOnMesh(sphere, slotC)
 call ConvertFromRelativeTolerances(sphere, tracerMassTol, tracerVarTol, tracerID)
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerMassTol = ', tracerMassTol )
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL, 'tracerVarTol  = ', tracerVarTol )
-call New(remesh, tracerID, tracerMassTol, tracerVarTol, AMR)
+call New(remesh, tracerID, tracerMassTol, tracerVarTol, amrLimit)
 nullify(reference)
 if ( AMR > 0 ) then
 	call InitialRefinement(sphere, remesh, SetSlottedCylindersTracerOnMesh, slotC, NullVorticity, nullvort)
@@ -148,10 +148,16 @@ if ( procrank == 0 ) then
 
 	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
+	write(vtkMeshFile, '(A,A,I0.4,A)') trim(vtkRoot), '_mesh_', 0, '.vtk'
+	
 	write(summaryFile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrString), '_summary.txt'
 	write(datafile,'(A,A,A,A)') trim(outputDir), trim(jobPrefix), trim(amrstring), '_calculatedData.m'
+	
 	call New(vtkOut, sphere, vtkFile, 'Slotted Cylinders advection')
+	call New(meshOut, sphere, vtkMeshFile, 'Slotted Cylinders advection')
+	
 	call VTKOutput(vtkOut, sphere)
+	call VTKOutputMidpointRule(meshOut, sphere)
 endif
 
 
@@ -258,8 +264,11 @@ do timeJ = 0, timesteps - 1
 		call LogMessage(exelog, TRACE_LOGGING_LEVEL, 'day = ', t/ONE_DAY)
 
 		write(vtkFile, '(A,I0.4,A)') trim(vtkRoot), frameCounter, '.vtk'
+		write(vtkMeshFile,'(A,A,I0.4,A)') trim(vtkRoot), '_mesh_', frameCounter, '.vtk'
 		call UpdateFilename(vtkOut, vtkFile)
+		call UpdateFilename(meshOut, vtkMeshFile)
 		call VTKOutput(vtkOut, sphere)
+		call VTKOutputMidpointRule(meshOut, sphere)
 
 		frameCounter = frameCounter + 1
 	endif
