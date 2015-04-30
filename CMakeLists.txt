@@ -107,13 +107,13 @@ ADD_EXECUTABLE( twoDipoles.exe TwoDipoles.f90 )
 TARGET_LINK_LIBRARIES(twoDipoles.exe base mesh interp remesh problemSet output )
 
 ADD_EXECUTABLE( convertVTK2NCL.exe ConvertVTKtoNativeNCL.f90 )
-TARGET_LINK_LIBRARIES(convertVTK2NCL.exe base )
+TARGET_LINK_LIBRARIES(convertVTK2NCL.exe base interp )
 
 ADD_EXECUTABLE( interpVTK2NCL.exe InterpDataFromVTKtoNCL.f90 )
 TARGET_LINK_LIBRARIES(interpVTK2NCL.exe base interp )
 
 ADD_EXECUTABLE( nearestNeighborInterpToLL.exe NearestNeighborVTK2NCL.f90)
-TARGET_LINK_LIBRARIES(nearestNeighborInterpToLL.exe base)
+TARGET_LINK_LIBRARIES(nearestNeighborInterpToLL.exe base interp)
 
 ADD_EXECUTABLE( sweDivergenceTerms.exe SWEDivergenceEqnTerms.f90 )
 TARGET_LINK_LIBRARIES(sweDivergenceTerms.exe base mesh interp remesh problemSet output )

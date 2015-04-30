@@ -1,24 +1,24 @@
 &meshDefine
 	initNest = 3
-	AMR = 0
+	AMR = 3
 	panelKind = 3
 	amrLimit = 4
-	maxCircTol = 0.13
-	vortVarTol = 100.0
-	tracerMassTol = 200.0
-	tracerVarTol = 100.0
-	lagVarTol = 1.55
+	maxCircTol = 0.025
+	vortVarTol = 1.0e20
+	tracerMassTol = 1.0e20
+	tracerVarTol = 1.0e20
+	lagVarTol = 1.0e20
 /
 
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
-	remeshInterval = 40
+	remeshInterval = 20
 	resetAlphaInterval = 4000
 /
 
 &fileIO
 	outputDir = '~/modelData/'
-	jobPrefix = 'advMovingVorts_rm40_'
+	jobPrefix = 'advMovingVorts_vorRefineOnly_rm20_frames'
 	frameOut = 1
 /

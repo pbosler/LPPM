@@ -25,7 +25,7 @@ module NumberKindsModule
 	integer, parameter :: KINT = kind(1)	   !<< compiler generated kind for default integer @ingroup TypeConstants
 	integer, parameter :: KLOG = kind(.TRUE.)  !<< compiler generated kind logical @ingroup TypeConstants
 
-	real(KREAL), parameter :: ZERO_TOL = 1.0d-14 !<< zero tolerance for real numbers @ingroup TypeConstants
+	real(KREAL), parameter :: ZERO_TOL = 1.0d-10 !<< zero tolerance for real numbers @ingroup TypeConstants
 
 	!> @defgroup PhysicalConstants Physical Constants
 	!> @brief Physical constants referenced from @cite CAM3.0
