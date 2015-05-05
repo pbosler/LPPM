@@ -520,7 +520,10 @@ function MovingVortsVorticity(xyz, t)
 		
 	lat = Latitude(xyz)
 	lon = Longitude(xyz)
-	
+	if ( abs(lat) < ZERO_TOL .and. abs(abs(xyz(2))/EARTH_RADIUS - 1.0_kreal ) < ZERO_TOL ) then
+		lon = lon + 1.0e-7
+		lat = lat - ZERO_TOL
+	endif
 	rho = 3.0_kreal*sqrt( 1.0_kreal - cos(lat)*cos(lat)*&
 		sin(lon - u0 * t / EARTH_RADIUS) * sin(lon - OMEGA*t/12.0_kreal) )
 	rhoDenom = rho / (rho*rho + ZERO_TOL*ZERO_TOL)
@@ -540,6 +543,13 @@ function MovingVortsVorticity(xyz, t)
 	cosDenom = cos(lat)/( cos(lat)*cos(lat) + ZERO_TOL * ZERO_TOL)
 	
 	MovingVortsVorticity = v_lam * cosDenom / EARTH_RADIUS - ucostheta_theta * cosDenom / EARTH_RADIUS
+	
+!	if ( abs(abs(xyz(2))/EARTH_RADIUS  - 1.0_kreal) < ZERO_TOL ) then
+!		print *, "*** at lat = ", lat, ", lon = ", lon, " ****"
+!		print *, "rho = ", rho, ", rhoDenom = ", rhoDenom, ", omg = ", omg, ", omg_rho = "
+!		print *, "rho_lam = ", rho_lam, ", rho_theta = ", rho_theta, ", v_lam = ", v_lam, ", ucostheta_theta = ", ucostheta_theta
+!		print *, "cosDenom = ", cosDenom, ", vorticity = ", MovingVortsVorticity
+!	endif
 end function
 
 subroutine StoreVorticityInTracer(aMesh, t, tracerID)
