@@ -20,5 +20,5 @@
 &fileIO
 	outputDir = '~/modelData/'
 	jobPrefix = 'mv_oneTracer_'
-	frameOut = 100
+	frameOut = 20
 /

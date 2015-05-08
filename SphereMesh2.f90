@@ -351,6 +351,8 @@ function PanelArea(self,panelIndex)
 	panelKind = GetPanelKind(self%panels)
 	if ( panelKind == QUAD_PANEL ) then
 		PanelArea =  QuadPanelArea(self,panelIndex)
+	elseif ( panelKind == TRI_PANEL ) then
+		PanelArea = TriPanelArea(self, panelIndex)
 	endif
 end function
 
@@ -2038,6 +2040,40 @@ function QuadPanelArea(self,panelIndex)
 !			call LogMessage(log,DEBUG_LOGGING_LEVEL,'leafEdges = ',trim(logString))
 !		call EndSection(log)
 !	endif
+end function
+
+function TriPanelArea(self, panelIndex)
+	real(kreal) :: TriPanelArea
+	type(SphereMesh), intent(in) :: self
+	integer(kint), intent(in) :: panelIndex
+	! local variables
+	type(Particles), pointer :: aParticles
+	type(Edges), pointer :: anEdges
+	type(Panels), pointer :: aPanels
+	integer(kint) :: leafEdges(8), ccwVerts(8), j, nLeafEdges
+	real(kreal) :: centerX(3)
+	! Error checking
+	if ( panelIndex > aPanels%N) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,'TriPanelArea ERROR : out of bounds.')
+		return
+	endif
+	centerX = aPanels%x(:,panelIndex)
+
+	if ( aPanels%hasChildren(panelIndex)) then
+		write(logString,'(A,I4,A)') 'panel ',panelIndex,' has children; area = 0.'
+		call LogMessage(log,ERROR_LOGGING_LEVEL,'AREA ERROR : ',trim(logString))
+	endif
+
+	print *, "TriPanelArea ", panelIndex
+
+	! Find leaf edges for each of the parent panel edges (in case adjacent panels are not at same resolution)
+	call CCWEdgesAndParticlesAroundPanel(leafEdges,ccwVerts,nleafEdges,self,panelIndex)
+
+	TriPanelArea = 0.0_kreal
+	do j=1,nLeafEdges-1
+		TriPanelArea = TriPanelArea + SphereTriArea(aParticles%x(:,ccwVerts(j)),centerX,aParticles%x(:,ccwVerts(j+1)))
+	enddo
+	TriPanelArea = TriPanelArea + SphereTriArea(aParticles%x(:,ccwVerts(nLeafEdges)),centerX,aParticles%x(:,ccwVerts(1)))
 end function
 
 !subroutine SetEdgeLengths(self)

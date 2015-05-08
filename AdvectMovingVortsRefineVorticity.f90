@@ -67,7 +67,7 @@ type(OutputWriter) :: writer
 ! test case variables
 !
 real(kreal), allocatable :: totalMasstestCaseTracer(:), sphereL1(:), sphereL2(:), sphereLinf(:), panelsLinf(:),&
-						 	particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:)
+						 	particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:), surfArea(:)
 real(kreal) :: deltaPhi, phimax0, phimin0
 real(kreal) :: mass0, var0
 
@@ -160,6 +160,15 @@ if ( AMR > 0 ) then
 		write(amrstring,'(A,I1,A,I0.2,A)') 'quadAMR_', initNest, 'to', initNest+amrLimit, '_'
 	if ( panelKind == TRI_PANEL ) &
 		write(amrstring,'(A,I1,A,I0.2,A)') 'triAMR_', initNest, 'to', initNest+amrLimit, '_'
+	
+	print *, "rel surf area error = ", (sum(spherePanels%area) - (4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS)) / &
+			((4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS))
+		
+	!call ResetSphereArea(sphere)
+	
+	!print *, "rel surf area error = ", (sum(spherePanels%area) - (4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS)) / &
+	!		(4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS)
+	
 else
 	if ( panelKind == QUAD_PANEL ) &
 		write(amrstring,'(A,I1,A)') 'quadUnif_', initNest, '_'
@@ -228,7 +237,8 @@ allocate(sphereL1(0:timesteps))
 sphereL1 = 0.0_kreal
 allocate(amrN(0:timesteps))
 amrN(0) = spherePanels%N_Active
-
+allocate(surfArea(0:timesteps))
+surfArea(0) = sum(spherePanels%area)
 
 phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
 phimin0 = 0.0_kreal
@@ -298,6 +308,15 @@ do timeJ = 0, timesteps - 1
 		endif
 		sphereParticles => sphere%particles
 		spherePanels => sphere%panels
+		
+		print *, "rel surf area error = ", (sum(spherePanels%area) - (4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS)) / &
+			(4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS)
+		
+		!call ResetSphereArea(sphere)
+		
+		!print *, "rel surf area error = ", (sum(spherePanels%area) - (4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS)) / &
+		!	(4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS)
+		
 	endif ! remesh
 
 	!
@@ -359,6 +378,7 @@ do timeJ = 0, timesteps - 1
 		minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
 
 	amrN(timeJ+1) = spherePanels%N_Active
+	surfArea(timeJ+1) = sum(spherePanels%area)
 	
 	!
 	! output data
@@ -450,6 +470,11 @@ enddo
 					write(WRITE_UNIT_1,'(I8,A)') amrN(j), ' ; ...'
 				enddo
 				write(WRITE_UNIT_1,'(I8,A)') amrN(timesteps), '];'
+				write(WRITE_UNIT_1,*) 'surfArea = [ ', surfArea(0), '; ...'
+				do j = 1, timesteps - 1
+					write(WRITE_UNIT_1,*) surfArea(j), ' ; ...'
+				enddo
+				write(WRITE_UNIT_1,*) surfArea(timesteps), '];'
 			endif
 		endif
 		close(WRITE_UNIT_1)

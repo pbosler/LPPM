@@ -483,6 +483,13 @@ subroutine VTKOutputMidpointRule(self,aMesh)
 	! VTK Cell data
 	!
 	write(WRITE_UNIT_1,'(A,I8)') 'CELL_DATA ', aPanels%N_Active
+	write(WRITE_UNIT_1,'(A)') 'SCALARS areaPanel double 1'
+	write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			write(WRITE_UNIT_1,'(3F24.8)') aPanels%area(j)/(4.0_kreal * EARTH_RADIUS * EARTH_RADIUS)
+		endif
+	enddo
 	write(WRITE_UNIT_1,'(A)') 'SCALARS lagParamPanel double 3'
 	write(WRITE_UNIT_1,'(A)') 'LOOKUP_TABLE default'
 	do j = 1, aPanels%N
