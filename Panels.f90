@@ -628,7 +628,7 @@ subroutine LogPanelStats(self,aLog,message)
 	key = 'MaxNest = '
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxval(self%nest(1:self%N)))
 	key = 'Surface Area error <m^2> = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,abs(sum(self%area(1:self%N)) - 4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS) )
+	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%area(1:self%N)))
 	maxU = 0.0_kreal
 	minU = 0.0_kreal
 	do j=1,self%N

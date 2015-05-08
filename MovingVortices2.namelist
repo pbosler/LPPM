@@ -19,6 +19,6 @@
 
 &fileIO
 	outputDir = '~/modelData/'
-	jobPrefix = 'mv_oneTracer_'
+	jobPrefix = 'mv_oneTracer_a4_'
 	frameOut = 20
 /

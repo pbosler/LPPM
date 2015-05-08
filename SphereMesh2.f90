@@ -1966,10 +1966,12 @@ subroutine DivideTriPanel(self, panelIndex)
 												   aParticles%x0(:, aPanels%vertices(3, nPanels+j)) )
 		aPanels%area(nPanels+j) = 0.0_kreal
 		aPanels%nest(nPanels+j) = parentNest + 1
+		
 		do k = 1, 3
 			aPanels%area( nPanels+j ) = aPanels%area( nPanels + j) + SphereTriArea( aParticles%x(:, aPanels%vertices(k, nPanels+j)), &
 																					aPanels%x(:, nPanels+j), &
 																					aParticles%x(:, aPanels%vertices(mod(k,3)+1, nPanels+j) ))
+			
 		enddo
 	enddo
 

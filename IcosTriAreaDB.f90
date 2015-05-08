@@ -43,7 +43,7 @@ do j = 0, 7
 !
 !	set mesh parameters
 !
-	initNest = 5
+	initNest = j
 	panelKind = 3
 	AMR = 0
 	nTracer = 1
@@ -60,20 +60,20 @@ do j = 0, 7
 	write(logString,'(A,I4,A)') 'Mesh at initNest = ',initNest,' returned : '
 	call LogStats(sphere,exeLog,trim(logString))
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'Surf. area should be = ',4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS)
-	write(6,'(A,F24.15)') "surf area error = ",abs(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS - sum(spherePanels%area))
-
+	write(6,'(A,F24.15)') "surf area rel error = ",-(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS - sum(spherePanels%area)) / &
+		(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS)
 !
 !	Define VTKOutput
 !
-	write(testVTKFile,'(A,I1,A)') 'icosTriMesh',initNest,'.vtk'
-	call New(vtkOut,sphere,testVTKFile,'test1')
-	call vtkOutput(vtkOut,sphere)
+	write(testVTKFile,'(A,I1,A)') 'icosTriMesh_a4_',initNest,'.vtk'
+	call New(vtkMeshOut,sphere,testVTKFile,'test1')
+	call vtkOutputMidpointRule(vtkMeshOut,sphere)
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'VTKOutput : ',' done.')
 
 !
 !	clean up
 !
-	call Delete(vtkOut)
+	call Delete(vtkMeshOut)
 	call Delete(sphere)
 enddo
 
