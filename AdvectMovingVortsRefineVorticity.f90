@@ -25,6 +25,7 @@ type(SphereMesh) :: sphere
 integer(kint) :: panelKind, initNest, AMR, nTracer
 type(Particles), pointer :: sphereParticles
 type(Panels), pointer :: spherePanels
+integer(kint), allocatable :: amrN(:)
 
 !
 ! tracer variables
@@ -184,7 +185,7 @@ enddo
 if ( procrank == 0 ) then
 	call LogStats( sphere, exeLog)
 
-	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
+	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), 'vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
 	
 	write(vtkMeshFile,'(A,A,I0.4,A)') trim(vtkRoot), '_mesh_',0,'.vtk'
@@ -225,6 +226,8 @@ tracerVar = 0.0_kreal
 var0 = TracerVariance(sphere, tracerID)
 allocate(sphereL1(0:timesteps))
 sphereL1 = 0.0_kreal
+allocate(amrN(0:timesteps))
+amrN(0) = spherePanels%N_Active
 
 
 phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
@@ -355,6 +358,8 @@ do timeJ = 0, timesteps - 1
 	phimin(timeJ+1) = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
 		minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
 
+	amrN(timeJ+1) = spherePanels%N_Active
+	
 	!
 	! output data
 	!
@@ -438,6 +443,14 @@ enddo
 				write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(j), ' ; ...'
 			enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
+			
+			if ( AMR > 0 ) then
+				write(WRITE_UNIT_1,'(A,I8,A)') 'amrN = [ ', amrN(0), '; ...'
+				do j = 1, timesteps - 1
+					write(WRITE_UNIT_1,'(I8,A)') amrN(j), ' ; ...'
+				enddo
+				write(WRITE_UNIT_1,'(I8,A)') amrN(timesteps), '];'
+			endif
 		endif
 		close(WRITE_UNIT_1)
 

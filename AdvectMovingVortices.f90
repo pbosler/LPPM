@@ -174,7 +174,7 @@ enddo
 if ( procrank == 0 ) then
 	call LogStats( sphere, exeLog)
 
-	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), '/vtkOut/',trim(jobPrefix),trim(amrString),'_'
+	write(vtkRoot,'(A,A,A,A,A)') trim(outputDir), 'vtkOut/',trim(jobPrefix),trim(amrString),'_'
 	write(vtkFile,'(A,I0.4,A)') trim(vtkRoot),0,'.vtk'
 	
 	write(vtkMeshFile, '(A,A,I0.4,A)') trim(vtkRoot), '_mesh_', 0, '.vtk'

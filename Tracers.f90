@@ -343,6 +343,7 @@ function MVTracerAtT0(xyz, vortStartingLon, vortStartingLat )
 	rho = 3.0_kreal * cos(latPrime)
 
 	MVTracerAtT0 = 1.0_kreal - tanh( 0.2_kreal * rho * sin( lonPrime ) )
+	MVTracerAtT0 = 1.0_kreal
 end function
 
 subroutine InitOneGaussianHillTracer(gHill, hMax, beta, tracerID)

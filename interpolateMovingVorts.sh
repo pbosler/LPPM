@@ -6,7 +6,7 @@ cp $HOME/LPPM/interpVTK2NCL.exe $dataDir/.
 
 cd $dataDir
 
-for filename in *__0?00.vtk
+for filename in *__000?.vtk
 do
 cat <<EOF > $dataDir/InterpVTKtoNCL.namelist
 &filenames

@@ -1,13 +1,13 @@
 &meshDefine
-	initNest = 2
-	AMR = 4
+	initNest = 4
+	AMR = 0
 	panelKind = 3
-	amrLimit = 5
+	amrLimit = 4
 	tracerMassTol = 1.0e20 	! smaller values => more panels
 	tracerVarTol =0.06	! smaller values => more panels
 	lagVarTol = 1.0e20	! smaller values => more panels
 	tracerRefVal = 1.0
-	tracerRefTol = 0.05 ! larger values => more panels
+	tracerRefTol = 0.00625 ! larger values => more panels
 /
 
 &timestepping
@@ -19,6 +19,6 @@
 
 &fileIO
 	outputDir = '~/modelData/'
-	jobPrefix = 'movingVorts_a_tauR0.05_tauTV0.06_movie'
-	frameOut = 1
+	jobPrefix = 'mv_'
+	frameOut = 400
 /
