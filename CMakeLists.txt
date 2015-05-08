@@ -124,6 +124,10 @@ TARGET_LINK_LIBRARIES(planeTest.exe base mesh interp remesh problemSet output )
 ADD_EXECUTABLE( icosTriTest.exe IcosTriTest2.f90 )
 TARGET_LINK_LIBRARIES(icosTriTest.exe base mesh interp remesh problemSet output )
 
+ADD_EXECUTABLE( icosTriAreaTest.exe IcosTriAreaDB.f90 )
+TARGET_LINK_LIBRARIES(icosTriAreaTest.exe base mesh interp remesh problemSet output )
+
+
 ADD_EXECUTABLE( cubedSphereTest.exe CubedSphereTest2.f90 )
 TARGET_LINK_LIBRARIES(cubedSphereTest.exe base mesh interp remesh problemSet output )
 
