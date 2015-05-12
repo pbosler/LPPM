@@ -1144,97 +1144,161 @@ subroutine InitIcosTriMesh(self, initNest)
 
 	!	Edges
 	anEdges%N = 30
-	anEdges%verts(:,1) = [1,2]
-	anEdges%verts(:,2) = [2,3]
-	anEdges%verts(:,3) = [3,1]
-	anEdges%verts(:,4) = [3,4]
-	anEdges%verts(:,5) = [4,1]
-	anEdges%verts(:,6) = [4,5]
-	anEdges%verts(:,7) = [5,1]
-	anEdges%verts(:,8) = [5,6]
-	anEdges%verts(:,9) = [6,1]
-	anEdges%verts(:,10)= [6,2]
-	anEdges%verts(:,11)= [2,8]
-	anEdges%verts(:,12)= [8,3]
-	anEdges%verts(:,13)= [8,9]
-	anEdges%verts(:,14)= [9,3]
-	anEdges%verts(:,15)= [9,4]
-	anEdges%verts(:,16)= [9,10]
-	anEdges%verts(:,17)= [10,4]
-	anEdges%verts(:,18)= [10,5]
-	anEdges%verts(:,19)= [10,11]
-	anEdges%verts(:,20)= [11,5]
-	anEdges%verts(:,21)= [11,6]
-	anEdges%verts(:,22)= [11,7]
-	anEdges%verts(:,23)= [7,6]
-	anEdges%verts(:,24)= [7,2]
-	anEdges%verts(:,25)= [7,8]
-	anEdges%verts(:,26)= [8,12]
-	anEdges%verts(:,27)= [12,9]
-	anEdges%verts(:,28)= [12,10]
-	anEdges%verts(:,29)= [12,11]
-	anEdges%verts(:,30)= [12,7]
-	anEdges%leftPanel(1) = 1
-	anEdges%leftPanel(2) = 1
-	anEdges%leftPanel(3) = 1
-	anEdges%leftPanel(4) = 2
-	anEdges%leftPanel(5) = 2
-	anEdges%leftPanel(6) = 3
-	anEdges%leftPanel(7) = 3
-	anEdges%leftPanel(8) = 4
-	anEdges%leftPanel(9) = 4
-	anEdges%leftPanel(10)= 5
-	anEdges%leftPanel(11)= 6
-	anEdges%leftPanel(12)= 6
-	anEdges%leftPanel(13)= 7
-	anEdges%leftPanel(14)= 7
-	anEdges%leftPanel(15)= 8
-	anEdges%leftPanel(16)= 9
-	anEdges%leftPanel(17)= 9
-	anEdges%leftPanel(18)= 10
-	anEdges%leftPanel(19)= 11
-	anEdges%leftPanel(20)= 11
-	anEdges%leftPanel(21)= 12
-	anEdges%leftPanel(22)= 13
-	anEdges%leftPanel(23)= 13
-	anEdges%leftPanel(24)= 14
-	anEdges%leftPanel(25)= 15
-	anEdges%leftPanel(26)= 16
-	anEdges%leftPanel(27)= 16
-	anEdges%leftPanel(28)= 17
-	anEdges%leftPanel(29)= 18
-	anEdges%leftPanel(30)= 19
-	anEdges%rightPanel(1) = 5
-	anEdges%rightPanel(2) = 6
-	anEdges%rightPanel(3) = 2
-	anEdges%rightPanel(4) = 8
-	anEdges%rightPanel(5) = 3
-	anEdges%rightPanel(6) = 10
-	anEdges%rightPanel(7) = 4
-	anEdges%rightPanel(8) = 12
-	anEdges%rightPanel(9) = 5
-	anEdges%rightPanel(10)= 14
-	anEdges%rightPanel(11)= 15
-	anEdges%rightPanel(12)= 7
-	anEdges%rightPanel(13)= 16
-	anEdges%rightPanel(14)= 8
-	anEdges%rightPanel(15)= 9
-	anEdges%rightPanel(16)= 17
-	anEdges%rightPanel(17)= 10
-	anEdges%rightPanel(18)= 11
-	anEdges%rightPanel(19)= 18
-	anEdges%rightPanel(20)= 12
-	anEdges%rightPanel(21)= 13
-	anEdges%rightPanel(22)= 19
-	anEdges%rightPanel(23)= 14
-	anEdges%rightPanel(24)= 15
-	anEdges%rightPanel(25)= 20
-	anEdges%rightPanel(26)= 20
-	anEdges%rightPanel(27)= 17
-	anEdges%rightPanel(28)= 18
-	anEdges%rightPanel(29)= 19
-	anEdges%rightPanel(30)= 20
+	
+	anEdges%verts(1,1) = 0
+	anEdges%verts(2,1) = 1
+	anEdges%leftPanel(1) = 0 
+	anEdges%rightPanel(1) = 4
 
+	anEdges%verts(1,2) = 1
+	anEdges%verts(2,2) = 2
+	anEdges%leftPanel(2) = 0  
+	anEdges%rightPanel(2) = 6
+	
+	anEdges%verts(1,3) = 2 
+	anEdges%verts(2,3) = 0
+	anEdges%leftPanel(3) = 0 
+	anEdges%rightPanel(3) = 1
+	
+	anEdges%verts(1,4) = 2
+	anEdges%verts(2,4) = 3
+	anEdges%leftPanel(4) = 1 
+	anEdges%rightPanel(4) = 8
+	
+	anEdges%verts(1,5) = 0 
+	anEdges%verts(2,5) = 3
+	anEdges%leftPanel(5) = 2 
+	anEdges%rightPanel(5) = 1
+	
+	anEdges%verts(1,6) = 3
+	anEdges%verts(2,6) = 4
+	anEdges%leftPanel(6) = 2 
+	anEdges%rightPanel(6) = 10
+	
+	anEdges%verts(1,7) = 4
+	anEdges%verts(2,7) = 0
+	anEdges%leftPanel(7) = 2 
+	anEdges%rightPanel(7) = 3
+	
+	anEdges%verts(1,8) = 4
+	anEdges%verts(2,8) = 5
+	anEdges%leftPanel(8) = 3 
+	anEdges%rightPanel(8) = 12
+	
+	anEdges%verts(1,9) = 5
+	anEdges%verts(2,9) = 0
+	anEdges%leftPanel(9) = 3 
+	anEdges%rightPanel(9) = 4
+	
+	anEdges%verts(1,10) = 5
+	anEdges%verts(2,10) = 1
+	anEdges%leftPanel(10) = 4 
+	anEdges%rightPanel(10) = 14
+	
+	anEdges%verts(1,11) = 1
+	anEdges%verts(2,11) = 6
+	anEdges%leftPanel(11) = 5 
+	anEdges%rightPanel(11) = 14
+	
+	anEdges%verts(1,12) = 6
+	anEdges%verts(2,12) = 7
+	anEdges%leftPanel(12) = 5 
+	anEdges%rightPanel(12) = 15
+	
+	anEdges%verts(1,13) = 7
+	anEdges%verts(2,13) = 1
+	anEdges%leftPanel(13) = 5 
+	anEdges%rightPanel(13) = 6
+	
+	anEdges%verts(1,14) = 7
+	anEdges%verts(2,14) = 2
+	anEdges%leftPanel(14) = 6 
+	anEdges%rightPanel(14) = 7
+	
+	anEdges%verts(1,15) = 7
+	anEdges%verts(2,15) = 8
+	anEdges%leftPanel(15) = 7 
+	anEdges%rightPanel(15) = 16
+	
+	anEdges%verts(1,16) = 8
+	anEdges%verts(2,16) = 2
+	anEdges%leftPanel(16) = 7 
+	anEdges%rightPanel(16) = 8
+	
+	anEdges%verts(1,17) = 8
+	anEdges%verts(2,17) = 3
+	anEdges%leftPanel(17) = 8 
+	anEdges%rightPanel(17) = 9
+	
+	anEdges%verts(1,18) = 8
+	anEdges%verts(2,18) = 9
+	anEdges%leftPanel(18) = 9 
+	anEdges%rightPanel(18) = 17
+	
+	anEdges%verts(1,19) = 3
+	anEdges%verts(2,19) = 9
+	anEdges%leftPanel(19) = 10 
+	anEdges%rightPanel(19) = 9
+	
+	anEdges%verts(1,20) = 9
+	anEdges%verts(2,20) = 4
+	anEdges%leftPanel(20) = 10 
+	anEdges%rightPanel(20) = 11
+	
+	anEdges%verts(1,21) = 9
+	anEdges%verts(2,21) = 10
+	anEdges%leftPanel(21) = 11
+	anEdges%rightPanel(21) = 18
+	
+	anEdges%verts(1,22) = 10
+	anEdges%verts(2,22) = 4
+	anEdges%leftPanel(22) = 11 
+	anEdges%rightPanel(22) = 12
+	
+	anEdges%verts(1,23) = 10
+	anEdges%verts(2,23) = 5
+	anEdges%leftPanel(23) = 12 
+	anEdges%rightPanel(23) = 13
+	
+	anEdges%verts(1,24) = 10
+	anEdges%verts(2,24) = 6
+	anEdges%leftPanel(24) = 13 
+	anEdges%rightPanel(24) = 19
+	
+	anEdges%verts(1,25) = 6
+	anEdges%verts(2,25) = 5
+	anEdges%leftPanel(25) = 13 
+	anEdges%rightPanel(25) = 14
+	
+	anEdges%verts(1,26) = 11
+	anEdges%verts(2,26) = 6
+	anEdges%leftPanel(26) = 19 
+	anEdges%rightPanel(26) = 15
+	
+	anEdges%verts(1,27) = 11
+	anEdges%verts(2,27) = 7
+	anEdges%leftPanel(27) = 15 
+	anEdges%rightPanel(27) = 16
+	
+	anEdges%verts(1,28) = 8
+	anEdges%verts(2,28) = 11
+	anEdges%leftPanel(28) = 17
+	anEdges%rightPanel(28) = 16
+	
+	anEdges%verts(1,29) = 11 
+	anEdges%verts(2,29) = 9
+	anEdges%leftPanel(29) = 17 
+	anEdges%rightPanel(29) = 18
+	
+	anEdges%verts(1,30) = 10
+	anEdges%verts(2,30) = 11
+	anEdges%leftPanel(30) = 19
+	anEdges%rightPanel(30) = 18
+	
+	anEdges%verts(:,1:30) = anEdges%verts(:,1:30) + 1
+	anEdges%leftPanel(1:30) = anEdges%leftPanel(1:30) + 1
+	anEdges%rightPanel(1:30) = anEdges%rightPanel(1:30) + 1
+	
 	! Panels
 	aPanels%N = 20
 	aPanels%N_Active = 20
@@ -1243,41 +1307,41 @@ subroutine InitIcosTriMesh(self, initNest)
 	aPanels%edges(:,3) = [5,6,7]
 	aPanels%edges(:,4) = [7,8,9]
 	aPanels%edges(:,5) = [9,10,1]
-	aPanels%edges(:,6) = [12,2,11]
-	aPanels%edges(:,7) = [12,13,14]
-	aPanels%edges(:,8) = [15,4,14]
-	aPanels%edges(:,9) = [15,16,17]
-	aPanels%edges(:,10)= [18,6,17]
-	aPanels%edges(:,11)= [18,19,20]
-	aPanels%edges(:,12)= [21,8,20]
-	aPanels%edges(:,13)= [21,22,23]
-	aPanels%edges(:,14)= [24,10,23]
-	aPanels%edges(:,15)= [24,25,11]
-	aPanels%edges(:,16)= [27,13,26]
-	aPanels%edges(:,17)= [28,16,27]
-	aPanels%edges(:,18)= [29,19,28]
-	aPanels%edges(:,19)= [30,22,29]
-	aPanels%edges(:,20)= [26,25,30]
+	aPanels%edges(:,6) = [11,12,13]
+	aPanels%edges(:,7) = [14,2,13]
+	aPanels%edges(:,8) = [14,15,16]
+	aPanels%edges(:,9) = [17,4,16]
+	aPanels%edges(:,10)= [17,18,19]
+	aPanels%edges(:,11)= [20,6,19]
+	aPanels%edges(:,12)= [20,21,22]
+	aPanels%edges(:,13)= [23,8,22]
+	aPanels%edges(:,14)= [23,24,25]
+	aPanels%edges(:,15)= [11,10,25]
+	aPanels%edges(:,16)= [27,12,26]
+	aPanels%edges(:,17)= [28,15,27]
+	aPanels%edges(:,18)= [29,18,28]
+	aPanels%edges(:,19)= [30,21,29]
+	aPanels%edges(:,20)= [26,24,30]
 	aPanels%vertices(:,1) = [1,2,3]
 	aPanels%vertices(:,2) = [1,3,4]
 	aPanels%vertices(:,3) = [1,4,5]
 	aPanels%vertices(:,4) = [1,5,6]
 	aPanels%vertices(:,5) = [1,6,2]
-	aPanels%vertices(:,6) = [8,3,2]
-	aPanels%vertices(:,7) = [3,8,9]
-	aPanels%vertices(:,8) = [9,4,3]
-	aPanels%vertices(:,9) = [4,9,10]
-	aPanels%vertices(:,10)= [10,5,4]
-	aPanels%vertices(:,11)= [5,10,11]
-	aPanels%vertices(:,12)= [11,6,5]
-	aPanels%vertices(:,13)= [6,11,7]
-	aPanels%vertices(:,14)= [7,2,6]
-	aPanels%vertices(:,15)= [2,7,8]
-	aPanels%vertices(:,16)= [12,9,8]
-	aPanels%vertices(:,17)= [12,10,9]
-	aPanels%vertices(:,18)= [12,11,10]
-	aPanels%vertices(:,19)= [12,7,11]
-	aPanels%vertices(:,20)= [12,8,7]
+	aPanels%vertices(:,6) = [2,7,8]
+	aPanels%vertices(:,7) = [8,3,2]
+	aPanels%vertices(:,8) = [3,8,9]
+	aPanels%vertices(:,9) = [9,4,3]
+	aPanels%vertices(:,10)= [4,9,10]
+	aPanels%vertices(:,11)= [10,5,4]
+	aPanels%vertices(:,12)= [5,10,11]
+	aPanels%vertices(:,13)= [11,6,5]
+	aPanels%vertices(:,14)= [6,11,7]
+	aPanels%vertices(:,15)= [7,2,6]
+	aPanels%vertices(:,16)= [12,8,7]
+	aPanels%vertices(:,17)= [12,9,8]
+	aPanels%vertices(:,18)= [12,10,9]
+	aPanels%vertices(:,19)= [12,11,10]
+	aPanels%vertices(:,20)= [12,7,11]
 
 	!call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey,'root icosahedron data set.')
 
