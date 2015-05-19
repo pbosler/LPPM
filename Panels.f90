@@ -316,44 +316,79 @@ subroutine CopyPanels(newPanels,oldPanels)
 		newPanels%hasChildren(j) = oldPanels%hasChildren(j)
 		newPanels%u(:,j) = oldPanels%u(:,j)
 	enddo
+	do j = oldPanels%N + 1, newPanels%N_Max
+		newPanels%x(:,j) = 0.0_kreal
+		newPanels%x0(:,j) = 0.0_kreal
+		newPanels%area(j) = 0.0_kreal
+		newPanels%edges(:,j) = 0
+		newPanels%vertices(:,j) = 0
+		newPanels%nest(j) = -1
+		newPanels%children(:,j) = 0
+		newPanels%hasChildren(j) = .FALSE.
+		newPanels%u(:,j) = 0.0_kreal
+	enddo
 	if ( associated(oldPanels%tracer)) then
 		do j=1,oldPanels%N
 			newPanels%tracer(j,:) = oldPanels%tracer(j,:)
+		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%tracer(j,:) = 0.0_kreal
 		enddo
 	endif
 	if ( associated(oldPanels%relVort)) then
 		do j=1,oldPanels%N
 			newPanels%relVort(j) = oldPanels%relVort(j)
 		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%relVort(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldPanels%stream)) then
 		do j=1,oldPanels%N
 			newPanels%stream(j) = oldPanels%stream(j)
+		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%stream(j) = 0.0_kreal
 		enddo
 	endif
 	if ( associated(oldPanels%absVort)) then
 		do j=1,oldPanels%N
 			newPanels%absVort(j) = oldPanels%absVort(j)
 		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%absVort(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldPanels%potVort)) then
 		do j=1,oldPanels%N
 			newPanels%potVort(j) = oldPanels%potVort(j)
+		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%potVort(j) = 0.0_kreal
 		enddo
 	endif
 	if ( associated(oldPanels%h)) then
 		do j=1,oldPanels%N
 			newPanels%h(j) = oldPanels%h(j)
 		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%h(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldPanels%div)) then
 		do j=1,oldPanels%N
 			newPanels%div(j) = oldPanels%div(j)
 		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%div(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldPanels%ke)) then
 		do j=1,oldPanels%N
 			newPanels%ke(j) = oldPanels%ke(j)
+		enddo
+		do j = oldPanels%N + 1, newPanels%N_Max
+			newPanels%ke(j) = 0.0_kreal
 		enddo
 	endif
 !	if ( associated(oldPanels%pe)) then

@@ -13,12 +13,12 @@
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
-	remeshInterval = 20
+	remeshInterval = 19
 	resetAlphaInterval = 4000
 /
 
 &fileIO
 	outputDir = '~/modelData/'
-	jobPrefix = 'mv_oneTracer_a4_'
+	jobPrefix = 'mv_oneTracer_'
 	frameOut = 20
 /

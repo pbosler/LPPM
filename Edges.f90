@@ -152,6 +152,13 @@ subroutine CopyEdges(newEdges,oldEdges)
 !		newEdges%length0(j) = oldEdges%length0(j)
 	enddo
 	newEdges%N = oldEdges%N
+	do j = oldEdges%N + 1, newEdges%N_Max
+		newEdges%verts(:,j) = 0
+		newEdges%leftPanel(j) = 0
+		newEdges%rightPanel(j) = 0
+		newEdges%children(:,j) = 0
+		newEdges%hasChildren(j) = .FALSE.
+	enddo
 end subroutine
 
 !

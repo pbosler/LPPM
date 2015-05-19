@@ -279,44 +279,73 @@ subroutine CopyParticles(newParticles,oldParticles)
 		newParticles%x0(:,j) = oldParticles%x0(:,j)
 		newParticles%u(:,j) = oldParticles%u(:,j)
 	enddo
+	do j = oldParticles%N + 1, newParticles%N_Max
+		newParticles%x(:,j) = 0.0_kreal
+		newParticles%x0(:,j) = 0.0_kreal
+		newParticles%u(:,j) = 0.0_kreal
+	enddo
 	if ( associated(oldParticles%tracer)) then
 		do j=1,oldParticles%N
 			newParticles%tracer(j,:) = oldParticles%tracer(j,:)
+		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%tracer(j,:) = 0.0_kreal
 		enddo
 	endif
 	if ( associated(oldParticles%relVort)) then
 		do j=1,oldParticles%N
 			newParticles%relVort(j) = oldParticles%relVort(j)
 		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%relVort(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldParticles%stream)) then
 		do j=1,oldParticles%N
 			newParticles%stream(j) = oldParticles%stream(j)
+		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%stream(j) = 0.0_kreal
 		enddo
 	endif
 	if ( associated(oldParticles%absVort) ) then
 		do j=1,oldParticles%N
 			newParticles%absVort(j) = oldParticles%absVort(j)
 		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%absVort(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldParticles%potVort) ) then
 		do j=1,oldParticles%N
 			newParticles%potVort(j) = oldParticles%potVort(j)
+		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%potVort(j) = 0.0_kreal
 		enddo
 	endif
 	if ( associated(oldParticles%h) ) then
 		do j=1,oldParticles%N
 			newParticles%h(j) = oldParticles%h(j)
 		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%h(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldParticles%div) ) then
 		do j=1,oldParticles%N
 			newParticles%div(j) = oldParticles%div(j)
 		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%div(j) = 0.0_kreal
+		enddo
 	endif
 	if ( associated(oldParticles%ke) ) then
 		do j=1,oldParticles%N
 			newParticles%ke(j) = oldParticles%ke(j)
+		enddo
+		do j = oldParticles%N + 1, newParticles%N_Max
+			newParticles%ke(j) = 0.0_kreal
 		enddo
 	endif
 !	if ( associated(oldParticles%pe)) then

@@ -5,7 +5,7 @@ dataDir=/ascldap/users/pabosle/modelData/vtkOut
 cp interpVTK2NCL.exe $dataDir/.
 
 cd $dataDir
-for file in *triAMR_4to08__000?.vtk
+for file in *.vtk
 do
 cat <<EOF > $dataDir/InterpVTKtoNCL.namelist
 &filenames
