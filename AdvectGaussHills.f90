@@ -186,8 +186,21 @@ var0 = TracerVariance(sphere,tracerID)
 
 sphereParticles => sphere%particles
 spherePanels => sphere%panels
-phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
-phimin0 = 0.0_kreal
+!phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
+phimax0 = maxval(sphereParticles%tracer(1:sphereParticles%N,1))
+phimin0 = minval(sphereParticles%tracer(1:sphereParticles%N,1))
+do j = 1, spherePanels%N
+	if ( .NOT. spherePanels%hasChildren(j) ) then
+		if ( spherePanels%tracer(j,1) > phimax0 ) then
+			phimax0 = spherePanels%tracer(j,1)
+		endif
+		if ( spherePanels%tracer(j,1) < phimin0 ) then
+			phimin0 = spherePanels%tracer(j,1)
+		endif
+	endif
+enddo
+
+
 deltaPhi = phimax0 - phimin0
 
 
@@ -312,10 +325,28 @@ enddo
 		spherePanels%tracer(1:spherePanels%N,1) * spherePanels%area(1:spherePanels%N) )
 	sphereL2 = sqrt(sphereL2)
 
-	phimax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), &
-		maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
-	phimin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
-		minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
+!	phimax = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), &
+!		maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
+!	phimin = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
+!		minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
+	phimax = maxval(sphereParticles%tracer(1:sphereParticles%N,1))
+	phimin = minval(sphereParticles%tracer(1:sphereParticles%N,1))
+	do j = 1, spherePanels%N
+		if ( .NOT. spherePanels%hasChildren(j) ) then
+			if ( spherePanels%tracer(j,1) > phimax ) then
+				phimax = spherePanels%tracer(j,1)
+			endif
+			if ( spherePanels%tracer(j,1) < phimin ) then
+				phimin = spherePanels%tracer(j,1)
+			endif
+		endif
+	enddo
+	
+	phimax = (phimax - phimax0)/deltaPhi
+	phimin = (phimin - phimin0)/deltaPhi
+	
+	print *, "inverse N = ", spherePanels%N_Active, ": phi_max = ", phimax,", phi_min = ", phimin 
+
 	if ( procRank == 0 ) then
 		open( unit = WRITE_UNIT_1, file = datafile, status = 'REPLACE', action = 'WRITE', iostat = readwritestat)
 		if ( readwritestat /= 0 ) then

@@ -15,32 +15,32 @@
 
 cd $HOME/LPPM
 
-cat <<EOF > MovingVortices.namelist
+cat <<EOF > MovingVortices2Direct.namelist
 &meshDefine
 	initNest = 7
 	AMR = 0
 	panelKind = 3
-	amrLimit = 2
-	tracerMassTol = 1.0e20 	! smaller values => more panels
-	tracerVarTol =0.06	! smaller values => more panels
-	lagVarTol = 1.0e20	! smaller values => more panels
-	tracerRefVal = 1.0
-	tracerRefTol = 0.00625 ! larger values => more panels
+	amrLimit = 0
+	maxCircTol = 0.2
+	vortVarTol = 1.0
+	tracerMassTol = 2.0
+	tracerVarTol = 1.0
+	lagVarTol = 2.2
 /
 
 &timestepping
 	dt = 0.03			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
 	remeshInterval = 20
-	resetAlphaInterval = 40000
+	resetAlphaInterval = 4000
 /
 
 &fileIO
 	outputDir = '$HOME/modelData/'
-	jobPrefix = 'mv_conv_'
+	jobPrefix = 'mv_conv_direct_'
 	frameOut = 200
 /
 
 EOF
 
-mpirun -np 8 ./advectMovingVortices.exe
+mpirun -np 8 ./advectMovingVorticesDirect.exe

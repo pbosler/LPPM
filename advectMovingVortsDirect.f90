@@ -66,7 +66,7 @@ type(OutputWriter) :: writer
 ! test case variables
 !
 real(kreal), allocatable :: totalMasstestCaseTracer(:), sphereL1(:), sphereL2(:), sphereLinf(:), panelsLinf(:),&
-						 	particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:)
+						 	particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:), panelTracer0(:)
 real(kreal) :: deltaPhi, phimax0, phimin0
 real(kreal) :: mass0, var0
 
@@ -160,6 +160,16 @@ else
 		write(amrstring,'(A,I1,A)') 'triUnif_', initNest, '_'
 endif
 
+if ( AMR <= 0 ) then 
+	allocate(panelTracer0(spherePanels%N))
+	do j = 1, spherePanels%N
+		if ( spherePanels%hasChildren(j) ) then
+			panelTracer0(j) = 0.0_kreal
+		else
+			panelTracer0(j) = spherePanels%tracer(j,1)
+		endif
+	enddo
+endif
 
 do j = 1, sphereParticles%N
 	sphereParticles%tracer(j,3) = testCaseTracerExact(sphereParticles%x(:,j), 0.0_kreal,testCaseTracer)
@@ -221,8 +231,16 @@ allocate(sphereL1(0:timesteps))
 sphereL1 = 0.0_kreal
 
 
-phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
-phimin0 = 0.0_kreal
+!phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
+!phimin0 = min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval(spherePanels%tracer(1:spherePanels%N,1)) )
+phimax0 = maxval(sphereParticles%tracer(1:sphereParticles%N,1))
+phimin0 = maxval(sphereParticles%tracer(1:sphereParticles%N,1))
+do j = 1, spherePanels%N
+	if ( .NOT. spherePanels%hasChildren(j)) then
+		if ( spherePanels%tracer(j,1) > phimax0 ) phimax0 = spherePanels%tracer(j,1)
+		if ( spherePanels%tracer(j,1) < phimin0 ) phimin0 = spherePanels%tracer(j,1)
+	endif
+enddo
 deltaPhi = phimax0 - phimin0
 
 
@@ -291,7 +309,20 @@ do timeJ = 0, timesteps - 1
 				 maxval(abs(sphereParticles%tracer(1:sphereParticles%N,1)))
 		endif
 	enddo
-	totalMasstestCaseTracer(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
+	
+!	if ( AMR <= 0 ) then
+!		totalMasstestCaseTracer(timeJ + 1) = 0.0_kreal
+!		do j = 1, spherePanels%N
+!			if ( .NOT. spherePanels%hasChildren(j) ) then
+!				totalMasstestCaseTracer(timeJ + 1) = totalMasstestCaseTracer(timeJ + 1) + &
+!					(spherePanels%tracer(j,1) - panelTracer0(j)) * spherePanels%area(j)
+!			endif
+!		enddo	
+!		totalMasstestCaseTracer(timeJ+1) = totalMasstestCaseTracer(timeJ+1)/mass0
+!	else
+		totalMasstestCaseTracer(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
+!	endif
+	
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
 
 	particlesLinf(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,2)) /&
@@ -310,10 +341,21 @@ do timeJ = 0, timesteps - 1
 	sphereL1(timeJ+1) = sphereL1(timeJ+1) / &
 		sum( abs(spherePanels%tracer(1:spherePanels%N,1)) * spherePanels%area(1:spherePanels%N) )
 
-	phimax(timeJ+1) = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)),&
-		 maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
-	phimin(timeJ+1) = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
-		 minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
+!	phimax(timeJ+1) = ( max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)),&
+!		 maxval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimax0) / deltaPhi
+!	phimin(timeJ+1) = ( min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), &
+!		 minval( spherePanels%tracer(1:spherePanels%N,1)) ) - phimin0)/ deltaPhi
+
+	phimax(timeJ+1) = maxval(sphereParticles%tracer(1:sphereParticles%N,1))
+	phimin(timeJ+1) = minval(sphereParticles%tracer(1:sphereParticles%N,1))
+	do j = 1, spherePanels%N
+		if ( .NOT. spherePanels%hasChildren(j) ) then
+			if ( spherePanels%tracer(j,1) > phimax(timeJ+1)) phimax(timeJ+1) = spherePanels%tracer(j,1)
+			if ( spherePanels%tracer(j,1) < phimin(timeJ+1)) phimin(timeJ+1) = spherePanels%tracer(j,1)
+		endif
+	enddo
+	phimax(timeJ+1) = (phiMax(timeJ+1)-phimax0)/deltaPhi
+	phimin(timeJ+1) = (phimin(timeJ+1)-phimin0)/deltaPhi
 
 	!
 	! output data
@@ -430,7 +472,7 @@ endif
 call Delete(sphere)
 call Delete(testCaseTracer)
 call Delete(exeLog)
-
+if ( allocated(panelTracer0)) deallocate(panelTracer0)
 call MPI_FINALIZE(errCode)
 
 contains
