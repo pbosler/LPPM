@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --nodes=1
-#SBATCH --time=0:30:00
+#SBATCH --time=1:00:00
 #SBATCH --account=fy150039
 #SBATCH --job-name=adv-gaussHills
 #SBATCH --partition=ec
@@ -9,9 +9,11 @@
 
 cd $HOME/LPPM
 
+for i in `seq 1 7`;
+do 
 cat <<EOF > AdvectGaussianHills.namelist
 &meshDefine
-	initNest = 7
+	initNest = ${i}
 	AMR = 0
 	panelKind = 3
 	amrLimit = 5
@@ -34,3 +36,4 @@ cat <<EOF > AdvectGaussianHills.namelist
 EOF
 
 mpirun -np 8 advectGaussHills.exe
+done

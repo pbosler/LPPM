@@ -66,7 +66,7 @@ type(OutputWriter) :: writer
 ! test case variables
 !
 real(kreal), allocatable :: totalMasstestCaseTracer(:), sphereL1(:), sphereL2(:), sphereLinf(:), panelsLinf(:),&
-						 	particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:), panelTracer0(:)
+						 	particlesLinf(:), phiMax(:), phiMin(:), tracerVar(:), panelTracer0(:), panelArea0(:)
 real(kreal) :: deltaPhi, phimax0, phimin0
 real(kreal) :: mass0, var0
 
@@ -162,11 +162,14 @@ endif
 
 if ( AMR <= 0 ) then 
 	allocate(panelTracer0(spherePanels%N))
+	allocate(panelArea0(spherePanels%N))
 	do j = 1, spherePanels%N
 		if ( spherePanels%hasChildren(j) ) then
 			panelTracer0(j) = 0.0_kreal
+			panelArea0(j) = 0.0_kreal
 		else
 			panelTracer0(j) = spherePanels%tracer(j,1)
+			panelArea0(j) = spherePanels%area(j)
 		endif
 	enddo
 endif
@@ -211,7 +214,7 @@ remeshCounter = 0
 frameCounter = 1
 allocate(totalMasstestCaseTracer(0:timesteps))
 totalMasstestCaseTracer = 0.0_kreal
-mass0 = TotalMass(sphere, tracerID)
+mass0 = sum(panelTracer0*panelArea0)
 allocate(sphereL2(0:timesteps))
 sphereL2 = 0.0_kreal
 allocate(sphereLinf(0:timesteps))
@@ -310,18 +313,18 @@ do timeJ = 0, timesteps - 1
 		endif
 	enddo
 	
-!	if ( AMR <= 0 ) then
-!		totalMasstestCaseTracer(timeJ + 1) = 0.0_kreal
-!		do j = 1, spherePanels%N
-!			if ( .NOT. spherePanels%hasChildren(j) ) then
-!				totalMasstestCaseTracer(timeJ + 1) = totalMasstestCaseTracer(timeJ + 1) + &
-!					(spherePanels%tracer(j,1) - panelTracer0(j)) * spherePanels%area(j)
-!			endif
-!		enddo	
-!		totalMasstestCaseTracer(timeJ+1) = totalMasstestCaseTracer(timeJ+1)/mass0
-!	else
-		totalMasstestCaseTracer(timeJ+1) = ( TotalMass(sphere, tracerID) - mass0 ) / mass0
-!	endif
+	if ( AMR <= 0 ) then
+		totalMasstestCaseTracer(timeJ + 1) = 0.0_kreal
+		do j = 1, spherePanels%N
+			if ( .NOT. spherePanels%hasChildren(j) ) then
+				totalMasstestCaseTracer(timeJ + 1) = totalMasstestCaseTracer(timeJ + 1) + &
+					(spherePanels%tracer(j,1) - panelTracer0(j)) * panelArea0(j)
+			endif
+		enddo	
+		totalMasstestCaseTracer(timeJ+1) = totalMasstestCaseTracer(timeJ+1)/mass0
+	else
+		totalMasstestCaseTracer(timeJ+1) = TotalMass(sphere, tracerID) / mass0 - 1.0_kreal
+	endif
 	
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
 
@@ -473,6 +476,7 @@ call Delete(sphere)
 call Delete(testCaseTracer)
 call Delete(exeLog)
 if ( allocated(panelTracer0)) deallocate(panelTracer0)
+if ( allocated(panelArea0)) deallocate(panelArea0)
 call MPI_FINALIZE(errCode)
 
 contains

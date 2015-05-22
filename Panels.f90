@@ -630,6 +630,85 @@ end function
 ! Module methods : type-specific functions
 !----------------
 !
+function MaxPanelTracer(self, tracerID)
+	real(kreal) :: MaxPanelTracer
+	type(Panels), intent(in) :: self
+	integer(kint), intent(in) :: tracerId
+	!
+	integer(kint) :: j
+	MaxPanelTracer = self%tracer(1,tracerID)
+	do j = 2, self%N
+		if ( .NOT. self%hasChildren(j) ) then
+			if ( self%tracer(j,tracerID) > MaxPanelTracer ) maxPanelTracer = self%tracer(j,tracerID)
+		endif
+	enddo
+end function
+
+function MinPanelTracer(self, tracerID)
+	real(kreal) :: MinPanelTracer
+	type(Panels), intent(in) :: self
+	integer(kint), intent(in) :: tracerId
+	!
+	integer(kint) :: j
+	MinPanelTracer = maxval(self%tracer(1:self%N,tracerID))
+	do j = 1, self%N
+		if ( .NOT. self%hasChildren(j) ) then
+			if ( self%tracer(j,tracerID) < MinPanelTracer ) MinPanelTracer = self%tracer(j,tracerID)
+		endif
+	enddo
+end function
+
+function MaxPanelrelVort(self )
+	real(kreal) :: MaxPanelrelVort
+	type(Panels), intent(in) :: self
+	!
+	integer(kint) :: j
+	MaxPanelrelVort = self%relVort(1)
+	do j = 2, self%N
+		if ( .NOT. self%hasChildren(j) ) then
+			if ( self%relVort(j) > MaxPanelrelVort ) maxPanelrelVort = self%relVort(j)
+		endif
+	enddo
+end function
+
+function MinPanelrelVort(self)
+	real(kreal) :: MinPanelrelVort
+	type(Panels), intent(in) :: self
+	!
+	integer(kint) :: j
+	MinPanelrelVort = self%relVort(1)
+	do j = 2, self%N
+		if ( .NOT. self%hasChildren(j) ) then
+			if ( self%relVort(j) < MinPanelrelVort ) MinPanelrelVort = self%relVort(j)
+		endif
+	enddo
+end function
+
+function MaxPanelabsVort(self )
+	real(kreal) :: MaxPanelabsVort
+	type(Panels), intent(in) :: self
+	!
+	integer(kint) :: j
+	MaxPanelabsVort = self%absVort(1)
+	do j = 2, self%N
+		if ( .NOT. self%hasChildren(j) ) then
+			if ( self%absVort(j) > MaxPanelabsVort ) maxPanelabsVort = self%absVort(j)
+		endif
+	enddo
+end function
+
+function MinPanelabsVort(self)
+	real(kreal) :: MinPanelabsVort
+	type(Panels), intent(in) :: self
+	!
+	integer(kint) :: j
+	MinPanelabsVort = self%absVort(1)
+	do j = 2, self%N
+		if ( .NOT. self%hasChildren(j) ) then
+			if ( self%absVort(j) < MinPanelabsVort ) MinPanelabsVort = self%absVort(j)
+		endif
+	enddo
+end function
 
 subroutine LogPanelStats(self,aLog,message)
 ! outputs data associated with a panels object to a Logger object
@@ -677,18 +756,18 @@ subroutine LogPanelStats(self,aLog,message)
 	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minU)
 	if ( associated(self%absVort)) then
 		key = 'Max absVort <s^(-1)> = '
-		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%absVort(1:self%N)))
+		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,MaxPanelabsVort(self))
 		key = 'Min absVort <s^(-1)> = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%absVort(1:self%N)))
+		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,MinPanelabsVort(self))
 		key = 'absVort integral = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%absVort(1:self%N)*self%area(1:self%N))&
 				/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
 	endif
 	if ( associated(self%relVort)) then
 		key = 'Max relVort <s^(-1)> = '
-		call LogMessage(alog,TRACE_LOGGING_LEVEL,key,maxVal(self%relVort(1:self%N)))
+		call LogMessage(alog,TRACE_LOGGING_LEVEL,key, MaxPanelrelVort(self))
 		key = 'Min relVort <s^(-1)> = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%relVort(1:self%N)))
+		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,MinPanelrelVort(self))
 		key = 'normalized relVort integral = '
 		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%relVort(1:self%N)*self%area(1:self%N))&
 			/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))
@@ -724,9 +803,9 @@ subroutine LogPanelStats(self,aLog,message)
 		nTracer = GetNTracer(self)
 		do k=1,nTracer
 			write(key,'(A,I2,A)') 'Max tracer',k,' = '
-			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%tracer(1:self%N,k)))
+			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,MaxPanelTracer(self,k))
 			write(key,'(A,I2,A)') 'Min tracer',k,' = '
-			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minVal(self%tracer(1:self%N,k)))
+			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,MinPanelTracer(self,k))
 			write(key,'(A,I2,A)') 'normalized tracer',k,' integral = '
 			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,sum(self%tracer(1:self%N,k)*self%area(1:self%N)) &
 				/(4.0_kreal*PI*EARTH_RADIUS*EARTH_RADIUS))

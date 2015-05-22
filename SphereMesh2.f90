@@ -510,7 +510,10 @@ function TotalMass(self,tracerNumber)
 	type(SphereMesh), intent(in) :: self
 	integer(kint), intent(in) :: tracerNumber
 	real(kreal) :: TotalMass
+	!
+	integer(kint) :: j
 	type(Panels), pointer :: aPanels
+
 	aPanels=>self%panels
 
 	! Error checking
@@ -518,7 +521,12 @@ function TotalMass(self,tracerNumber)
 		call LogMessage(log,ERROR_LOGGING_LEVEL,'TotalMass ERROR : ','invalid tracerNumber.')
 		return
 	endif
-	TotalMass = sum(aPanels%tracer(:,tracerNumber)*aPanels%area)
+	TotalMass = 0.0_kreal
+	do j = 1, aPanels%N
+		if ( .NOT. aPanels%hasChildren(j) ) then
+			TotalMass = TotalMass + aPanels%tracer(j,tracerNumber) * aPanels%area(j)
+		endif
+	enddo	
 end function
 
 !---------------------------------------------------------------------------

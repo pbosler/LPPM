@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --nodes=1
-#SBATCH --time=1:30:00
+#SBATCH --time=8:00:00
 #SBATCH --account=fy150039
 #SBATCH --job-name=mv-sphere
 #SBATCH --partition=ec
@@ -14,10 +14,12 @@
 #cd $outputLoc
 
 cd $HOME/LPPM
+for i in `seq 1 7`;
+do
 
 cat <<EOF > MovingVortices2Direct.namelist
 &meshDefine
-	initNest = 7
+	initNest = ${i}
 	AMR = 0
 	panelKind = 3
 	amrLimit = 0
@@ -44,3 +46,5 @@ cat <<EOF > MovingVortices2Direct.namelist
 EOF
 
 mpirun -np 8 ./advectMovingVorticesDirect.exe
+
+done

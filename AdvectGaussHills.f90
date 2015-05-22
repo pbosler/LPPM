@@ -187,8 +187,13 @@ var0 = TracerVariance(sphere,tracerID)
 sphereParticles => sphere%particles
 spherePanels => sphere%panels
 !phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
-phimax0 = maxval(sphereParticles%tracer(1:sphereParticles%N,1))
-phimin0 = minval(sphereParticles%tracer(1:sphereParticles%N,1))
+phimax0 = hmax
+phimin0 = hmax
+do j = 1, sphereParticles%N
+	if ( sphereParticles%tracer(j,1) > phimax0 ) phiMax0 = sphereParticles%tracer(j,1)
+	if ( sphereParticles%tracer(j,1) < phimin0 ) phimin0 = sphereParticles%tracer(j,1)
+enddo
+
 do j = 1, spherePanels%N
 	if ( .NOT. spherePanels%hasChildren(j) ) then
 		if ( spherePanels%tracer(j,1) > phimax0 ) then
@@ -261,6 +266,7 @@ do timeJ = 0, timesteps - 1
 		if ( procRank == 0 ) then 
 			call New(vtkOut, sphere, vtkFile, 'Gaussian hills advection')
 			call New(meshOut, sphere, vtkMeshFile, 'Gaussian hills advection')
+			call LogStats( sphere, exeLog)
 		endif 
 		sphereParticles => sphere%particles
 		spherePanels => sphere%panels
@@ -345,7 +351,7 @@ enddo
 	phimax = (phimax - phimax0)/deltaPhi
 	phimin = (phimin - phimin0)/deltaPhi
 	
-	print *, "inverse N = ", spherePanels%N_Active, ": phi_max = ", phimax,", phi_min = ", phimin 
+	print *, "inverse N = ", spherePanels%N_Active, ": phi_max = ", phimax,", phi_min = ", phimin, ", deltaPhi = ", deltaPhi
 
 	if ( procRank == 0 ) then
 		open( unit = WRITE_UNIT_1, file = datafile, status = 'REPLACE', action = 'WRITE', iostat = readwritestat)

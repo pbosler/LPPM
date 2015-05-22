@@ -184,8 +184,12 @@ sphereParticles => sphere%particles
 spherePanels => sphere%panels
 !phimax0 = max( maxval(sphereParticles%tracer(1:sphereParticles%N,1)), maxval(spherePanels%tracer(1:spherePanels%N,1)) )
 !phimin0 = min( minval(sphereParticles%tracer(1:sphereParticles%N,1)), minval(spherePanels%tracer(1:spherePanels%N,1)) )
-phimax0 = maxval(sphereParticles%tracer(1:sphereParticles%N,1))
-phimin0 = minval(sphereParticles%tracer(1:sphereParticles%N,1))
+phimax0 = hmax
+phimin0 = hmax
+do j = 1, sphereParticles%N
+	if ( sphereParticles%tracer(j,1) > phimax0 ) phiMax0 = sphereParticles%tracer(j,1)
+	if ( sphereParticles%tracer(j,1) < phimin0 ) phimin0 = sphereParticles%tracer(j,1)
+enddo
 do j = 1, spherePanels%N
 	if ( .NOT. spherePanels%hasChildren(j) ) then
 		if ( spherePanels%tracer(j,1) > phimax0 ) phimax0 = spherePanels%tracer(j,1)
@@ -217,9 +221,13 @@ do timeJ = 0, timesteps - 1
 		! create new associated objects for new mesh
 		!
 		call New(timekeeper, sphere, numProcs)
-		if ( procRank == 0 ) call New(vtkOut, sphere, vtkFile, 'Gaussian hills advection')
+		if ( procRank == 0 ) then 
+			call New(vtkOut, sphere, vtkFile, 'Gaussian hills advection')
+			call LogStats( sphere, exeLog)
+		endif
 		sphereParticles => sphere%particles
 		spherePanels => sphere%panels
+		
 	endif ! remesh
 
 	!
