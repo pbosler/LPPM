@@ -4,7 +4,7 @@ module NumberKindsModule
 !------------------------------------------------------------------------------
 !
 !> @author
-!> Peter Bosler, Department of Mathematics, University of Michigan
+!> Peter Bosler, Sandia National Laboratories Center for Computing Research
 !
 !> @defgroup NumberKinds Number kinds module
 !> Defines global numerical constants for use by all LPPM modules and executables.

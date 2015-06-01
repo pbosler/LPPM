@@ -27,7 +27,7 @@ if ( ${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
 elseif ( ${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
   # ifort
   set (CMAKE_Fortran_FLAGS_RELEASE "-O2 -openmp")
-  set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -openmp")
+  set (CMAKE_Fortran_FLAGS_DEBUG   "-O0 -g -openmp -debug all -debug-parameters -warn all -traceback")
 else ( ${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
   message ("CMAKE_Fortran_COMPILER full path: " ${CMAKE_Fortran_COMPILER})
   message ("Fortran compiler: " ${Fortran_COMPILER_NAME})
@@ -41,6 +41,16 @@ add_library( lpmFortran NumberKinds.f90 OutputWriter.f90 Logger.f90 IntegerList.
 						Particles.f90 Field.f90
 						Edges.f90 Faces.f90 PolyMesh2d.f90 )
 
+configure_file(cubedSphereSeed.dat ${CMAKE_BINARY_DIR}/cubedSphereSeed.dat COPYONLY)
+configure_file(icosTriSeed.dat ${CMAKE_BINARY_DIR}/icosTriSeed.dat COPYONLY)
+configure_file(quadRectSeed.dat ${CMAKE_BINARY_DIR}/quadRectSeed.dat COPYONLY)
+configure_file(triHexSeed.dat ${CMAKE_BINARY_DIR}/triHexSeed.dat COPYONLY)
 
+# UNIT TEST EXECUTABLES
+ADD_EXECUTABLE(particlesAndFieldTest.exe ParticlesAndFieldTest.f90 )
+TARGET_LINK_LIBRARIES(particlesAndFieldTest.exe lpmFortran)
+
+ADD_EXECUTABLE(planarMeshTest.exe PlanarMeshTest.f90)
+TARGET_LINK_LIBRARIES(planarMeshTest.exe lpmFortran)
 
 

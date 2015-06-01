@@ -11,14 +11,17 @@ public Field
 public New, Delete
 public InsertScalarToField, InsertVectorToField
 public WriteFieldToVTKPointData, WriteFieldToVTKCellData
+public WriteFieldToMatlab
+public LogStats
+!public SetFieldToScalarFunction, SetFieldToVectorFunction
 
 type Field
 	real(kreal), pointer :: scalar(:) => null()
 	real(kreal), pointer :: xComp(:) => null()
 	real(kreal), pointer :: yComp(:) => null()
 	real(kreal), pointer :: zComp(:) => null()
-	character(MAX_STRING_LENGTH) :: name = " "
-	character(MAX_STRING_LENGTH) :: units = " "
+	character(MAX_STRING_LENGTH) :: name = "null"
+	character(MAX_STRING_LENGTH) :: units = "null"
 	integer(kint) :: N = 0
 	integer(kint) :: N_Max = 0
 	integer(kint) :: nDim = 0
@@ -32,6 +35,36 @@ interface Delete
 	module procedure DeletePrivate
 end interface
 
+interface LogStats
+	module procedure LogStatsPrivate
+end interface
+
+!interface ScalarFieldFunction
+!	function ScalarFunctionOfSpace( xVec )
+!		real(8) :: ScalarFunctionOfSpace
+!		real(8), intent(in) :: xVec(:)
+!	end function
+!	
+!	function ScalarFunctionOfSpaceAndTime( xVec, t)
+!		real(8) :: ScalarFunctionOfSpaceAndTime
+!		real(8), intent(in) :: xVec(:)
+!		real(8), intent(in) :: t
+!	end function 
+!end interface
+!
+!interface VectorFieldFunction
+!	function VectorFunctionOfSpace( xVec )
+!		real(8) :: VectorFunctionOfSpace
+!		real(8), intent(in) :: xVec(:)
+!	end function 
+!	
+!	function VectorFunctionOfSpaceAndTime( xVec, t )
+!		real(8) :: VectorFunctionOfSpaceAndTime
+!		real(8), intent(in) :: xVec(:)
+!		real(8), intent(in) :: t
+!	end function
+!end interface
+
 !
 !----------------
 ! Logging
@@ -39,7 +72,7 @@ end interface
 !
 logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
-character(len=28), save :: logKey = 'Field'
+character(len=28), save :: logKey = 'FieldLog'
 integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
 
 contains
@@ -80,14 +113,10 @@ subroutine NewPrivate(self, nDim, nMax, name, units )
 	
 	if ( present(name) ) then
 		self%name = trim(name)
-	else
-		self%name = " "
 	endif
 	
 	if ( present(units) ) then
 		self%units = trim(units)
-	else
-		self%units = " "
 	endif
 end subroutine
 
@@ -140,7 +169,7 @@ subroutine InitLogger(aLog,rank)
 ! Initialize a logger for this module and processor
 	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
-	write(logKey,'(A,A,I3,A)') trim(logKey),'_',rank,' : '
+	write(logKey,'(A,A,I0.3,A)') trim(logKey),'_',rank,' : '
 	call New(aLog,logLevel)
 	logInit = .TRUE.
 end subroutine
@@ -212,6 +241,94 @@ subroutine WriteFieldToVTKCellData( self, fileunit, aFaces )
 				endif
 			enddo
 	end select
+end subroutine
+
+subroutine LogStatsPrivate(self, aLog )
+	type(Field), intent(in) :: self
+	type(Logger), intent(inout) :: aLog 
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, logkey, "FieldStats:"//trim(self%name) )
+	call StartSection(aLog)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "Field.nDim = ", self%nDim)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "Field.N = ", self%N)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "Field.name = ", self%name)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "Field.units = ", self%units)
+	if (self%nDim == 1 ) then
+		 call LogMessage(alog, TRACE_LOGGING_LEVEL,"max scalar = ", maxval(self%scalar(1:self%N)))
+		 call LogMessage(alog, TRACE_LOGGING_LEVEL,"min scalar = ", minval(self%scalar(1:self%N)))
+	else
+		call LogMessage(alog, TRACE_LOGGING_LEVEL, "max magnitude = ", MaxMagnitude(self) ) 
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "min magnitude = ", MinMagnitude(self) )
+	endif
+	call EndSection(aLog)
+end subroutine
+
+function MaxMagnitude(self)
+	real(kreal) :: MaxMagnitude 
+	type(Field), intent(in) :: self
+	!
+	integer(kint) :: i
+	real(kreal) :: mag
+	MaxMagnitude = -1.0d64
+	if (self%nDim == 2 ) then
+		do i = 1, self%N
+			mag = sqrt( self%xComp(i)*self%xComp(i) + self%yComp(i)*self%yComp(i))
+			if ( mag > MaxMagnitude ) MaxMagnitude = mag
+		enddo
+	else if ( self%nDim == 3 ) then
+		do i = 1, self%N
+			mag = sqrt( self%xComp(i)*self%xComp(i) + self%yComp(i)*self%yComp(i) + self%zComp(i)*self%zComp(i))
+			if ( mag > MaxMagnitude ) MaxMagnitude = mag
+		enddo 	
+	endif
+end function 
+
+function MinMagnitude(self)
+	real(kreal) :: MinMagnitude 
+	type(Field), intent(in) :: self
+	!
+	integer(kint) :: i
+	real(kreal) :: mag
+	MinMagnitude = 1.0d64
+	if (self%nDim == 2 ) then
+		do i = 1, self%N
+			mag = sqrt( self%xComp(i)*self%xComp(i) + self%yComp(i)*self%yComp(i))
+			if ( mag < MinMagnitude ) MinMagnitude = mag
+		enddo
+	else if ( self%nDim == 3 ) then
+		do i = 1, self%N
+			mag = sqrt( self%xComp(i)*self%xComp(i) + self%yComp(i)*self%yComp(i) + self%zComp(i)*self%zComp(i))
+			if ( mag < MinMagnitude ) MinMagnitude = mag
+		enddo 	
+	endif
+end function
+
+subroutine WriteFieldToMatlab( self, fileunit )
+	type(Field), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	!
+	integer(kint) :: i
+	
+	select case ( self%nDim )
+		case (1)
+			write(fileunit,*) "scalarField_", trim(self%name), " = [", self%scalar(1), ", ..."
+			do i = 2, self%N - 1
+				write(fileunit, *) self%scalar(i), ", ..."
+			enddo
+			write(fileunit, *) self%scalar(self%N), "];"
+		case (2)
+			write(fileunit,*) "vectorField_", trim(self%name), " = [", self%xComp(1), ", ", self%yComp(1), "; ..."
+			do i = 2, self%N - 1
+				write(fileunit,*) self%xComp(i), ", ", self%yComp(i), "; ..."
+			enddo
+			write(fileunit,*) self%xComp(self%N), ", ", self%yComp(self%N), "];"
+		case (3)
+			write(fileunit,*) "vectorField_", trim(self%name), " = [", self%xComp(1), ", ",&
+										 self%yComp(1), ", ", self%zComp(1), "; ..."
+			do i = 2, self%N
+				write(fileunit,*) self%xComp(i), ", ", self%yComp(i), ", ", self%zComp(i), "; ..."
+			enddo							 
+			write(fileunit,*) self%xComp(self%N), ", ", self%yComp(self%N), ", ", self%zComp(self%N), "];"
+	end select	
 end subroutine
 
 end module

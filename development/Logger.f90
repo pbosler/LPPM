@@ -155,12 +155,17 @@ end subroutine
 
 subroutine StartSectionLogger(self,sectionName,description)
 	type(Logger), intent(inout) :: self
-	character(len=*), intent(in) :: sectionName
+	character(len=*), intent(in), optional :: sectionName
 	character(len=*), intent(in), optional :: description
-	if ( present(description) ) then
-		call StartSection(self%writer,sectionName,description)
+	
+	if ( present(sectionName) ) then
+		if ( present(description) ) then
+			call StartSection(self%writer,sectionName,description)
+		else
+			call StartSection(self%writer,sectionName)
+		endif
 	else
-		call StartSection(self%writer,sectionName)
+		call StartSection(self%writer)
 	endif
 end subroutine
 

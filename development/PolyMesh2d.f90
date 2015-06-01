@@ -20,17 +20,18 @@ public CCWEdgesAroundFace, CCWVerticesAroundFace, CCWAdjacentFaces
 public CCWFacesAroundVertex
 !public ResetSurfaceArea
 !public VertPhysCoord, VertLagCoord
-!public nParticles, nFaces, nActiveFaces, nEdges
+public LogStats, PrintDebugInfo
+public WriteMeshToMatlab
 
 type PolyMesh2d
 	type(Particles) :: particles
 	type(Edges) :: edges
 	type(Faces) :: faces
-	integer(kint) :: faceKind
-	integer(kint) :: geomKind
-	integer(kint) :: meshSeed
-	integer(kint) :: initNest
-	integer(kint) :: amrLimit
+	integer(kint) :: faceKind = 0
+	integer(kint) :: geomKind = 0
+	integer(kint) :: meshSeed = 0
+	integer(kint) :: initNest = -1
+	integer(kint) :: amrLimit = 0
 end type
 
 interface New
@@ -43,6 +44,14 @@ end interface
 
 interface Copy
 	module procedure copyPrivate
+end interface
+
+interface LogStats
+	module procedure LogStatsPrivate
+end interface
+
+interface PrintDebugInfo
+	module procedure PrintDebugPrivate
 end interface
 
 !
@@ -79,6 +88,10 @@ subroutine newPrivate(self, meshSeed, initNest, maxNest, amrLimit, ampFactor )
 		return
 	endif
 	self%faceKind = FaceKindFromSeed(meshSeed)
+	self%geomKind = GeomKindFromSeed(meshSeed)
+	
+	print *, "DEBUG : nVertices = ", nVerticesInMesh(self, maxNest)
+	print *, "DEBUG : nFaces = ", nFacesInMesh(self, maxNest)
 		
 	nMaxParticles = nVerticesInMesh(self, maxNest) + nFacesInMesh(self, maxNest)
 	nMaxVertices = 0
@@ -89,6 +102,12 @@ subroutine newPrivate(self, meshSeed, initNest, maxNest, amrLimit, ampFactor )
 		nMaxEdges = nMaxEdges + nEdgesInMesh(self, nVerticesInMesh(self,i), nFacesInMesh(self,i) )
 	enddo
 	
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" allocating memory for nParticles = ", nMaxParticles )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" allocating memory for nEdges = ", nMaxEdges )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" allocating memory for nFaces = ", nMaxFaces )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" faceKind = ", self%faceKind )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" geomKind = ", self%geomKind )
+	
 	call New(self%particles, nMaxParticles, self%geomKind )
 	call New(self%edges, nMaxEdges)
 	call New(self%faces, self%faceKind, nMaxFaces )
@@ -96,21 +115,20 @@ subroutine newPrivate(self, meshSeed, initNest, maxNest, amrLimit, ampFactor )
 	call initializeMeshFromSeed(self, ampFactor)
 	
 	startIndex = 1
-	nFacesOld = 1
 	do i = 1, initNest
 		nFacesOld = self%faces%N
 		do j = startIndex, nFacesOld
 			if ( self%faceKind == TRI_PANEL ) then
-				call DivideTriFace(self%faces, i, self%particles, self%edges)
+				call DivideTriFace(self%faces, j, self%particles, self%edges)
 			elseif ( self%faceKind == QUAD_PANEL ) then
-				call DivideQuadFace(self%faces,i, self%particles, self%edges)
+				call DivideQuadFace(self%faces,j, self%particles, self%edges)
 			endif
 		enddo
-		startIndex = nFacesOld
+		startIndex = nFacesOld + 1
 	enddo
 	
 	do i = 1, self%particles%N
-		call SortIncidentEdgesAtParticle( self%particles, i )
+		if ( self%particles%isPassive(i) ) call SortIncidentEdgesAtParticle( self%particles, i )
 	enddo
 end subroutine
 
@@ -299,6 +317,18 @@ function FaceKindFromSeed( seed )
 	end select
 end function
 
+function GeomKindFromSeed( seed )
+	integer(kint) :: GeomKindFromSeed
+	integer(kint), intent(in) :: seed
+	GeomKindFromSeed = 0
+	select case (seed)
+		case (TRI_HEX_SEED, QUAD_RECT_SEED, QUAD_RECT_PERIODIC_SEED, POLAR_DISC_SEED)
+			GeomKindFromSeed = PLANAR_GEOM
+		case (ICOS_TRI_SPHERE_SEED, CUBED_SPHERE_SEED)
+			GeomKindFromSeed = SPHERE_GEOM
+	end select
+end function
+
 recursive function locatePointTreeSearch( self, queryPt, index ) result(faceIndex)
 	integer(kint) :: faceIndex
 	type(PolyMesh2d), intent(in) :: self
@@ -370,27 +400,26 @@ function nVerticesInMesh( self, initNest )
 	type(PolyMesh2d), intent(in) :: self
 	integer(kint), intent(in) :: initNest
 	!
-	integer(kint) :: i, steps
+	integer(kint) :: i, steps, result
 	
-	nVerticesInMesh = 0
-	select case (self%meshSeed)
-		case (TRI_HEX_SEED)
-			steps = 2**initNest
-			do i = 0, steps
-				nVerticesInMesh = nVerticesInMesh + 2**(i + steps)
-			enddo
-			nVerticesInMesh = nVerticesInMesh + 2*steps + 1
-		case (QUAD_RECT_SEED, QUAD_RECT_PERIODIC_SEED)
-			nVerticesInMesh = 3
-			do i = 1, initNest
-				nVerticesInMesh = nVerticesInMesh + 2**i
-			enddo
-			nVerticesInMesh = nVerticesInMesh*nVerticesInMesh
-		case (ICOS_TRI_SPHERE_SEED)
-			nVerticesInMesh = 2 + 10 * 4 ** initNest
-		case (CUBED_SPHERE_SEED)
-			nVerticesInMesh = 2 + 6 * 4 ** initNest
-	end select
+	result = 0
+ 	if ( self%meshSeed == TRI_HEX_SEED ) then
+		do i = 2**initNest + 1, 2**(initNest+1)
+			result = result + i
+		enddo
+		result = 2*result + 2**(initNest+1)+1
+	elseif ( self%meshSeed == QUAD_RECT_SEED .OR. self%meshSeed ==  QUAD_RECT_PERIODIC_SEED) then
+		result = 3
+		do i = 1, initNest
+			result = result + 2**i
+		enddo
+		result = result*result
+	elseif ( self%meshSeed == ICOS_TRI_SPHERE_SEED) then
+			result = 2 + 10 * 4 ** initNest
+	elseif ( self%meshSeed == CUBED_SPHERE_SEED) then
+			result = 2 + 6 * 4 ** initNest
+	endif
+	nVerticesInMesh = result
 end function
 
 function nFacesInMesh( self, initNest )
@@ -429,8 +458,8 @@ subroutine initializeMeshFromSeed( self, ampFactor )
 	type(PolyMesh2d), intent(inout) :: self
 	real(kreal), intent(in) :: ampFactor
 	!
-	character(len=56) :: seedFilename, tempString
-	integer(kint) :: i, readStat
+	character(len=56) :: seedFilename
+	integer(kint) :: i
 	integer(kint) :: nSeedParticles, nSeedEdges, nSeedFaces, nSeedVerts
 	real(kreal), allocatable :: seedXYZ(:,:)
 	integer(kint), allocatable :: seedEdgeOrigs(:), seedEdgeDests(:), seedEdgeLefts(:), seedEdgeRights(:)
@@ -442,21 +471,25 @@ subroutine initializeMeshFromSeed( self, ampFactor )
 			nSeedEdges = 12
 			nSeedFaces = 6
 			nSeedVerts = 7
-			self%faceKind = TRI_PANEL
-			self%geomKind = PLANAR_GEOM
+!			self%faceKind = TRI_PANEL
+!			self%geomKind = PLANAR_GEOM
 			seedFilename = "triHexSeed.dat"
 		case (QUAD_RECT_SEED)
 			nSeedParticles = 13
 			nSeedEdges = 12
 			nSeedFaces = 4
 			nSeedVerts = 9
-			self%faceKind = QUAD_PANEL
-			self%geomKind = PLANAR_GEOM
+!			self%faceKind = QUAD_PANEL
+!			self%geomKind = PLANAR_GEOM
 			seedFilename = "quadRectSeed.dat"
 		case (POLAR_DISC_SEED)
 			call LogMessage(log, ERROR_LOGGING_LEVEL,logkey," initMeshFromSeed ERROR : seed not implemented.")
 			return
 		case (QUAD_RECT_PERIODIC_SEED)
+			nSeedParticles = 13
+			nSeedEdges = 12
+			nSeedFaces = 4
+			nSeedVerts = 9
 			call LogMessage(log, ERROR_LOGGING_LEVEL,logkey," initMeshFromSeed ERROR : seed not implemented.")
 			return
 		case (ICOS_TRI_SPHERE_SEED)
@@ -464,16 +497,16 @@ subroutine initializeMeshFromSeed( self, ampFactor )
 			nSeedEdges = 30
 			nSeedFaces = 20
 			nSeedVerts = 12
-			self%faceKind = TRI_PANEL
-			self%geomKind = SPHERE_GEOM
+!			self%faceKind = TRI_PANEL
+!			self%geomKind = SPHERE_GEOM
 			seedFilename = "icosTriSeed.dat"
 		case (CUBED_SPHERE_SEED)
 			nSeedParticles = 14
 			nSeedEdges = 12
 			nSeedFaces = 6
 			nSeedVerts = 8
-			self%faceKind = QUAD_PANEL
-			self%geomKind = SPHERE_GEOM
+!			self%faceKind = QUAD_PANEL
+!			self%geomKind = SPHERE_GEOM
 			seedFilename = "cubedSphereSeed.dat"
 	end select
 	
@@ -513,9 +546,6 @@ subroutine initializeMeshFromSeed( self, ampFactor )
 	if ( self%particles%N /= nSeedParticles ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey//" initMeshFromSeed ERROR : "," particles%N.")
 	endif
-	do i = 1, nSeedVerts
-		self%particles%nEdges(i) = seedVertexDegree(i)
-	enddo
 	do i = 1, nSeedEdges
 		call InsertEdge( self%Edges, self%particles, seedEdgeOrigs(i), seedEdgeDests(i), seedEdgeLefts(i), seedEdgeRights(i))
 	enddo
@@ -524,6 +554,7 @@ subroutine initializeMeshFromSeed( self, ampFactor )
 	endif
 	do i = 1, nSeedFaces
 		call InsertFace( self%Faces, nSeedVerts + i, seedFaceVerts(:,i), seedFaceEdges(:,i))
+		call MakeParticleActive( self%particles, nSeedVerts +i)
 	enddo
 	if ( self%faces%N /= nSeedFaces ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey//" initMeshFromSeed ERROR : "," faces%N.")
@@ -546,7 +577,7 @@ subroutine initializeMeshFromSeed( self, ampFactor )
 	do i = 1, nSeedVerts
 		if ( self%particles%nEdges(i) /= seedVertexDegree(i) ) then
 			write(logstring,*) " dual connectivity error at vertex ", i
-			call LogMessage(log, WARNING_LOGGING_LEVEL,logkey//" NewMesh WARNING: ",logstring)
+			call LogMessage(log, WARNING_LOGGING_LEVEL,logkey//" initFromSeed WARNING: ",logstring)
 		endif
 		call SortIncidentEdgesAtParticle( self%particles, i )
 	enddo
@@ -649,13 +680,77 @@ subroutine readSeedFile( self, seedFilename, nParticles, nEdges, nFaces, seedXYZ
 	close(READ_UNIT)
 end subroutine
 
+subroutine WriteMeshToMatlab( self, fileunit )
+	type(PolyMesh2d), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	
+	call WriteParticlesToMatlab(self%particles, fileunit)
+	call WriteEdgesToMatlab(self%edges, fileunit)
+	call WriteFacesToMatlab(self%faces, fileunit)
+end subroutine
 
+subroutine LogStatsPrivate(self, aLog)
+	type(PolyMesh2d), intent(in) :: self
+	type(Logger), intent(inout) :: aLog
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, logKey, "PolyMesh Stats:" )
+	call StartSection(aLog)
+	call MeshSeedString(logString, self%meshSeed)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "meshSeed = ", trim(logString))
+	if ( self%geomKind == PLANAR_GEOM ) then
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "geomKind = ", "PLANAR_GEOM")
+	elseif ( self%geomKind == SPHERE_GEOM ) then
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "geomKind = ", "SPHERE_GEOM")
+	elseif ( self%geomKind == EUCLIDEAN_3D ) then
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "geomKind = ", "EUCLIDEAN_3D")
+	else
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "geomKind = ", "invalid geomKind.")
+	endif
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "initNest = ", self%initNest)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "amrLimit = ", self%amrLimit)
+	call LogStats(self%particles, aLog)
+	call LogStats(self%edges, aLog)
+	call LogStats(self%faces, aLog)
+	call EndSection(aLog)
+end subroutine
+
+subroutine PrintDebugPrivate( self ) 
+	type(PolyMesh2d), intent(in) :: self
+	print *, "PolyMesh2d DEBUG info : "
+	print *, "meshSeed = ", self%meshSeed
+	print *, "geomKind = ", self%geomKind
+	print *, "initNest = ", self%initNest
+	print *, "amrLimit = ", self%amrLimit
+	call PrintDebugInfo( self%particles )
+	call PrintDebugInfo( self%edges )
+	call PrintDebugInfo( self%faces )
+end subroutine
+
+subroutine MeshSeedString( seedString, msInt )
+	character(len=*), intent(inout) :: seedString
+	integer(kint), intent(in) :: msInt
+	select case (msInt)
+		case (TRI_HEX_SEED )
+			write(seedString,*) "TRI_HEX_SEED"
+		case (QUAD_RECT_SEED)
+			write(seedString,*) "QUAD_RECT_SEED"
+		case (QUAD_RECT_PERIODIC_SEED)
+			write(seedString,*) "QUAD_RECT_PERIODIC_SEED"
+		case (POLAR_DISC_SEED)
+			write(seedString,*) "POLAR_DISC_SEED"
+		case (ICOS_TRI_SPHERE_SEED)
+			write(seedString,*) "ICOS_TRI_SPHERE_SEED"
+		case (CUBED_SPHERE_SEED)
+			write(seedString,*) "CUBED_SPHERE_SEED"
+		case default
+			write(seedString,*) "invalid seed"
+	end select
+end subroutine
 
 subroutine InitLogger(aLog,rank)
 ! Initialize a logger for this module and processor
 	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
-	write(logKey,'(A,A,I3,A)') trim(logKey),'_',rank,' : '
+	write(logKey,'(A,A,I0.3,A)') trim(logKey),'_',rank,' : '
 	call New(aLog,logLevel)
 	logInit = .TRUE.
 end subroutine

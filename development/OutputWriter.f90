@@ -55,6 +55,7 @@ end interface
 
 interface StartSection
 	module procedure StartSectionWriter
+	module procedure StartBlankSectionWriter
 end interface
 
 interface EndSection
@@ -157,6 +158,10 @@ subroutine WriteReal(self,key,val)
 	write(self%fileUnit,form) trim(key), val
 end subroutine
 
+subroutine StartBlankSectionWriter(self)
+	type(OutputWriter), intent(inout) :: self
+	self%indentLevel = self%indentLevel + 1
+end subroutine
 
 subroutine StartSectionWriter(self,sectionName,description)
 	type(OutputWriter), intent(inout) :: self

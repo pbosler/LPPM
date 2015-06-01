@@ -20,6 +20,8 @@ public onBoundary
 public ReplaceIncidentEdgeWithChild
 public GetLeafEdgesFromParent, AreaFromLeafEdges
 public EdgeLength
+public LogStats, PrintDebugInfo
+public WriteEdgesToMatlab
 
 type Edges
 	integer(kint), pointer :: orig(:) => null()
@@ -46,6 +48,14 @@ interface Copy
 	module procedure copyPrivate
 end interface
 
+interface LogStats
+	module procedure LogStatsPrivate
+end interface
+
+interface PrintDebugInfo
+	module procedure PrintDebugPrivate
+end interface
+
 !
 !----------------
 ! Logging
@@ -57,6 +67,60 @@ character(len=28), save :: logKey = 'Edges'
 integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
 
 contains
+
+subroutine WriteEdgesToMatlab( self, fileunit )
+	type(Edges), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	!
+	integer(kint) :: i
+	write(fileunit,*) "edgeVerts = [ ", self%orig(1), ", ", self%dest(1), "; ..."
+	do i = 2, self%N-1
+		write(fileunit, * ) self%orig(i), ", ", self%dest(i), "; ..."
+	enddo
+	write(fileunit, *) self%orig(self%N), ", ", self%dest(self%N), "]; "
+	write(fileunit,'(A)',advance='NO') "edgeHasChildren = ["
+	do i = 1, self%N - 1
+		if ( self%hasChildren(i) ) then
+			write(fileunit,*) 1, ", ..."
+		else
+			write(fileunit,*) 0, ", ..."
+		endif
+	enddo
+	if ( self%hasChildren(self%N)) then
+		write(fileunit,'(I4)', advance='NO') 1
+	else
+		write(fileunit,'(I4)', advance='NO') 0
+	endif
+	write(fileunit,'(A)') "];"
+end subroutine
+
+subroutine PrintDebugPrivate( self ) 
+	type(Edges), intent(in) :: self
+	integer(kint) :: i
+	print *, "Edges DEBUG info : "
+	print *, "edges.N = ", self%N
+	print *, "edges.N_Max = ", self%N_Max
+	print *, "edge records : "
+	do i = 1, self%N_Max
+		print *, self%orig(i), self%dest(i), self%leftFace(i), self%rightFace(i)
+	enddo
+	print *, "edge tree : "
+	do i = 1, self%N_Max
+		print *, self%hasChildren(i), self%child1(i), self%child2(i), self%parent(i)
+	enddo
+end subroutine
+
+subroutine LogStatsPrivate( self, aLog )
+	type(Edges), intent(in) :: self
+	type(Logger), intent(inout) :: aLog
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, logkey, " Edges Stats : ")
+	call StartSection(aLog)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "edges.N = ", self%N )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "edges.N_Max = ", self%N_Max)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "n divided edges = ", count(self%hasChildren) )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "n leaf edges = ", self%N - count(self%hasChildren))
+	call EndSection(aLog)
+end subroutine
 
 subroutine NewPrivate(self, nMax )
 	type(Edges), intent(out) :: self
@@ -492,7 +556,7 @@ subroutine InitLogger(aLog,rank)
 ! Initialize a logger for this module and processor
 	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
-	write(logKey,'(A,A,I3,A)') trim(logKey),'_',rank,' : '
+	write(logKey,'(A,A,I0.3,A)') trim(logKey),'_',rank,' : '
 	call New(aLog,logLevel)
 	logInit = .TRUE.
 end subroutine

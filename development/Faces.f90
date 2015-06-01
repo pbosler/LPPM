@@ -14,10 +14,11 @@ private
 public Faces
 public New, Delete, Copy
 public FaceArea, FaceCenterPhysCoord, FaceCenterLagCoord
-public DivideQuadFace, DivideTriFace
-public WriteFacesToVTKPolygons
+public DivideQuadFace, DivideTriFace, InsertFace
+public WriteFacesToVTKPolygons, WriteFacesToMatlab
 public positiveEdge
 public FaceCentroid, TriFaceArea, QuadFaceArea
+public LogStats, PrintDebugInfo
 
 type Faces
 	integer(kint), pointer :: centerParticle(:) => null()
@@ -45,6 +46,14 @@ interface Copy
 	module procedure copyPrivate
 end interface
 
+interface LogStats
+	module procedure LogStatsPrivate
+end interface
+
+interface PrintDebugInfo
+	module procedure PrintDebugPrivate
+end interface
+
 !
 !----------------
 ! Logging
@@ -57,6 +66,74 @@ integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
 character(len=MAX_STRING_LENGTH) :: logstring
 
 contains
+
+subroutine PrintDebugPrivate( self )
+	type(Faces), intent(in) :: self
+	integer(kint) :: i, j
+	print *, " Faces DEBUG info : " 
+	print *, "faces.N  = ", self%N
+	print *, "faces.N_Max = ", self%N_Max
+	print *, "faces.N_Active = ", self%N_Active
+	print *, "faces.faceKind = ", self%faceKind
+	print *, "n divided faces = ", count(self%hasChildren)
+	print *, "faces.centerParticle = "
+	do i = 1, self%N_Max
+		print *, self%centerParticle(i)
+	enddo
+	print *, " faces.vertices = "
+	do i = 1, self%N_Max
+		do j = 1, size(self%vertices,1)
+			write(6,'(I6)',advance='NO') self%vertices(j,i)
+		enddo
+		print *, " "
+	enddo
+	print *, " "
+	print *, "faces.edges = "
+	do i = 1, self%N_Max
+		do j = 1, size(self%edges,1)
+			write(6,'(I6)',advance='NO') self%edges(j,i)
+		enddo
+		print *, " "
+	enddo
+	print *, " "
+	print *, "faces tree = "
+	do i = 1, self%N_Max
+		if ( self%hasChildren(i) ) then
+			write(6,'(A,4X)',advance ='NO') 'T'
+		else
+			write(6,'(A,4X)',advance='NO' ) 'F'
+		endif
+		do j = 1, 4
+			write(6, '(I6)', advance='NO') self%children(j,i)
+		enddo
+		print *, self%parent(i) 
+	enddo	
+	print *, " "
+	print *, "faces.area = "
+	do i = 1, self%N_Max
+		print *, self%area(i)
+	enddo
+end subroutine
+
+subroutine LogStatsPrivate(self, aLog)
+	type(Faces), intent(in) :: self
+	type(Logger), intent(inout) :: aLog 
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, logkey, " Faces stats : ")
+	call StartSection(aLog)
+	call LogMessage(alog, TRACE_LOGGING_LEVEL, "faces.N = ", self%N)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "faces.N_Max = ", self%N_Max )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "faces.N_Active = ", self%N_Active)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "n divided faces = ", count(self%hasChildren))
+	if ( self%faceKind == TRI_PANEL ) then
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "faceKind = ", "TRI_PANEL")
+	elseif ( self%faceKind == QUAD_PANEL ) then
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "faceKind = ", "QUAD_PANEL")
+	else
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "faceKind = ", "invalid faceKind.")
+	endif
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "sum(faces.area) = ", sum(self%area(1:self%N)))
+	call EndSection(aLog)
+end subroutine
 
 subroutine newPrivate( self, faceKind, nMax )
 	type(Faces), intent(out) :: self
@@ -189,6 +266,84 @@ subroutine WriteFacesToVTKPolygons( self, fileunit )
 	enddo
 end subroutine
 
+subroutine WriteFacesToMatlab( self, fileunit )
+	type(Faces), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	!
+	integer(kint) :: i, j, nVerts
+	
+	if ( self%faceKind == TRI_PANEL ) then
+		nVerts = 3
+	elseif ( self%faceKind == QUAD_PANEL ) then
+		nVerts = 4
+	else
+		nVerts = 0
+	endif
+	
+	write(fileunit, '(A)', advance='NO') "faceVerts = ["
+	do j = 1, nVerts - 1
+		write(fileunit,'(I8,A)', advance = 'NO') self%vertices(j,1), ", "
+	enddo
+	write(fileunit,'(I8,A)') self%vertices(nVerts,1), "; ..."
+	do i = 2, self%N-1
+		do j = 1, nVerts - 1
+			write(fileunit,'(I8,A)',advance = 'NO') self%vertices(j,i), ", "
+		enddo
+		write(fileunit,'(I8,A)' ) self%vertices(nVerts,i), "; ..."
+	enddo
+	do j = 1, nVerts - 1
+		write(fileunit,'(I8,A)',advance='NO') self%vertices(j, self%N), ", "
+	enddo
+	write(fileunit,'(I8,A)' ) self%vertices(nVerts,self%N), "]; "
+
+	write(fileunit, '(A)', advance='NO') "faceEdges = ["
+	do j = 1, nVerts - 1
+		write(fileunit,'(I8,A)', advance = 'NO') self%edges(j,1), ", "
+	enddo
+	write(fileunit,'(I8,A)') self%edges(nVerts,1), "; ..."
+	do i = 2, self%N-1
+		do j = 1, nVerts - 1
+			write(fileunit,'(I8,A)',advance = 'NO') self%edges(j,i), ", "
+		enddo
+		write(fileunit,'(I8,A)' ) self%edges(nVerts,i), "; ..."
+	enddo
+	do j = 1, nVerts - 1
+		write(fileunit,'(I8,A)',advance='NO') self%edges(j, self%N), ", "
+	enddo
+	write(fileunit,'(I8,A)' ) self%edges(nVerts,self%N), "]; "
+	
+	write(fileunit,'(A)',advance='NO') "faceHasChildren = ["
+	if ( self%hasChildren(1) ) then
+		write(fileunit,*) 1, ", ..."
+	else
+		write(fileunit,*) 0, ", ..."
+	endif
+	do i = 2, self%N-1
+		if ( self%hasChildren(i) ) then
+			write(fileunit,*) 1, ", ..."
+		else
+			write(fileunit,*) 0, ", ..."
+		endif
+	enddo
+	if ( self%hasChildren(self%N) ) then
+		write(fileunit,'(I4)',advance='NO') 1
+	else
+		write(fileunit,'(I4)',advance='NO') 0
+	endif
+	write(fileunit,'(A)') "];"
+	
+	write(fileunit,*) "faceArea = [", self%area(1), ", ..."
+	do i = 2, self%N-1
+		write(fileunit,*) self%area(i), ", ..."
+	enddo
+	write(fileunit,*) self%area(self%N), "]; "
+	
+	write(fileunit,*) "faceCenterParticle = [", self%centerParticle(1), ", ..."
+	do i = 2, self%N-1
+		write(fileunit,*) self%centerParticle(i), ", ..."
+	enddo
+	write(fileunit,*) self%centerParticle(self%N), "]; "
+end subroutine
 
 
 subroutine DivideQuadFace( self, faceIndex, aParticles, anEdges )
@@ -197,8 +352,8 @@ subroutine DivideQuadFace( self, faceIndex, aParticles, anEdges )
 	type(Particles), intent(inout) :: aParticles
 	type(Edges), intent(inout) :: anEdges
 	!
-	integer(kint) :: i, j, k, newFaceVerts(4,4), newFaceEdges(4,4)
-	integer(kint) :: parentEdge, childEdge1, childEdge2
+	integer(kint) :: i, j, newFaceVerts(4,4), newFaceEdges(4,4)
+	integer(kint) :: parentEdge, childEdge1, childEdge2, nParticles
 	real(kreal) :: quadCoords(3,4), lagQuadCoords(3,4), newFaceCenters(3,4), newFaceLagCenters(3,4)
 	
 	if ( self%faceKind /= QUAD_PANEL ) then
@@ -257,12 +412,11 @@ subroutine DivideQuadFace( self, faceIndex, aParticles, anEdges )
 		endif
 		
 		newFaceVerts( mod(i,4) + 1, i ) = anEdges%dest(childEdge1)
-		newFaceVerts( mod(i+2,4) + 1, i ) = anEdges%dest(childEdge1)
+		newFaceVerts( i, mod(i,4) + 1 ) = anEdges%dest(childEdge1)
 	enddo
 	!
 	! change parent center particle to vertex of new child panels
 	!
-	aParticles%area( self%centerParticle(faceIndex) ) = 0.0_kreal
 	do i = 1, 4
 		newFaceVerts( mod(i+1,4) + 1, i) = self%centerParticle(faceIndex)
 	enddo
@@ -286,15 +440,15 @@ subroutine DivideQuadFace( self, faceIndex, aParticles, anEdges )
 	newFaceEdges(2,1) = anEdges%N
 	newFaceEdges(4,2) = anEdges%N
 	
-	call InsertEdge( anEdges, aParticles, newFaceVerts(2,4), newFaceVerts(3,4), self%N+4, self%N+3)
+	call InsertEdge( anEdges, aParticles, newFaceVerts(1,3), newFaceVerts(4,3), self%N+4, self%N+3)
 	newFaceEdges(4,3) = anEdges%N
 	newFaceEdges(2,4) = anEdges%N
 	
-	call InsertEdge( anEdges, aParticles, newFaceVerts(2,3), newFaceVerts(1,3), self%N+2, self%N+3)
+	call InsertEdge( anEdges, aParticles, newFaceVerts(3,2), newFaceVerts(4,2), self%N+2, self%N+3)
 	newFaceEdges(3,2) = anEdges%N
 	newFaceEdges(1,3) = anEdges%N
 	
-	call InsertEdge( anEdges, aParticles, newFaceVerts(3,1), newFaceVerts(4,1), self%N+1, self%N+4)
+	call InsertEdge( anEdges, aParticles, newFaceVerts(2,4), newFaceVerts(1,4), self%N+1, self%N+4)
 	newFaceEdges(1,4) = anEdges%N
 	newFaceEdges(3,1) = anEdges%N
 	
@@ -339,6 +493,7 @@ subroutine DivideQuadFace( self, faceIndex, aParticles, anEdges )
 	!
 	do i = 1, 4
 		call InsertParticle( aParticles, newFaceCenters(:,i), newFaceLagCenters(:,i))
+		call MakeParticleActive(aParticles, aParticles%N)
 		self%centerParticle(self%N+i) = aParticles%N
 		self%vertices(:,self%N+i) = newFaceVerts(:,i)
 		self%edges(:,self%N+i) = newFaceEdges(:,i)
@@ -347,6 +502,7 @@ subroutine DivideQuadFace( self, faceIndex, aParticles, anEdges )
 		aParticles%area(self%centerParticle(self%N+i)) = QuadFaceArea(self, self%N+i, aParticles)
 		self%area(self%N+i) = aParticles%area(self%centerParticle(self%N+i))
 	enddo
+	call MakeParticlePassive(aParticles, self%centerParticle(faceIndex) )
 	aParticles%area(self%centerParticle(faceIndex)) = 0.0_kreal
 	self%area(faceIndex) = 0.0_kreal
 	self%hasChildren(faceIndex) = .TRUE.
@@ -360,8 +516,8 @@ subroutine DivideTriFace( self, faceIndex, aParticles, anEdges )
 	type(Particles), intent(inout) :: aParticles
 	type(Edges), intent(inout) :: anEdges
 	!
-	integer(kint) :: i, j, k, newFaceVerts(3,4), newFaceEdges(3,4)
-	integer(kint) :: parentEdge, childEdge1, childEdge2
+	integer(kint) :: i, j, newFaceVerts(3,4), newFaceEdges(3,4)
+	integer(kint) :: parentEdge, childEdge1, childEdge2, nParticles
 	real(kreal) :: triCoords(3,3), lagTriCoords(3,3), newFaceCenters(3,4), newFaceLagCenters(3,4)
 	
 	if ( self%faceKind /= TRI_PANEL ) then
@@ -490,34 +646,41 @@ subroutine DivideTriFace( self, faceIndex, aParticles, anEdges )
 	!
 	! create child faces
 	!
-	do i = 1, 4
+	do i = 1, 3
 		call InsertParticle( aParticles, newFaceCenters(:,i), newFaceLagCenters(:,i))
+		call MakeParticleActive( aParticles, aParticles%N)
 		self%centerParticle( self%N + i) = aParticles%N
 		self%vertices(:,self%N+i) = newFaceVerts(:,i)
 		self%edges(:,self%N+i) = newFaceEdges(:,i)
 		self%children(i,faceIndex) = self%N+i
 		self%parent(self%N+i) = faceIndex
 		aParticles%area(self%centerParticle(self%N+i)) = TriFaceArea(self, self%N+i, aParticles)
+		self%area(self%N+i) = aParticles%area(self%centerParticle(self%N+i))
 	enddo
+	!	child 4 is special case : reuse parent face center particle
+	self%centerParticle( self%N + 4 ) = self%centerParticle(faceIndex)
+	self%vertices(:,self%N+4) = newFaceVerts(:,4)
+	self%edges(:,self%N + 4) = newFaceEdges(:,4)
+	self%children(4,faceIndex) = self%N + 4
+	self%parent(self%N+4) = faceIndex
+	aParticles%area(self%centerParticle(self%N+4)) = TriFaceArea(self, self%N+4, aParticles)
+	self%area(self%N+4) = aParticles%area(self%centerParticle(self%N+4))
 	
 	self%area(faceIndex) = 0.0_kreal
-	aParticles%area(self%centerParticle(faceIndex)) = 0.0_kreal
-		
 	self%hasChildren(faceIndex) = .TRUE.
 	self%N = self%N + 4
 	self%N_Active = self%N_Active + 3	
 end subroutine
 
-function FaceArea( self, index, aParticles, anEdges, amrLimit )
+function FaceArea( self, index, aParticles, anEdges )
 	real(kreal) :: FaceArea
 	type(Faces), intent(in) :: self
 	integer(kint), intent(in) :: index
 	type(Particles), intent(in) :: aParticles
 	type(Edges), intent(in) :: anEdges
-	integer(kint), intent(in) :: amrLimit
 	!
 	type(STDIntVector) :: leafEdges
-	integer(kint) :: i, nEdges, nLeaves
+	integer(kint) :: i, nEdges
 	
 	nEdges = self%faceKind
 	FaceArea = 0.0_kreal
@@ -619,7 +782,7 @@ subroutine InitLogger(aLog,rank)
 ! Initialize a logger for this module and processor
 	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
-	write(logKey,'(A,A,I3,A)') trim(logKey),'_',rank,' : '
+	write(logKey,'(A,A,I0.3,A)') trim(logKey),'_',rank,' : '
 	call New(aLog,logLevel)
 	logInit = .TRUE.
 end subroutine
