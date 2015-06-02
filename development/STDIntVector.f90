@@ -32,9 +32,14 @@ end interface
 
 contains
 
-subroutine defaultInit(self)
+subroutine defaultInit(self, minSize)
 	class(STDIntVector), intent(out) :: self
-	allocate(self%integers(DEFAULT_VEC_SIZE))
+	integer(kint), intent(in), optional :: minSize
+	if ( present(minSize) .AND. minSize > DEFAULT_VEC_SIZE ) then
+		allocate(self%integers(minSize))
+	else
+		allocate(self%integers(DEFAULT_VEC_SIZE))
+	endif
 	self%integers = 0
 	self%N = 0
 end subroutine
@@ -70,7 +75,7 @@ end subroutine
 
 subroutine finalizeVector( vec )
 	type(STDIntVector), intent(inout) :: vec
-	deallocate(vec%integers)
+	if ( associated(vec%integers)) deallocate(vec%integers)
 end subroutine
 
 function empty( self ) result(tf)

@@ -53,4 +53,6 @@ TARGET_LINK_LIBRARIES(particlesAndFieldTest.exe lpmFortran)
 ADD_EXECUTABLE(planarMeshTest.exe PlanarMeshTest.f90)
 TARGET_LINK_LIBRARIES(planarMeshTest.exe lpmFortran)
 
+ADD_EXECUTABLE(stdIntVectorTest.exe STDIntVectorTest.f90)
+TARGET_LINK_LIBRARIES(stdIntVectorTest.exe lpmFortran)
 

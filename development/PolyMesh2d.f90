@@ -15,11 +15,9 @@ private
 public PolyMesh2d
 public New, Delete, Copy
 public locateFaceContainingPoint
-!public pointIsOutsideMesh
+public pointIsOutsideMesh
 public CCWEdgesAroundFace, CCWVerticesAroundFace, CCWAdjacentFaces
 public CCWFacesAroundVertex
-!public ResetSurfaceArea
-!public VertPhysCoord, VertLagCoord
 public LogStats, PrintDebugInfo
 public WriteMeshToMatlab
 
@@ -164,9 +162,14 @@ function LocateFaceContainingPoint(self, queryPt)
 	!
 	integer(kint) :: treeStart
 	integer(kint) :: walkStart
+!	call LogMessage(log, DEBUG_LOGGING_LEVEL, trim(logkey)//" LocateFaceContainingPoint:", " entering.")
+	LocateFaceContainingPoint = 0
 	treeStart = nearestRootFace(self, queryPt)
 	walkStart = locatePointTreeSearch(self, queryPt, treeStart)
 	locateFaceContainingPoint = locatePointWalkSearch(self, queryPt, walkStart)
+	if ( LocateFaceContainingPoint == 0 .OR. LocateFaceContainingPoint > self%faces%N ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, trim(logkey)//"LocateFaceContainingPoint ERROR : ", "bad output.")
+	endif
 end function
 
 subroutine CCWEdgesAroundFace( self, leafEdges, faceIndex )
@@ -176,6 +179,8 @@ subroutine CCWEdgesAroundFace( self, leafEdges, faceIndex )
 	!
 	integer(kint) :: i, j, nParentEdges
 	type(STDIntVector) :: edgeLeaves(4)
+	
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" CCWEdgesAroundFace : ", "entering.")
 	
 	if ( self%faceKind == TRI_PANEL ) then
 		nParentEdges = 3
@@ -190,7 +195,7 @@ subroutine CCWEdgesAroundFace( self, leafEdges, faceIndex )
 	call initialize(leafEdges)
 	do i = 1, nParentEdges
 		do j = 1, edgeLeaves(i)%N
-			call leafEdges%pushBack(edgeLeaves(i)%integers(j))
+			call leafEdges%pushBack(edgeLeaves(i)%int(j))
 		enddo
 	enddo
 end subroutine
@@ -202,6 +207,8 @@ subroutine CCWVerticesAroundFace( self, verts, faceIndex )
 	!
 	type(STDIntVector) :: leafEdges
 	integer(kint) :: i
+	
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" CCWVerticesAroundFace : ", "entering.")
 	
 	call CCWEdgesAroundFace(self, leafEdges, faceIndex)
 	call initialize(verts)
@@ -220,6 +227,52 @@ subroutine CCWVerticesAroundFace( self, verts, faceIndex )
 	enddo	
 end subroutine
 
+function pointIsOutsideMesh(self, xVec )
+	logical(klog) :: pointIsOutsideMesh
+	type(PolyMesh2d), intent(in) :: self
+	real(kreal), intent(in) :: xVec(:)
+	!
+	integer(kint) :: faceIndex
+	type(STDIntVector) :: faceEdges
+	type(STDIntVector) :: boundaryEdges
+	integer(kint) :: i
+	real(kreal) :: centroid(3), v1(3), v2(3), p(3), q(3), reflection(3)
+	real(kreal) :: interiorDist, exteriorDist
+	
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" pointIsOutsideMesh : ", "entering.")
+	
+	pointIsOutsideMesh = .FALSE.
+	faceIndex = locateFaceContainingPoint(self, xVec)
+
+	call CCWEdgesAroundFace(self, faceEdges, faceIndex)
+	call initialize(boundaryEdges)
+	do i = 1, faceEdges%N
+		if ( onBoundary(self%edges, faceEdges%int(i) ) ) then
+			call boundaryEdges%pushback(faceEdges%int(i)) 
+		endif
+	enddo
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,"pointIsOutsideMesh: n boundary edges = ", boundaryEdges%N)
+	v1 = 0.0_kreal
+	v2 = 0.0_kreal
+	if ( boundaryEdges%N > 0 ) then
+		centroid = FaceCentroid(self%faces, faceIndex, self%particles)
+		interiorDist = sqrt(sum( (centroid-xVec)*(centroid-xVec)))
+		do i = 1, boundaryEdges%N
+			v1 = PhysCoord(self%particles, self%edges%orig( boundaryEdges%int(i) ))
+			v2 = PhysCoord(self%particles, self%edges%dest( boundaryEdges%int(i) ))
+			q = v2 - v1
+			q = q/sqrt(sum(q*q))
+			p = centroid - v1
+			reflection = centroid - 2.0_kreal * (p - sum(p*q)*q)
+			exteriorDist = sqrt(sum( (reflection-xVec)*(reflection-xVec)))
+			if ( exteriorDist < interiorDist ) & 
+				pointIsOutsideMesh = .TRUE.
+				
+!			print *, "centroid = ", centroid, ", reflection = ", reflection
+		enddo		
+	endif
+end function
+
 subroutine CCWAdjacentFaces( self, adjFaces, faceIndex )
 	type(PolyMesh2d), intent(in) :: self
 	type(STDIntVector), intent(out) :: adjFaces
@@ -227,6 +280,8 @@ subroutine CCWAdjacentFaces( self, adjFaces, faceIndex )
 	!
 	type(STDIntVector) :: leafEdges
 	integer(kint) :: i
+	
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" CCWAdjacentFaces : ", "entering.")
 	
 	call CCWEdgesAroundFace(self, leafEdges, faceIndex )
 	
@@ -247,6 +302,9 @@ subroutine CCWFacesAroundVertex( self, adjFaces, vertexIndex )
 	integer(kint), intent(in) :: vertexIndex
 	!
 	integer(kint) :: i
+	type(STDIntVector) :: incEdges
+	
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" CCWFacesAroundVertex : ", "entering.")
 	
 	if ( self%particles%area(vertexIndex) > 0.0_kreal ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey//" CCWFacesAroundVertex ERROR : ", " vertices should have 0 area.")
@@ -254,8 +312,16 @@ subroutine CCWFacesAroundVertex( self, adjFaces, vertexIndex )
 	endif
 	
 	call initialize(adjFaces)
-	do i = 1, self%particles%nEdges(vertexIndex)
-		call adjFaces%pushBack( self%particles%incidentEdges(i, vertexIndex) )
+	call initialize(incEdges,self%particles%incidentEdges(1:self%particles%nEdges(vertexIndex), vertexIndex))
+	do i = 1, incEdges%N
+		if ( self%edges%orig(incEdges%int(i)) == vertexIndex ) then
+			call adjFaces%pushBack( self%edges%leftFace( incEdges%int(i)))	
+		elseif ( self%edges%dest(incEdges%int(i)) == vertexIndex) then
+			call adjFaces%pushBack( self%edges%rightFace(incEdges%int(i)))
+		else
+			write(logstring,'(A,I8,A)') " connectivity ERROR at vertex ", vertexIndex, ": has incident edge that does not connect."
+			call LogMessage(log, ERROR_LOGGING_LEVEL,trim(logKey)//" CCWFacesAroundVertex :",logstring)
+		endif
 	enddo
 end subroutine
 
@@ -267,7 +333,9 @@ function nearestRootFace(self, queryPt)
 	integer(kint) :: i, nRootFaces
 	real(kreal) :: dist, testDist, cntd(3)
 	
-	nearestRootFace = 0
+	nearestRootFace = 1
+	
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" nearestRootFace : ", "entering.")
 	
 	select case (self%meshSeed)
 		case ( TRI_HEX_SEED, CUBED_SPHERE_SEED )
@@ -278,19 +346,8 @@ function nearestRootFace(self, queryPt)
 			nRootFaces = 20
 	end select
 	
-	if ( self%geomKind == PLANAR_GEOM ) then
-		cntd = faceCentroid( self%faces, 1, self%particles)
-		dist = Distance( cntd(1:2), queryPt(1:2) )
-		do i = 2, nRootFaces
-			cntd = faceCentroid( self%faces, i, self%particles )
-			testDist = Distance(cntd(1:2), queryPt(1:2))
-			if ( testDist < dist ) then
-				dist = testDist
-				nearestRootFace = i
-			endif
-		enddo
-	elseif ( self%geomKind == SPHERE_GEOM ) then
-		cntd = faceCentroid(self%faces, 1, self%particles)
+	cntd = faceCentroid(self%faces, 1, self%particles)
+	if ( self%geomKind == SPHERE_GEOM ) then
 		dist = SphereDistance( cntd, queryPt)
 		do i = 2, nRootFaces
 			cntd = faceCentroid(self%faces, i, self%particles)
@@ -301,7 +358,15 @@ function nearestRootFace(self, queryPt)
 			endif
 		enddo
 	else
-		call LogMessage(log, ERROR_LOGGING_LEVEL,logkey//" nearestRootFace ERROR: "," geomKind not implemented.")
+		dist = sqrt(sum( (cntd-queryPt)*(cntd-queryPt)))
+		do i = 2, nRootFaces
+			cntd = faceCentroid(self%faces, i, self%particles)
+			testDist = sqrt(sum( (cntd-queryPt)*(cntd-queryPt)))
+			if ( testDist < dist ) then
+				dist = testDist
+				nearestRootFace = i
+			endif
+		enddo		
 	endif
 end function
 
@@ -336,38 +401,32 @@ recursive function locatePointTreeSearch( self, queryPt, index ) result(faceInde
 	integer(kint), intent(in) :: index
 	!
 	real(kreal) :: dist, testDist, cntd(3)
-	integer(kint) :: i, nextIndex
+	integer(kint) :: i, nearestChild
 	
 	faceIndex = 0
 	
-	dist = 1.0d20
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" locatePointTreeSearch : ", "entering.")
 	
+	dist = 1.0d20
+	nearestChild = 0
+	cntd = 0.0_kreal
 	if ( self%faces%hasChildren(index) ) then
-		if ( self%geomKind == PLANAR_GEOM ) then
-			do i = 1, 4
-				cntd = FaceCentroid(self%faces, self%faces%children(i,index), self%particles)
-				testDist = Distance( cntd(1:2), queryPt(1:2) )
-				if ( testDist < dist ) then
-					dist = testDist
-					nextIndex = self%faces%children(i,index)
-				endif
-			enddo
-		elseif ( self%geomKind == SPHERE_GEOM ) then
-			do i = 1, 4
-				cntd = FaceCentroid(self%faces, self%faces%children(i,index), self%particles )
-				testDist = SphereDistance( cntd, queryPt )
-				if ( testDist < dist ) then
-					dist = testDist
-					nextIndex = self%faces%children(i,index)
-				endif
-			enddo
-		else
-			call LogMessage(log, ERROR_LOGGING_LEVEL, logkey//" locatePointTreeSearch ERROR : ", " geomKind not implemented.")
-			return
-		endif
-		faceIndex = locatePointTreeSearch( self, queryPt, nextIndex )
+		do i = 1, 4
+			cntd = FaceCentroid(self%faces, self%faces%children(i,index), self%particles)
+			if ( self%geomKind == SPHERE_GEOM ) then
+				testDist = SphereDistance( queryPt, cntd )
+			else
+				testDist = sqrt(sum( (queryPt-cntd)*(queryPt-cntd)))
+			endif
+			if ( testDist < dist ) then
+				nearestChild = self%faces%children(i,index)
+				dist = testDist
+			endif
+		enddo
+		faceIndex = locatePointTreeSearch( self, queryPt, nearestChild)
 	else
 		faceIndex = index
+		return
 	endif	
 end function
 
@@ -378,21 +437,49 @@ recursive function locatePointWalkSearch(self, queryPt, index) result(faceIndex)
 	integer(kint), intent(in) :: index
 	!
 	real(kreal) :: dist, testDist, cntd(3)
+	type(STDIntVector) :: adjFaces
+	integer(kint) :: currentFace, i
 	
-	faceIndex = 0
+!	call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" locatePointWalkSearch : ", "entering.")
+	
 	if ( self%faces%hasChildren(index) ) then
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey//" locatePointWalkSearch ERROR:"," expected a leaf face.")
 		return
 	endif
-	
-	cntd = FaceCentroid(self%faces, index, self%particles)
-	if (self%geomKind == PLANAR_GEOM ) then
-		
-	elseif ( self%geomKind == SPHERE_GEOM ) then
+
+	faceIndex = 0
+	currentFace = index
+	cntd = FaceCentroid(self%faces, index, self%particles)	
+	if ( self%geomKind == SPHERE_GEOM ) then
+		dist = SphereDistance( cntd, queryPt)
 	else
-		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey//" locatePointWalkSearch ERROR : ", " geomKind not implemented.")
-		return
+		dist = sqrt(sum( (cntd - queryPt)*(cntd-queryPt)))
 	endif
+	
+	call CCWAdjacentFaces(self, adjFaces, currentFace)
+	
+	do i = 1, adjFaces%N
+		if ( adjFaces%int(i) > 0 ) then
+			cntd = FaceCentroid( self%faces, adjFaces%int(i), self%particles )
+			if ( self%GeomKind == SPHERE_GEOM ) then
+				testDist = SphereDistance( cntd, queryPt)
+			else
+				testDist = sqrt(sum( (cntd - queryPt)*(cntd-queryPt) ))
+			endif	
+		
+			if ( testDist < dist ) then
+				dist = testDist
+				currentFace = adjFaces%int(i)
+			endif
+		endif
+	enddo
+	
+	if ( currentFace == index ) then
+		faceIndex = currentFace
+		return
+	else
+		faceIndex = locatePointWalkSearch( self, queryPt, currentFace )
+	endif	
 end function
 
 function nVerticesInMesh( self, initNest )

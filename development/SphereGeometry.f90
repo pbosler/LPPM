@@ -71,6 +71,7 @@ function ChordDistance(xyzA, xyzB)
 	ChordDistance = sqrt( sum( (xyzB - xyzA)*(xyzB-xyzA) ) )
 end function
 
+
 !------------------------------------------------------------------------------
 !> @author Peter Bosler
 !> @brief Great-circle distance between two points in the plane
@@ -98,7 +99,7 @@ function SphereDistanceVector( xyzA, xyzB )
 
     dotProd = xyzA(1)*xyzB(1)+xyzA(2)*xyzB(2)+xyzA(3)*xyzB(3)
 
-    SphereDistanceVector = atan2(crossNorm,dotProd)*EARTH_RADIUS
+    SphereDistanceVector = atan2(crossNorm,dotProd)*SphereRadius
 end function
 
 !------------------------------------------------------------------------------
@@ -131,7 +132,7 @@ function SphereDistanceComponents(xA, yA, zA, xB, yB, zB)
 
 	dp = xA*xB + yA*yB + zA*zB
 
-	SphereDistanceComponents = atan2(cpNorm,dp)*EARTH_RADIUS
+	SphereDistanceComponents = atan2(cpNorm,dp)*SphereRadius
 end function
 
 !------------------------------------------------------------------------------
@@ -264,7 +265,7 @@ function SphereMidpoint(xyzA, xyzB)
 	real(KREAL), dimension(3) :: SphereMidpoint
 
 	SphereMidpoint = (xyzA + xyzB)/2.0_KREAL
-	SphereMidpoint = SphereMidpoint/sqrt(sum(sphereMidpoint*sphereMidpoint))*EARTH_RADIUS
+	SphereMidpoint = SphereMidpoint/sqrt(sum(sphereMidpoint*sphereMidpoint))*SphereRadius
 end function
 
 !------------------------------------------------------------------------------
@@ -286,7 +287,7 @@ function SphereTriCenter(xyzA, xyzB, xyzC)
 	real(KREAL), dimension(3) :: SphereTriCenter
 
 	SphereTriCenter = (xyzA + xyzB + xyzC)/3.0_KREAL
-	SphereTriCenter = SphereTriCenter/sqrt(sum(sphereTriCenter*sphereTriCenter))*EARTH_RADIUS
+	SphereTriCenter = SphereTriCenter/sqrt(sum(sphereTriCenter*sphereTriCenter))*SphereRadius
 end function
 
 !------------------------------------------------------------------------------
@@ -309,7 +310,7 @@ function SphereQuadCenter(xyzA, xyzB, xyzC, xyzD)
 	real(KREAL), dimension(3) :: sphereQuadCenter
 
 	SphereQuadCenter = (xyzA + xyzB + xyzC + xyzD)/4.0_KREAL
-	SphereQuadCenter = SphereQuadCenter/sqrt(sum(sphereQuadCenter*sphereQuadCenter))*EARTH_RADIUS
+	SphereQuadCenter = SphereQuadCenter/sqrt(sum(sphereQuadCenter*sphereQuadCenter))*SphereRadius
 end function
 
 !------------------------------------------------------------------------------
@@ -341,7 +342,7 @@ function SphereTriAreaVector(xyzA, xyzB, xyzC)
 	zz = tan(halfPerimeter/2.0_KREAL)*tan( (halfPerimeter-side1)/2.0_KREAL )*&
 		tan( (halfPerimeter - side2)/2.0_KREAL )*tan( (halfPerimeter - side3)/2.0_KREAL )
 
-	SphereTriAreaVector = 4.0_KREAL * atan2(sqrt(zz),1.0_KREAL)*EARTH_RADIUS*EARTH_RADIUS
+	SphereTriAreaVector = 4.0_KREAL * atan2(sqrt(zz),1.0_KREAL)*SphereRadius*SphereRadius
 end function
 
 !------------------------------------------------------------------------------
@@ -376,7 +377,7 @@ function SphereTriAreaComponents(xa,ya,za, xb,yb,zb, xc,yc,zc)
 	zz = tan( halfPerim/2.0_kreal)*tan( (halfPerim-s1)/2.0_kreal) * &
 		 tan( (halfPerim-s2)/2.0_kreal)*tan( (halfPerim-s3)/2.0_kreal)
 
-	SphereTriAreaComponents = 4.0_kreal*atan(sqrt(zz))*EARTH_RADIUS*EARTH_RADIUS
+	SphereTriAreaComponents = 4.0_kreal*atan(sqrt(zz))*SphereRadius*SphereRadius
 end function
 
 
@@ -606,7 +607,7 @@ function RandomSpherePoint()
 	RandomSpherePoint(1) = x
 	RandomSpherePoint(2) = y
 	RandomSpherePoint(3) = z
-	RandomSpherePoint = RandomSpherePoint/sqrt(sum(RandomSpherePoint*RandomSpherePoint))*EARTH_RADIUS
+	RandomSpherePoint = RandomSpherePoint/sqrt(sum(RandomSpherePoint*RandomSpherePoint))*SphereRadius
 end function
 
 subroutine NormalizePositionVectors(xyz)
@@ -616,7 +617,7 @@ subroutine NormalizePositionVectors(xyz)
 	if ( size(xyz,1) /= 3) stop 'ERROR : position vector array shape error.'
 	n = size(xyz,2)
 	do j=1,n
-		xyz(:,j) = xyz(:,j)/(sqrt(sum(xyz(:,j)*xyz(:,j))))*EARTH_RADIUS
+		xyz(:,j) = xyz(:,j)/(sqrt(sum(xyz(:,j)*xyz(:,j))))*SphereRadius
 	enddo
 end subroutine
 

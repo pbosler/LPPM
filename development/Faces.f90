@@ -770,11 +770,30 @@ function FaceCentroid(self, index, aParticles )
 	type(Faces), intent(in) :: self
 	integer(kint), intent(in) :: index
 	type(Particles), intent(in) :: aParticles
+	!
+	integer(kint) :: nVerts, i
+	
+	!call LogMessage(log,DEBUG_LOGGING_LEVEL,trim(logKey)//" FaceCentroid : ", "entering.")
+	
 	FaceCentroid = 0.0_kreal
-	FaceCentroid(1) = aParticles%x(self%centerParticle(index))
-	FaceCentroid(2) = aParticles%y(self%centerParticle(index))
-	if ( aParticles%geomKind /= PLANAR_GEOM) &
-		FaceCentroid(3) = aParticles%z(self%centerParticle(index))
+	nVerts = 0
+	if ( self%faceKind == TRI_PANEL ) then
+		nVerts = 3
+	elseif( self%faceKind == QUAD_PANEL) then
+		nVerts = 4
+	endif
+	do i = 1, nVerts
+		FaceCentroid(1) = FaceCentroid(1) + aParticles%x( self%vertices(i,index) )
+		FaceCentroid(2) = FaceCentroid(2) + aParticles%y( self%vertices(i,index) )
+		if ( aParticles%geomKind /= PLANAR_GEOM ) &
+			FaceCentroid(3) = FaceCentroid(3) + aParticles%z(self%vertices(i,index))
+	enddo
+	
+	FaceCentroid = FaceCentroid / real(nVerts,kreal)
+	
+	if ( aParticles%geomKind == SPHERE_GEOM ) then
+		FaceCentroid = FaceCentroid / sqrt(sum(FaceCentroid*FaceCentroid)) * SphereRadius
+	endif
 end function
 
 

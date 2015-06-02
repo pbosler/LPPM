@@ -1,5 +1,25 @@
 module FieldModule
-
+!------------------------------------------------------------------------------
+! Lagrangian Particle Method (LPM) version 1.5
+!------------------------------------------------------------------------------
+!> @file
+!> Provides the primitive Particles data structure that defines the spatial discretization of LPM.
+!
+!> @author
+!> Peter Bosler, Sandia National Laboratories Center for Computing Research
+!
+!> @defgroup Field Field module
+!> @brief Provides a vectorized Field data structure for scalar and vector fields defined on particlesmodule::particles objects.
+!> Allows users to set a name and units, if applicable, for each field.
+!> 
+!> May be scalar or vector data.
+!>
+!> Field objects have a 1-to-1 correspondence with a particlesmodule::particles object, so that the data associated with 
+!> the particle whose index is i are in the field object also at index i. 
+!>
+!> @{
+!
+!------------------------------------------------------------------------------
 use NumberKindsModule
 use LoggerModule
 use ParticlesModule
@@ -15,6 +35,12 @@ public WriteFieldToMatlab
 public LogStats
 !public SetFieldToScalarFunction, SetFieldToVectorFunction
 
+!> @class Field
+!> @brief Vectorized class for physical data defined on a particles' spatial discretization of a domain.
+!> May be scalar or vector data.
+!>
+!> Field objects have a 1-to-1 correspondence with a particlesmodule::particles object, so that the data associated with 
+!> the particle whose index is i are in the field object also at index i. 
 type Field
 	real(kreal), pointer :: scalar(:) => null()
 	real(kreal), pointer :: xComp(:) => null()
@@ -27,14 +53,17 @@ type Field
 	integer(kint) :: nDim = 0
 end type	
 
+!> @brief Allocates memory and initializes to null/zero a Field object.
 interface New
 	module procedure NewPrivate
 end interface
 
+!> @brief Deletes a Field object and frees its memory.
 interface Delete
 	module procedure DeletePrivate
 end interface
 
+!> @brief Outputs statistics about a Field object to the console via a ::logger object.
 interface LogStats
 	module procedure LogStatsPrivate
 end interface
@@ -77,6 +106,11 @@ integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
 
 contains
 
+!> @brief Allocates memory and initializes to zero a Field object.
+!> @param self
+!> @param nDim number of components in this Field object (not the spatial domain of its accompanying particle set)
+!> @param name e.g., vorticity or potential
+!> @param units physical units, if applicable
 subroutine NewPrivate(self, nDim, nMax, name, units )
 	type(Field), intent(out) :: self
 	integer(kint), intent(in) :: nDim, nMax
@@ -120,6 +154,8 @@ subroutine NewPrivate(self, nDim, nMax, name, units )
 	endif
 end subroutine
 
+!> Deallocates memory assigned by newprivate.
+!> @param self
 subroutine DeletePrivate(self)
 	type(Field), intent(inout) :: self
 	if ( associated(self%scalar) ) deallocate(self%scalar)
@@ -128,6 +164,9 @@ subroutine DeletePrivate(self)
 	if ( associated(self%zComp) ) deallocate(self%zComp)
 end subroutine
 
+!> @brief Inserts a scalar value to a preallocated Field object.
+!> @param self
+!> @param val
 subroutine InsertScalarToField(self, val)
 	type(Field), intent(inout) :: self
 	real(kreal), intent(in) :: val
@@ -143,6 +182,9 @@ subroutine InsertScalarToField(self, val)
 	self%N = self%N + 1
 end subroutine
 
+!> @brief Inserts a vector value to a preallocated Field object.
+!> @param self
+!> @param vecval
 subroutine InsertVectorToField( self, vecVal )
 	type(Field), intent(inout) :: self
 	real(kreal), intent(in) :: vecVal(:)
@@ -165,8 +207,8 @@ subroutine InsertVectorToField( self, vecVal )
 	self%N = self%N + 1
 end subroutine
 
+!> @brief Initialize a logger for this module and processor
 subroutine InitLogger(aLog,rank)
-! Initialize a logger for this module and processor
 	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
 	write(logKey,'(A,A,I0.3,A)') trim(logKey),'_',rank,' : '
@@ -174,6 +216,9 @@ subroutine InitLogger(aLog,rank)
 	logInit = .TRUE.
 end subroutine
 
+!> @brief Outputs Field object data to a .vtk PolyData file for use with VTK or ParaView
+!> @param self
+!> @param fileunit
 subroutine WriteFieldToVTKPointData( self, fileunit )
 	type(Field), intent(in) :: self
 	integer(kint), intent(in) :: fileunit
@@ -200,6 +245,11 @@ subroutine WriteFieldToVTKPointData( self, fileunit )
 	end select
 end subroutine
 
+!> @brief Outputs Field object data to a .vtk PolyData file for use with VTK or ParaView, 
+!> if this field is also associated with a faces object.
+!> @param self
+!> @param fileunit
+!> @param aFaces
 subroutine WriteFieldToVTKCellData( self, fileunit, aFaces )
 	type(Field), intent(in) :: self
 	integer(kint), intent(in) :: fileunit
@@ -243,6 +293,9 @@ subroutine WriteFieldToVTKCellData( self, fileunit, aFaces )
 	end select
 end subroutine
 
+!> @brief Writes Field information to console using a loggermodule::logger object for formatting. 
+!> @param self
+!> @param aLog
 subroutine LogStatsPrivate(self, aLog )
 	type(Field), intent(in) :: self
 	type(Logger), intent(inout) :: aLog 
@@ -262,6 +315,8 @@ subroutine LogStatsPrivate(self, aLog )
 	call EndSection(aLog)
 end subroutine
 
+!> @brief Returns the maximum magnitude of a vector field
+!> @param self
 function MaxMagnitude(self)
 	real(kreal) :: MaxMagnitude 
 	type(Field), intent(in) :: self
@@ -282,6 +337,8 @@ function MaxMagnitude(self)
 	endif
 end function 
 
+!> @brief Returns the minimum magnitude of a vector field
+!> @param self
 function MinMagnitude(self)
 	real(kreal) :: MinMagnitude 
 	type(Field), intent(in) :: self
@@ -302,6 +359,9 @@ function MinMagnitude(self)
 	endif
 end function
 
+!> @brief Writes Field data to a script .m file readable by Matlab
+!> @param self
+!> @param fileunit
 subroutine WriteFieldToMatlab( self, fileunit )
 	type(Field), intent(in) :: self
 	integer(kint), intent(in) :: fileunit
@@ -331,4 +391,5 @@ subroutine WriteFieldToMatlab( self, fileunit )
 	end select	
 end subroutine
 
+!> @}
 end module

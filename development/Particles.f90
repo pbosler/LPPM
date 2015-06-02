@@ -1,18 +1,20 @@
 module ParticlesModule
 !------------------------------------------------------------------------------
-! Lagrangian Particle / Panel Method - Spherical Model
+! Lagrangian Particle Method (LPM) version 1.5
 !------------------------------------------------------------------------------
+!> @file
+!> Provides the primitive Particles data structure that defines the spatial discretization of LPM.
 !
 !> @author
-!> Peter Bosler, Department of Mathematics, University of Michigan
+!> Peter Bosler, Sandia National Laboratories Center for Computing Research
 !
 !> @defgroup Particles Particles module
-!> Provides the primitive Particles data structure that defines the passive particles of LPPM meshes.
-!
-!
-! DESCRIPTION:
-!> @file
-!> Provides the primitive Particles data structure that defines the passive particles of LPPM meshes.
+!> @brief Provides a vectorized Particles data structure that defines the particles for LPM spatial discretization.
+!> Particles are combined with the Field data structure to define scalar and vector fields over a spatial domain.
+!> Particles may be combined with a mesh object (e.g., PolyMesh2d) or an unstructured data object (e.g., a quadtree)
+!> to facilitate interpolation, differentiation, quadrature, etc.
+!>
+!> @{
 !
 !------------------------------------------------------------------------------
 use NumberKindsModule
@@ -35,23 +37,28 @@ public MakeParticleActive, MakeParticlePassive
 ! Types and module constants
 !----------------
 !
+
+!> @class Particles
+!> @brief Class used to define a spatial discretization that may move in physical space.  
+!> This class should be extended for use in specific PDE applications with the inclusion of ::field objects. 
+!>
 type Particles
-	real(kreal), pointer :: x(:)  => null() ! physical coordinate
-	real(kreal), pointer :: y(:)  => null() ! physical coordinate
-	real(kreal), pointer :: z(:)  => null() ! physical coordinate
-	real(kreal), pointer :: x0(:) => null() ! Lagrangian coordinate
-	real(kreal), pointer :: y0(:) => null() ! Lagrangian coordinate
-	real(kreal), pointer :: z0(:) => null() ! Lagrangian coordinate
-	real(kreal), pointer :: area(:) => null() ! 
-	real(kreal), pointer :: volume(:) => null() !
-	integer(kint), pointer :: nEdges(:) => null() !
-	integer(kint), pointer :: incidentEdges(:,:) => null() !
-	real(kreal), pointer :: incidentAngles(:,:) => null() !
+	real(kreal), pointer :: x(:)  => null() !< physical coordinate
+	real(kreal), pointer :: y(:)  => null() !< physical coordinate
+	real(kreal), pointer :: z(:)  => null() !< physical coordinate
+	real(kreal), pointer :: x0(:) => null() !< Lagrangian coordinate
+	real(kreal), pointer :: y0(:) => null() !< Lagrangian coordinate
+	real(kreal), pointer :: z0(:) => null() !< Lagrangian coordinate
+	real(kreal), pointer :: area(:) => null() !< area represented by each particle
+	real(kreal), pointer :: volume(:) => null() !< volume represented by each particle
+	integer(kint), pointer :: nEdges(:) => null() !< number of edges (if a mesh is used) incident to each particle
+	integer(kint), pointer :: incidentEdges(:,:) => null() !< indices to ::edges incident on each particle (only if a mesh is used)
+	real(kreal), pointer :: incidentAngles(:,:) => null() !< angles of indcidence for edges at each particle (only if a mesh is used)
 	logical(klog), pointer :: isActive(:) => null() ! true if particle represents a leaf face or cell; corresponds to area, volume > 0
 	logical(klog), pointer :: isPassive(:) => null() ! true if particle represents a leaf vertex
 	integer(kint) :: N = 0				! N particles in computation
 	integer(kint) :: N_Max = 0			! Max particles allowed in memory
-	integer(kint) :: geomKind = 0
+	integer(kint) :: geomKind = 0		! geometry identifier e.g., numberkindsmodule::planar_geom
 end type
 
 !
@@ -69,22 +76,28 @@ character(len=MAX_STRING_LENGTH) :: logString
 ! Interfaces
 !----------------
 !
+
+!> @brief Allocates memory and initializes to null/zero a Particles object.
 interface New
 	module procedure NewPrivate
 end interface
 
+!> @brief Deletes a Particles object and frees its memory.
 interface Delete
 	module procedure DeletePrivate
 end interface
 
+!> @brief Copies (deep copy) one Particles object to another
 interface Copy
 	module procedure copyPrivate
 end interface
 
+!> @brief Outputs statistics about a Particles object to the console via a ::logger object.
 interface LogStats
 	module procedure LogStatsPrivate
 end interface
 
+!> @brief Prints detailed information about a Particles object to the console.
 interface PrintDebugInfo
 	module procedure PrintDebugPrivate
 end interface
@@ -316,6 +329,11 @@ subroutine PrintDebugPrivate( self )
 	enddo
 end subroutine
 
+!> @brief Writes VTK point data to a .vtk file in vtk legacy version 2.0 PolyData format.
+!> Used for plotting with VTK C++ programs or ParaView.
+!> @param self particles to output
+!> @param fileunit integer fileunit of output file.
+!> @param title title associated with this particle set.
 subroutine WriteVTKPoints( self, fileunit, title )
 	class(Particles), intent(in) :: self
 	integer(kint), intent(in) :: fileunit
@@ -343,6 +361,9 @@ subroutine WriteVTKPoints( self, fileunit, title )
 	endif
 end subroutine
 
+!> @brief Writes a particle set's Lagrangian coordinates to VTK PolyData Output
+!> @param self
+!> @param fileunit
 subroutine WriteVTKLagCoords( self, fileunit )
 	class(Particles), intent(in) :: self
 	integer(kint), intent(in) :: fileunit
@@ -363,6 +384,9 @@ subroutine WriteVTKLagCoords( self, fileunit )
 	endif
 end subroutine
 
+!> @brief Writes particle area to VTK PolyData Output
+!> @param self
+!> @param fileunit
 subroutine WriteVTKParticleArea(self, fileunit )
 	class(Particles), intent(in) :: self
 	integer(kint), intent(in) :: fileunit
@@ -378,6 +402,9 @@ subroutine WriteVTKParticleArea(self, fileunit )
 	enddo
 end subroutine 
 
+!> @brief Writes particle volume to VTK PolyData Output
+!> @param self
+!> @param fileunit
 subroutine WriteVTKParticleVolume(self, fileunit )
 	class(Particles), intent(in) :: self
 	integer(kint), intent(in) :: fileunit
@@ -393,6 +420,9 @@ subroutine WriteVTKParticleVolume(self, fileunit )
 	enddo
 end subroutine
 
+!> @brief Inserts a single particle into a particles object.
+!> @param physX physical coordinate vector
+!> @param lagX Lagrangian coordinate vector
 subroutine InsertParticle( self, physX, lagX )
 	type(Particles), intent(inout) :: self
 	real(kreal), intent(in) :: physX(:), lagX(:)
@@ -415,6 +445,10 @@ subroutine InsertParticle( self, physX, lagX )
 	self%N = self%N + 1
 end subroutine
 
+!> @brief Changes a passive particle to an active particle. 
+!> Area/volume must be set separately.
+!> @param self
+!> @param index index of particle to be changed.
 subroutine MakeParticleActive( self, index ) 
 	type(Particles), intent(inout) :: self
 	integer(kint), intent(in) :: index
@@ -426,6 +460,10 @@ subroutine MakeParticleActive( self, index )
 	self%isPassive(index) = .FALSE.
 end subroutine
 
+!> @brief Changes an active particle to a passive particle. 
+!> Area/volume may be set to zero separately.
+!> @param self
+!> @param index index of particle to be changed.
 subroutine MakeParticlePassive( self, index )
 	type(Particles), intent(inout) :: self
 	integer(kint), intent(in) :: index
@@ -438,6 +476,9 @@ subroutine MakeParticlePassive( self, index )
 	self%isActive(index) = .FALSE.
 end subroutine
 
+!> @brief Writes particles information to console using a loggermodule::logger object for formatting. 
+!> @param self
+!> @param aLog
 subroutine LogStatsPrivate(self, aLog )
 	type(Particles), intent(in) :: self
 	type(Logger), intent(inout) :: aLog
@@ -462,6 +503,9 @@ subroutine LogStatsPrivate(self, aLog )
 	call EndSection(aLog)
 end subroutine
 
+!> @brief Sorts the incident edges at a particle into counter-clockwise order using a bubble-sort algorithm.
+!> @param self
+!> @param index of particle whose edges need sorting.
 subroutine SortIncidentEdgesAtParticle( self, index )
 	type(Particles), intent(inout) :: self
 	integer(kint), intent(in) :: index
@@ -520,6 +564,10 @@ subroutine OrderEdgePair( index1, angle1, index2, angle2 )
 	endif 	
 end subroutine
 
+!> @brief Returns a particle's physical coordinate vector
+!> @param self
+!> @param index
+!> @return PhysCoord coordinate vector
 function PhysCoord( self, index )
 	real(kreal) :: PhysCoord(3)
 	type(Particles), intent(in) :: self
@@ -530,6 +578,10 @@ function PhysCoord( self, index )
 	if ( associated(self%z)) PhysCoord(3) = self%z(index)
 end function
 
+!> @brief Returns a particle's Lagrangian coordinate vector
+!> @param self
+!> @param index
+!> @return LagCoord coordinate vector
 function LagCoord( self, index )
 	real(kreal) :: LagCoord(3)
 	type(Particles), intent(in) :: self
@@ -540,37 +592,32 @@ function LagCoord( self, index )
 	if ( associated(self%z0) ) LagCoord(3) = self%z0(index)
 end function
 
+!> @brief Returns the total area represented by all active ParticlesModule
+!> @param self
+!> @return TotalArea
 function TotalArea( self ) 
 	real(kreal) :: TotalArea
 	type(Particles), intent(in) :: self
 	!
 	integer(kint) :: i
-	
-	TotalArea = 0.0_kreal
-	if ( associated(self%area) ) then
-		do i = 1, self%N
-			if ( self%isActive(i) ) then
-				TotalArea = TotalArea + self%area(i)		
-			endif
-		enddo
-	endif
+	TotalArea = sum(self%area(1:self%N), MASK=self%isActive(1:self%N) )	
 end function
 
+!> @brief Returns the total volume represented by all active ParticlesModule
+!> @param self
+!> @return Totalvolume
 function TotalVolume(self)
 	real(kreal) :: TotalVolume
 	type(Particles), intent(in) :: self
 	!
 	integer(kint) :: i
-	TotalVolume = 0.0_kreal
-	if ( associated(self%volume) ) then
-		do i = 1, self%N
-			if ( self%isActive(i)) then
-				TotalVolume = TotalVolume + self%volume(i)
-			endif
-		enddo
-	endif
+	TotalVolume = sum(self%volume(1:self%N), MASK=self%isActive(1:self%N) )
 end function
 
+
+!> @brief Writes particles to a script .m file readable by Matlab
+!> @param self
+!> @param fileunit
 subroutine WriteParticlesToMatlab( self, fileunit )
 	type(Particles), intent(in) :: self
 	integer(kint), intent(in) :: fileunit 
@@ -645,4 +692,5 @@ subroutine InitLogger(aLog,rank)
 	logInit = .TRUE.
 end subroutine
 
+!>@}
 end module

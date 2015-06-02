@@ -394,15 +394,12 @@ subroutine DivideEdge( self, edgeIndex, aParticles )
 	v1 = PhysCoord(aParticles, self%dest(edgeIndex))
 	lV1 = LagCoord(aParticles, self%dest(edgeIndex))
 		
-	if ( aParticles%geomKind == PLANAR_GEOM ) then
-		midPt(1:2) = Midpoint( v0(1:2), v1(1:2) )
-		lagMidPt(1:2) = Midpoint( lv0(1:2), lv1(1:2))
-	elseif ( aParticles%geomKind == SPHERE_GEOM ) then
+	if ( aParticles%geomKind == SPHERE_GEOM ) then
 		midPt = SphereMidpoint( v0, v1 )
 		lagMidPt = SphereMidpoint( lv0, lv1 )
 	else
-		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey, "DivideEdge : geomKind not implemented.")
-		return
+		midPt = 0.5_kreal * (v0 + v1)
+		lagMidPt = 0.5_kreal * ( lv0 + lv1)
 	endif
 	
 	pInsertIndex = aParticles%N+1
@@ -488,7 +485,7 @@ function onBoundary( anEdges, edgeIndex )
 	logical(klog) :: onBoundary
 	type(Edges), intent(in) :: anEdges
 	integer(kint), intent(in) :: edgeIndex
-	onBoundary = ( anEdges%leftFace(edgeIndex) == 0 .OR. anEdges%rightFace(edgeIndex) == 0 )
+	onBoundary = ( anEdges%leftFace(edgeIndex) < 1 .OR. anEdges%rightFace(edgeIndex) < 1 )
 end function
 
 subroutine GetLeafEdgesFromParent( anEdges, parentIndex, leafEdges )

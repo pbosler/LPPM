@@ -2,17 +2,15 @@ module LoggerModule
 !------------------------------------------------------------------------------
 ! Lagrangian Particle / Panel Method - Spherical Model
 !------------------------------------------------------------------------------
-!
+!> @file
+!> A Logger object for writing output to console or to files
 !> @author
 !> Peter Bosler, Department of Mathematics, University of Michigan
 !
 !> @defgroup Logger Logger module
 !> A Logger object for writing output to console or to files
+!> @{
 !
-!
-! DESCRIPTION:
-!> @file
-!> A Logger object for writing output to console or to files
 !
 !------------------------------------------------------------------------------
 
@@ -39,10 +37,13 @@ integer(kint), parameter :: DEBUG_LOGGING_LEVEL = 1, &
 							WARNING_LOGGING_LEVEL = 3, &
 							ERROR_LOGGING_LEVEL = 4
 
-
+!> @class Logger
+!> @brief Class handles display, formatting, and organization of console messages.
+!> All messages are presumed to have a key - value pair.  
+!> For example, the key may be the origin of the message in the code, and the value contains the message content.
 type Logger
-	integer(kint) :: level
-	type(OutputWriter) :: writer
+	integer(kint) :: level !< Messages with precedence below this level will be ignored.
+	type(OutputWriter) :: writer !< formatted output writer
 end type
 
 !
@@ -51,24 +52,29 @@ end type
 !----------------
 !
 
+!> @brief Initializes a logger object
 interface New
 	module procedure NewPrivate
 end interface
 
+!> @brief Deletes and frees memory associated with a logger object.
 interface Delete
 	module procedure DeletePrivate
 end interface
 
+!> @brief Common interface for logging various data types.
 interface LogMessage
 	module procedure LogString
 	module procedure LogInteger
 	module procedure LogReal
 end interface
 
+!> @brief Starts an indented section
 interface StartSection
 	module procedure StartSectionLogger
 end interface
 
+!> @brief Ends an indented section
 interface EndSection
 	module procedure EndSectionLogger
 end interface
@@ -81,8 +87,8 @@ contains
 !----------------
 !
 
+!> @brief Initializes a new Logger object, defines unit for chosen output.
 subroutine NewPrivate(self,level,fileUnit,fileName)
-! Initializes a new Logger object, defines unit for chosen output.
 	type(Logger), intent(out) :: self
 	integer(kint), intent(in) :: level
 	integer(kint), intent(in), optional :: fileUnit
@@ -100,13 +106,11 @@ subroutine NewPrivate(self,level,fileUnit,fileName)
 	else
 		call New(self%writer)
 	endif
-
-
 end subroutine
 
 
+!> @brief Placeholder for future development.
 subroutine DeletePrivate(self)
-! Placeholder for future development.
 	type(Logger), intent(inout) :: self
 	call Delete(self%writer)
 end subroutine
@@ -118,6 +122,12 @@ end subroutine
 !----------------
 !
 
+!> @brief Logs a string key-value pair.
+!> @param self
+!> @param msgLevel Priority level of this message.  
+!> If it is below the priority of the logger object self, the message will not be displayed.
+!> @param key identification key for message
+!> @param string message content
 subroutine LogString(self,msgLevel,key,string)
 	type(Logger), intent(in) :: self
 	integer(kint), intent(in) :: msgLevel
@@ -132,6 +142,12 @@ subroutine LogString(self,msgLevel,key,string)
 	endif
 end subroutine
 
+!> @brief Logs a string/integer key-value pair.
+!> @param self
+!> @param msgLevel Priority level of this message.  
+!> If it is below the priority of the logger object self, the message will not be displayed.
+!> @param key identification key for message
+!> @param val message content
 subroutine LogInteger(self,msgLevel,key,val)
 	type(Logger), intent(in) :: self
 	integer(kint), intent(in) :: msgLevel
@@ -142,7 +158,12 @@ subroutine LogInteger(self,msgLevel,key,val)
 	endif
 end subroutine
 
-
+!> @brief Logs a string/real key-value pair.
+!> @param self
+!> @param msgLevel Priority level of this message.  
+!> If it is below the priority of the logger object self, the message will not be displayed.
+!> @param key identification key for message
+!> @param val message content
 subroutine LogReal(self,msgLevel,key,val)
 	type(Logger), intent(in) :: self
 	integer(kint), intent(in) :: msgLevel
@@ -153,6 +174,11 @@ subroutine LogReal(self,msgLevel,key,val)
 	endif
 end subroutine
 
+!> @brief Starts an indented section for this logger object.
+!> Allows user to optionally provide a section title and section description.
+!> @param self
+!> @param sectionName
+!> @param description
 subroutine StartSectionLogger(self,sectionName,description)
 	type(Logger), intent(inout) :: self
 	character(len=*), intent(in), optional :: sectionName
@@ -169,6 +195,9 @@ subroutine StartSectionLogger(self,sectionName,description)
 	endif
 end subroutine
 
+
+!> @brief Ends an indented section for this logger object.
+!> @param self
 subroutine EndSectionLogger(self)
 	type(Logger), intent(inout) :: self
 	call EndSection(self%writer)
@@ -182,5 +211,5 @@ end subroutine
 !
 
 
-
+!> @}
 end module

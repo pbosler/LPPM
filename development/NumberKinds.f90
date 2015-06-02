@@ -70,6 +70,7 @@ module NumberKindsModule
 	integer(KINT), parameter :: QUAD_RECT_PERIODIC_SEED = 204
 	integer(KINT), parameter :: ICOS_TRI_SPHERE_SEED = 205
 	integer(KINT), parameter :: CUBED_SPHERE_SEED = 206
+	real(KREAL), save :: SphereRadius = 1.0_kreal
 
 	!> @defgroup MPIVariables MPI Variables
 	!> @brief variables to define MPI computing environment
