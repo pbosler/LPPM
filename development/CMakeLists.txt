@@ -56,3 +56,12 @@ TARGET_LINK_LIBRARIES(planarMeshTest.exe lpmFortran)
 ADD_EXECUTABLE(stdIntVectorTest.exe STDIntVectorTest.f90)
 TARGET_LINK_LIBRARIES(stdIntVectorTest.exe lpmFortran)
 
+ADD_EXECUTABLE(icosTriSphereTest.exe IcosTriMeshTester.f90)
+TARGET_LINK_LIBRARIES(icosTriSphereTest.exe lpmFortran)
+
+# Unit Tests
+ENABLE_TESTING()
+ADD_TEST( particlesAndFieldTest ${PROJECT_BINARY_DIR}/particlesAndFieldTest.exe)
+ADD_TEST( stdIntVectorTest ${PROJECT_BINARY_DIR}/stdIntVectorTest.exe)
+ADD_TEST( planarMeshTest ${PROJECT_BINARY_DIR}/planarMeshTest.exe 3)
+ADD_TEST( icosTriSphereTest ${PROJECT_BINARY_DIR}/icosTriSphereTest.exe 2 )

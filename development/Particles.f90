@@ -341,7 +341,7 @@ subroutine WriteVTKPoints( self, fileunit, title )
 	!
 	integer(kint) :: j
 	
-	write(fileunit,'(A)') "#vtk DataFile Version 2.0"
+	write(fileunit,'(A)') "# vtk DataFile Version 2.0"
 	if ( present(title) ) then
 		write(fileunit,'(A)') trim(title)
 	else

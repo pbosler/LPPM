@@ -19,7 +19,7 @@ public pointIsOutsideMesh
 public CCWEdgesAroundFace, CCWVerticesAroundFace, CCWAdjacentFaces
 public CCWFacesAroundVertex
 public LogStats, PrintDebugInfo
-public WriteMeshToMatlab
+public WriteMeshToMatlab, WriteMeshToVTKPolyData
 
 type PolyMesh2d
 	type(Particles) :: particles
@@ -798,6 +798,24 @@ subroutine LogStatsPrivate(self, aLog)
 	call LogStats(self%edges, aLog)
 	call LogStats(self%faces, aLog)
 	call EndSection(aLog)
+end subroutine
+
+subroutine WriteMeshToVTKPolyData( self, fileunit, title )
+	type(PolyMesh2d), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	character(len=*), intent(in), optional :: title
+	
+	if ( present(title) ) then
+		call WriteVTKPoints(self%particles, fileunit, title)
+	else
+		call WriteVTKPoints(self%particles, fileunit)
+	endif
+	
+	call WriteFacesToVTKPolygons( self%faces, fileunit )
+	
+	call WriteVTKLagCoords(self%particles, fileunit )
+	
+	call WriteFaceAreaToVTKCellData(self%faces, fileunit)	
 end subroutine
 
 subroutine PrintDebugPrivate( self ) 

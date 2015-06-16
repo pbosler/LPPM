@@ -15,7 +15,7 @@ public Faces
 public New, Delete, Copy
 public FaceArea, FaceCenterPhysCoord, FaceCenterLagCoord
 public DivideQuadFace, DivideTriFace, InsertFace
-public WriteFacesToVTKPolygons, WriteFacesToMatlab
+public WriteFacesToVTKPolygons, WriteFacesToMatlab, WriteFaceAreaToVTKCellData
 public positiveEdge
 public FaceCentroid, TriFaceArea, QuadFaceArea
 public LogStats, PrintDebugInfo
@@ -252,7 +252,11 @@ subroutine WriteFacesToVTKPolygons( self, fileunit )
 	!
 	integer(kint) :: i, j, nCells, cellListSize, nVerts
 	
-	nVerts = self%faceKind
+	if ( self%faceKind == TRI_PANEL ) then
+		nVerts = 3
+	elseif ( self%faceKind == QUAD_PANEL ) then
+		nVerts = 4
+	endif
 	nCells = nVerts * self%N_Active
 	cellListSize = 4 * nCells
 	
@@ -260,10 +264,35 @@ subroutine WriteFacesToVTKPolygons( self, fileunit )
 	do i = 1, self%N
 		if ( .NOT. self%hasChildren(i) ) then
 			do j = 1, nVerts
-				write(fileunit,*) self%vertices(j,i), "  ", self%vertices( mod(j,nVerts) + 1, i), "   ", self%centerParticle(i)
+				write(fileunit,'(4I10)') 3, self%vertices(j,i)-1, self%vertices( mod(j,nVerts) + 1, i)-1, self%centerParticle(i)-1
 			enddo
 		endif
 	enddo
+end subroutine
+
+subroutine WriteFaceAreaToVTKCellData(self, fileunit )
+	type(Faces), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	!
+	integer(kint) :: i, j, nCells, nVerts
+	
+	if ( self%faceKind == TRI_PANEL ) then
+		nVerts = 3
+	elseif ( self%faceKind == QUAD_PANEL ) then
+		nVerts = 4
+	endif
+	nCells = nVerts * self%N_Active
+	
+	write(fileunit,'(A,I8)') "CELL_DATA ", nCells
+	write(fileunit,'(A)') "SCALARS faceArea double 1"
+	write(fileunit,'(A)') "LOOKUP_TABLE default"
+	do i = 1, self%N
+		if ( .NOT. self%hasChildren(i) ) then
+			do j = 1, nVerts
+				write(fileunit,*) self%area(i)
+			enddo
+		endif
+	enddo		
 end subroutine
 
 subroutine WriteFacesToMatlab( self, fileunit )
