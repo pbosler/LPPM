@@ -1,17 +1,18 @@
 #!/bin/bash
 
-dataDir=$HOME/modelData/vtkOut
+#dataDir=$HOME/modelData/vtkOut
+dataDir=/fscratch/pabosle/vtkOut
 
 cp $HOME/LPPM/interpVTK2NCL.exe $dataDir/.
 
 cd $dataDir
 
-for filename in *__000?.vtk
+for filename in *mv_conv_direct_triUnif_?__0002.vtk
 do
 cat <<EOF > $dataDir/InterpVTKtoNCL.namelist
 &filenames
 inputfile = '${filename}'
-outputPrefix = '$HOME/modelData/advectionPaper/${filename%.vtk}'
+outputPrefix = '../${filename%.vtk}'
 degreeSpacing = 0.5
 /
 

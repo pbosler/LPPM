@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #SBATCH --nodes=2
-#SBATCH --time=4:00:00
+#SBATCH --time=2:40:00
 #SBATCH --account=fy150039
-#SBATCH --job-name=mv-tracerInt
+#SBATCH --job-name=mv-conv
 #SBATCH --partition=ec
 #SBATCH --mail-type=ALL
 
@@ -13,12 +13,12 @@ cp $HOME/LPPM/advectMovingVortices.exe $outputLoc/.
 
 cd $outputLoc
 
-for i in `seq 6 7`;
+for i in 1 5 10 20 40 100 200
 do 
 
-cat <<EOF > mvTracerIntegralValue.namelist
+cat <<EOF > mvRemeshFreq.namelist
 &meshDefine
-	initNest = ${i}
+	initNest = 5
 	AMR = 0
 	panelKind = 3
 	amrLimit = 2
@@ -30,20 +30,20 @@ cat <<EOF > mvTracerIntegralValue.namelist
 /
 
 &timestepping
-	dt = 0.03			! days (note : 1 period = 12 days)
+	dt = 0.015			! days (note : 1 period = 12 days)
 	tfinal = 12.0		! days
-	remeshInterval = 20
+	remeshInterval = ${i}
 	resetAlphaInterval = 40000
 /
 
 &fileIO
 	outputDir = '$outputLoc/'
-	jobPrefix = 'mv_tracerInt_'
-	frameOut = 200
+	jobPrefix = 'mv_remeshFreq_halfDt_rm${i}'
+	frameOut = 400
 /
 
 EOF
 
-mpirun -np 16 ./advectMovingVortices.exe mvTracerIntegralValue.namelist
+mpirun -np 16 ./advectMovingVortices.exe mvRemeshFreq.namelist
 
 done

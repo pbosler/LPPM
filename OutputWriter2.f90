@@ -149,7 +149,7 @@ subroutine WriteReal(self,key,val)
 	character(len=*), intent(in) :: key
 	real(kreal), intent(in) :: val
 	character(len=32) :: form
-	if ( abs(val) >= 1.0d7 ) then
+	if ( abs(val) >= 1.0d7 .OR. abs(val) < 0.1_kreal ) then
 		form = FormatWithIndent(self,'(A,2X,E15.8)')
 	else
 		form = FormatWithIndent(self,'(A,2X,F15.8)')

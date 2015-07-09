@@ -1,20 +1,19 @@
 #!/bin/bash
 
-#SBATCH --nodes=1
-#SBATCH --time=8:00:00
+#SBATCH --nodes=2
+#SBATCH --time=0:40:00
 #SBATCH --account=fy150039
-#SBATCH --job-name=mv-sphere
+#SBATCH --job-name=mvDirect
 #SBATCH --partition=ec
 #SBATCH --mail-type=ALL
 
-#outputLoc=/fscratch/pabosle/movingVortices
+outputLoc=/fscratch/pabosle
 
-#cp $HOME/LPPM/advectMovingVortices.exe $outputLoc/.
+cp $HOME/LPPM/advectMovingVorticesDirect.exe $outputLoc/.
 
-#cd $outputLoc
+cd $outputLoc
 
-cd $HOME/LPPM
-for i in `seq 1 7`;
+for i in `seq 3 5`;
 do
 
 cat <<EOF > MovingVortices2Direct.namelist
@@ -38,13 +37,13 @@ cat <<EOF > MovingVortices2Direct.namelist
 /
 
 &fileIO
-	outputDir = '$HOME/modelData/'
+	outputDir = '$outputLoc/'
 	jobPrefix = 'mv_conv_direct_'
 	frameOut = 200
 /
 
 EOF
 
-mpirun -np 8 ./advectMovingVorticesDirect.exe
+mpirun -np 16 ./advectMovingVorticesDirect.exe
 
 done

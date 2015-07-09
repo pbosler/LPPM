@@ -82,12 +82,12 @@ character(len=MAX_STRING_LENGTH) :: logstring
 !
 integer(kint) :: errCode
 real(kreal) :: wallclock
-integer(kint) :: j
+integer(kint) :: j, COMMAND_ARGUMENT_COUNT
 
 !
 ! namelists and user input
 !
-character(len=MAX_STRING_LENGTH) :: namelistFile = 'MovingVortices.namelist'
+character(len=MAX_STRING_LENGTH) :: namelistFile 
 namelist /meshDefine/ initNest, AMR, panelKind, amrLimit, tracerMassTol, tracerVarTol, lagVarTol, tracerRefVal, tracerRefTol
 namelist /timestepping/ tfinal, dt, remeshInterval, resetAlphaInterval
 namelist /fileIO/ outputDir, jobPrefix, frameOut
@@ -96,6 +96,8 @@ namelist /fileIO/ outputDir, jobPrefix, frameOut
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	INITIALIZE COMPUTER, MESH, TEST CASE
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+if ( COMMAND_ARGUMENT_COUNT() /= 1 ) stop "expected name of namelist file as 1st argument."
 
 call MPI_INIT(errCode)
 call MPI_COMM_SIZE(MPI_COMM_WORLD, numProcs, errCode)
@@ -212,6 +214,7 @@ frameCounter = 1
 allocate(totalMasstestCaseTracer(0:timesteps))
 totalMasstestCaseTracer = 0.0_kreal
 mass0 = sum(panelTracer0*panelArea0)
+totalMasstestCaseTracer(0) = mass0
 allocate(sphereL2(0:timesteps))
 sphereL2 = 0.0_kreal
 allocate(sphereLinf(0:timesteps))
@@ -343,20 +346,19 @@ do timeJ = 0, timesteps - 1
 		endif
 	enddo
 	
-	if ( AMR <= 0 ) then
-		totalMasstestCaseTracer(timeJ + 1) = 0.0_kreal
-		do j = 1, spherePanels%N
-			if ( .NOT. spherePanels%hasChildren(j) ) then
-				totalMasstestCaseTracer(timeJ + 1) = totalMasstestCaseTracer(timeJ + 1) + &
-					(spherePanels%tracer(j,1) - panelTracer0(j)) * panelArea0(j)
-			endif
-		enddo	
-		totalMasstestCaseTracer(timeJ+1) = totalMasstestCaseTracer(timeJ+1)/mass0
-	else
-		totalMasstestCaseTracer(timeJ+1) = TotalMass(sphere, tracerID)/mass0  - 1.0_kreal
-	endif
-	
-!	totalMasstestCaseTracer(timeJ+1) = TotalMass(sphere,tracerID)/mass0 - 1.0_kreal
+!	if ( AMR <= 0 ) then
+!		totalMasstestCaseTracer(timeJ + 1) = 0.0_kreal
+!		do j = 1, spherePanels%N
+!			if ( .NOT. spherePanels%hasChildren(j) ) then
+!				totalMasstestCaseTracer(timeJ + 1) = totalMasstestCaseTracer(timeJ + 1) + &
+!					(spherePanels%tracer(j,1) - panelTracer0(j)) * panelArea0(j)
+!			endif
+!		enddo	
+!		totalMasstestCaseTracer(timeJ+1) = totalMasstestCaseTracer(timeJ+1)/mass0
+!	else
+		!totalMasstestCaseTracer(timeJ+1) = TotalMass(sphere, tracerID)/mass0  - 1.0_kreal
+		totalMasstestCaseTracer(timeJ+1) = TotalMass(sphere, tracerID)
+!	endif
 
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
 
@@ -465,11 +467,11 @@ enddo
 
 			write(WRITE_UNIT_1,'(A,F24.15,A)') 'tfinal_day = ', tfinal / ONE_DAY, ' ;'
 
-			write(WRITE_UNIT_1,'(A,F24.15,A)') 'mass = [ ', totalMasstestCaseTracer(0), ' ; ...'
+			write(WRITE_UNIT_1,'(A,E24.15,A)') 'mass = [ ', totalMasstestCaseTracer(0), ' ; ...'
 			do j = 1, timesteps-1
-				write(WRITE_UNIT_1,'(F24.15,A)') totalMasstestCaseTracer(j), ' ; ...'
+				write(WRITE_UNIT_1,'(E24.15,A)') totalMasstestCaseTracer(j), ' ; ...'
 			enddo
-			write(WRITE_UNIT_1,'(F24.15,A)') totalMasstestCaseTracer(timesteps), ' ] ;'
+			write(WRITE_UNIT_1,'(E24.15,A)') totalMasstestCaseTracer(timesteps), ' ] ;'
 
 			write(WRITE_UNIT_1,'(A,F24.15,A)') 'tracerVar = [ ', tracerVar(0), ' ; ...'
 			do j = 1, timesteps-1
@@ -478,6 +480,8 @@ enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
 		endif
 		close(WRITE_UNIT_1)
+
+		call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'int change = ', maxval(abs(totalMasstestCaseTracer)))
 
 		write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
 		call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
@@ -621,6 +625,8 @@ subroutine ReadNamelistFile(rank)
 	real(kreal) :: broadcastReals(BCAST_REAL_SIZE)
 
 	if ( rank == 0 ) then
+		call GET_COMMAND_ARGUMENT(1, namelistFile)
+		
 		open(unit=READ_UNIT, file=namelistfile, status='OLD', action='READ', iostat=readWriteStat)
 			if ( readWriteStat /= 0 ) stop 'cannot read namelist file.'
 			read(READ_UNIT, nml=meshDefine)

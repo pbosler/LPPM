@@ -313,18 +313,8 @@ do timeJ = 0, timesteps - 1
 		endif
 	enddo
 	
-	if ( AMR <= 0 ) then
-		totalMasstestCaseTracer(timeJ + 1) = 0.0_kreal
-		do j = 1, spherePanels%N
-			if ( .NOT. spherePanels%hasChildren(j) ) then
-				totalMasstestCaseTracer(timeJ + 1) = totalMasstestCaseTracer(timeJ + 1) + &
-					(spherePanels%tracer(j,1) - panelTracer0(j)) * panelArea0(j)
-			endif
-		enddo	
-		totalMasstestCaseTracer(timeJ+1) = totalMasstestCaseTracer(timeJ+1)/mass0
-	else
-		totalMasstestCaseTracer(timeJ+1) = TotalMass(sphere, tracerID) / mass0 - 1.0_kreal
-	endif
+	totalMasstestCaseTracer(timeJ+1) = TotalMass(sphere, tracerID) / mass0 - 1.0_kreal
+
 	
 	tracerVar(timeJ+1) = ( TracerVariance(sphere, tracerID) - var0 ) / var0
 
@@ -445,6 +435,8 @@ enddo
 			write(WRITE_UNIT_1,'(F24.15,A)') tracerVar(timesteps), ' ] ;'
 		endif
 		close(WRITE_UNIT_1)
+		
+		call LogMessage(exeLog,TRACE_LOGGING_LEVEL,'int change = ', maxval(abs(totalMasstestCaseTracer)))
 
 		write(logstring,'(A, F8.2,A)') 'elapsed time = ', (MPI_WTIME() - wallClock)/60.0, ' minutes.'
 		call LogMessage(exelog,TRACE_LOGGING_LEVEL,'PROGRAM COMPLETE : ',trim(logstring))
