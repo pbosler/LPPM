@@ -16,6 +16,7 @@ module OutputWriterModule
 !
 !------------------------------------------------------------------------------
 use NumberKindsModule
+use STDIntVectorModule
 
 implicit none
 private
@@ -24,6 +25,8 @@ public OutputWriter
 public New, Delete
 public StartSection, EndSection
 public Write
+public WriteToMatlab
+public WriteVTKFileHeader, WriteVTKPointDataSectionHeader
 
 !
 !----------------
@@ -66,8 +69,14 @@ interface Write
 	module procedure WriteString
 	module procedure WriteInteger
 	module procedure WriteReal
+	module procedure WriteIntVector
 end interface
 
+interface WriteToMatlab
+	module procedure WriteArrayToMatlab
+	module procedure WriteMatrixToMatlab
+	module procedure WriteIntegerMatrixToMatlab
+end interface
 
 contains
 !
@@ -158,6 +167,17 @@ subroutine WriteReal(self,key,val)
 	write(self%fileUnit,form) trim(key), val
 end subroutine
 
+subroutine WriteIntVector(self, key, val)
+	type(OutputWriter), intent(in) :: self
+	character(len=*), intent(in) :: key
+	type(STDIntVector), intent(in) :: val
+	character(len=32) :: form
+	
+	write(form,'(A,I4,A)') "(A,2X,", val%N, "(I8,2X) )"
+	form = FormatWithIndent(self, form)
+	write(self%fileUnit, form) trim(key), val%integers(1:val%N)
+end subroutine
+
 subroutine StartBlankSectionWriter(self)
 	type(OutputWriter), intent(inout) :: self
 	self%indentLevel = self%indentLevel + 1
@@ -186,6 +206,87 @@ subroutine EndSectionWriter(self)
 		self%indentLevel = self%indentLevel - 1
 	endif
 end subroutine
+
+subroutine WriteVTKFileHeader( fileunit, title )
+	integer(kint), intent(in) :: fileUnit
+	character(len=*), intent(in), optional :: title
+	write(fileunit,'(A)') "# vtk DataFile Version 2.0"
+	if ( present(title) ) then
+		write(fileunit,'(A)') trim(title)
+	else
+		write(fileunit,'(A)') " "
+	endif
+	write(fileunit,'(A)') "ASCII"
+	write(fileunit,'(A)') "DATASET POLYDATA"
+end subroutine
+
+subroutine WriteVTKPointDataSectionHeader(fileunit, nPoints)
+	integer(kint), intent(in) :: fileunit
+	integer(kint), intent(in) :: nPoints
+	write(fileunit,'(A,I8)') "POINT_DATA ", nPoints
+end subroutine
+
+
+
+subroutine WriteArrayToMatlab( array, fileunit, name)
+	real(kreal), intent(in) :: array(:)
+	integer(kint), intent(in) :: fileunit
+	character(len=*), intent(in) :: name
+	!
+	integer(kint) :: i, n
+	
+	n = size(array)
+	write(fileunit,'(A,A)',advance='NO') trim(name), " = [ "
+	do i = 1, n-1
+		write(fileunit,'(F24.12,A)', advance='NO') array(i), ", "
+	enddo
+	write(fileunit,'(F24.12,A)') array(n), "];"
+end subroutine
+
+subroutine WriteMatrixToMatlab( matrix, fileunit, name )
+	real(kreal), intent(in) :: matrix(:,:)
+	integer(kint), intent(in) :: fileunit
+	character(len=*), intent(in) :: name
+	!
+	integer(kint) :: i, j, m, n
+	
+	m = size(matrix,1)
+	n = size(matrix,2)
+	write(fileunit,'(A,A)',advance='NO') trim(name), " = [ "
+	do i = 1, m - 1
+		do j = 1, n -1 
+			write(fileunit, '(F24.12,A)', advance='NO') matrix(i,j), ", "
+		enddo
+		write(fileunit, '(F24.12,A)') matrix(i,n), "; ... "
+	enddo
+	do j = 1, n -1 
+		write(fileunit, '(F24.12,A)', advance='NO') matrix(m,j), ", "
+	enddo
+	write(fileunit, '(F24.12,A)') matrix(m,n), "]; "
+end subroutine
+
+subroutine WriteIntegerMatrixToMatlab( matrix, fileunit, name )
+	integer(kint), intent(in), dimension(:,:) :: matrix
+	integer(kint), intent(in) :: fileUnit
+	character(len=*), intent(in) :: name
+	!
+	integer(kint) :: i, j, m, n
+	
+	m = size(matrix,1)
+	n = size(matrix,2)
+	write(fileunit,'(A,A)', advance='NO') trim(name), " = ["
+	do i = 1, m - 1
+		do j = 1, n - 1
+			write(fileunit,'(I8,A)', advance='no') matrix(i,j), ", "
+		enddo
+		write(fileunit, '(I8,A)' ) matrix(i,n), "; ..."
+	enddo
+	do j = 1, n - 1
+		write(fileunit,'(I8,A)', advance='no') matrix(m,j), ", "
+	enddo
+	write(fileunit,'(I8,A)') matrix(m,n), "];"
+end subroutine
+
 
 !
 !----------------

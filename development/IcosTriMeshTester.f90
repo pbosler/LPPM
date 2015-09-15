@@ -1,6 +1,7 @@
 program IcosTriMeshTester
 
 use NumberKindsModule
+use OutputWriterModule
 use LoggerModule
 use PolyMesh2dModule
 use ParticlesModule
@@ -25,7 +26,7 @@ type(Logger) :: exeLog
 
 real(kreal) :: lons(180)
 real(kreal) :: lats(91)
-integer(kint) :: triFaces(91,180)
+integer(kint) :: triFaces(91,180), nearParticles(91,180)
 
 integer(kint) :: randomVertex
 integer(kint) :: randomFace
@@ -76,7 +77,7 @@ call LogMessage(exeLog, TRACE_LOGGING_LEVEL, "Test 1 : ", " constructing icosahe
 call LogMessage(exeLog, TRACE_LOGGING_LEVEL, "Test 1 : ", " complete.")
 
 avgLength = 0.0_kreal
-nEdges = 0
+nEdges = 30
 minEdgeLength = 1.0e20
 
 if ( sphere%edges%N - count(sphere%edges%hasChildren) /= nEdges) then
@@ -87,6 +88,7 @@ endif
 do i = 1, sphere%edges%N
 	if ( .NOT. sphere%edges%hasChildren(i) ) then
 		testLength = EdgeLength( sphere%edges, i, sphere%particles)
+		avgLength = avgLength + EdgeLength( sphere%edges, i, sphere%particles)
 		if ( testLength < minEdgeLength )  minEdgeLength = testLength
 	endif
 enddo
@@ -108,6 +110,7 @@ call LogMessage(exeLog, TRACE_LOGGING_LEVEL, "Test 2 : ", " correlating a unifor
 		do i = 1, 91
 			xyz = [ radius * cos(lats(i)) * cos(lons(j)), radius * cos(lats(i)) * sin(lons(j)), radius * sin(lats(i)) ]
 			triFaces(i,j) = LocateFaceContainingPoint( sphere, xyz )
+			nearParticles(i,j) = nearestParticle(sphere, xyz)
 		enddo
 	enddo
 
@@ -137,6 +140,8 @@ call LogMessage(exeLog, TRACE_LOGGING_LEVEL, "Test 2 : ", " correlating a unifor
 			write(WRITE_UNIT_1,'(I8,A)',advance='NO') triFaces(91,j), ", "
 		enddo
 		write(WRITE_UNIT_1,'(I8,A)') triFaces(91,180), "]; "
+		
+		call WriteToMatlab(nearParticles, WRITE_UNIT_1, "nearestParticle")
 
 		write(WRITE_UNIT_1,'(A,I8,A)') "figure(1); clf; hold on; contour(lons, lats, triFaces, ",&
 				 sphere%faces%N_Active, "); colorbar;"

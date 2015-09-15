@@ -21,13 +21,12 @@ use FacesModule
 use PolyMesh2dModule
 use FieldModule
 use STDIntVectorModule
-!use BIVARModule
 
 implicit none
 
 private
 public TriScatteredInterp, New, Delete, Copy
-public generatefaceUVs, estimatePartialDerivatives, BIVAREstimatePartials
+public generatefaceUVs, estimatePartialDerivatives!, BIVAREstimatePartials
 public SetPlanarCoefficients
 public InterpolateScalar, InterpolateGradient, InterpolateLaplacian
 
@@ -833,7 +832,9 @@ function InterpolateScalar( self, aMesh, xyIn )
 	!
 	real(kreal) :: uv(2), u, v
 	integer(kint) :: faceIndex
-	real(kreal) :: vmBasis(21)
+	!real(kreal) :: vmBasis(21)
+	real(kreal) :: p0, p1, p2, p3, p4, p5
+	
 	
 	InterpolateScalar = 0.0_kreal
 	faceIndex = 0
@@ -849,14 +850,25 @@ function InterpolateScalar( self, aMesh, xyIn )
 		call convertXYToLocalUV( self, aMesh, faceIndex, xyIn, uv)
 		u = uv(1)
 		v = uv(2)
-		vmBasis = [1.0_kreal, v, v**2, v**3, v**4, v**5, &
-					u, u*v, u*v**2, u*v**3, u*v**4, &
-					u**2, u**2*v, u**2*v**2, u**2*v**3, &
-					u**3, u**3*v, u**3*v**2, &
-					u**4, u**4*v, &
-					u**5]
+!		vmBasis = [1.0_kreal, v, v**2, v**3, v**4, v**5, &
+!					u, u*v, u*v**2, u*v**3, u*v**4, &
+!					u**2, u**2*v, u**2*v**2, u**2*v**3, &
+!					u**3, u**3*v, u**3*v**2, &
+!					u**4, u**4*v, &
+!					u**5]
+		p0 = self%faceCoeffs(1,faceIndex) + v * ( self%faceCoeffs(2,faceIndex) + v * (self%faceCoeffs(3,faceIndex) + &
+			 v * (self%faceCoeffs(4,faceIndex) + v * (self%faceCoeffs(5,faceIndex) + v * self%faceCoeffs(6,faceIndex)))))
+		p1 = self%faceCoeffs(7,faceIndex) + v * (self%faceCoeffs(8,faceIndex) + v * (self%faceCoeffs(9,faceIndex) + &
+			 v * (self%faceCoeffs(10,faceIndex) + v * self%faceCoeffs(11,faceIndex))))
+		p2 = self%faceCoeffs(12,faceIndex) + v * (self%faceCoeffs(13,faceIndex) + v * &
+			 (self%faceCoeffs(14,faceIndex) + v * self%faceCoeffs(15,faceIndex)))
+		p3 = self%faceCoeffs(16,faceIndex) + v * (self%faceCoeffs(17,faceIndex) + v * self%faceCoeffs(18,faceIndex))
+		p4 = self%faceCoeffs(19,faceIndex) + v * self%faceCoeffs(20,faceIndex)
+		p5 = self%faceCoeffs(21,faceIndex)
 		
-		InterpolateScalar = sum( vmBasis * self%faceCoeffs(:,faceIndex))
+		InterpolateScalar = p0 + u * (p1 + u*(p2 + u * (p3 + u * (p4 + u*p5))))
+		
+!		InterpolateScalar = sum( vmBasis * self%faceCoeffs(:,faceIndex))
 	endif
 end function 
 

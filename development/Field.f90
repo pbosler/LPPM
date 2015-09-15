@@ -28,13 +28,15 @@ use FacesModule
 implicit none
 private
 public Field
-public New, Delete
+public New, Delete, Copy
 public InsertScalarToField, InsertVectorToField
 public WriteFieldToVTKPointData, WriteFieldToVTKCellData
 public WriteFieldToMatlab
 public LogStats
 public SetFieldToZero
 public MinMagnitude, MaxMagnitude
+public MultiplyFieldByScalar
+public ScalarAverage
 !public SetFieldToScalarFunction, SetFieldToVectorFunction
 
 !> @class Field
@@ -53,21 +55,28 @@ type Field
 	integer(kint) :: N = 0
 	integer(kint) :: N_Max = 0
 	integer(kint) :: nDim = 0
+	
+	contains	
+		final :: deletePrivate
 end type	
 
 !> @brief Allocates memory and initializes to null/zero a Field object.
 interface New
-	module procedure NewPrivate
+	module procedure newPrivate
 end interface
 
 !> @brief Deletes a Field object and frees its memory.
 interface Delete
-	module procedure DeletePrivate
+	module procedure deletePrivate
+end interface
+
+interface Copy
+	module procedure copyPrivate
 end interface
 
 !> @brief Outputs statistics about a Field object to the console via a ::logger object.
 interface LogStats
-	module procedure LogStatsPrivate
+	module procedure logStatsPrivate
 end interface
 
 !interface ScalarFieldFunction
@@ -113,7 +122,7 @@ contains
 !> @param nDim number of components in this Field object (not the spatial domain of its accompanying particle set)
 !> @param name e.g., vorticity or potential
 !> @param units physical units, if applicable
-subroutine NewPrivate(self, nDim, nMax, name, units )
+subroutine newPrivate(self, nDim, nMax, name, units )
 	type(Field), intent(out) :: self
 	integer(kint), intent(in) :: nDim, nMax
 	character(len=*), intent(in), optional :: name, units
@@ -158,12 +167,43 @@ end subroutine
 
 !> Deallocates memory assigned by newprivate.
 !> @param self
-subroutine DeletePrivate(self)
+subroutine deletePrivate(self)
 	type(Field), intent(inout) :: self
 	if ( associated(self%scalar) ) deallocate(self%scalar)
 	if ( associated(self%xComp) ) deallocate(self%xComp)
 	if ( associated(self%yComp) ) deallocate(self%yComp)
 	if ( associated(self%zComp) ) deallocate(self%zComp)
+end subroutine
+
+subroutine copyPrivate( self, other )
+	type(Field), intent(inout) :: self
+	type(Field), intent(in) :: other
+	integer(kint) :: i
+	if ( self%nDim /= other%nDim .OR. self%N_Max < other%N ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, logkey, " Copy Field ERROR : memory not allocated.") 
+		return 
+	endif
+	self%N = other%N
+	self%name = other%name
+	self%units = other%units
+	if ( self%nDim == 1 ) then
+		do i = 1, self%N
+			self%scalar(i) = other%scalar(i)
+		enddo
+		self%scalar(self%N+1:self%N_Max) = 0.0_kreal
+	elseif ( self%nDim == 2 ) then
+		do i = 1, self%N
+			self%xComp(i) = other%xComp(i)
+			self%yComp(i) = other%yComp(i)
+		enddo
+		
+	else
+		do i = 1, self%N
+			self%xComp(i) = other%xComp(i)
+			self%yComp(i) = other%yComp(i)
+			self%zComp(i) = other%zComp(i)
+		enddo
+	endif
 end subroutine
 
 !> @brief Inserts a scalar value to a preallocated Field object.
@@ -201,13 +241,21 @@ subroutine InsertVectorToField( self, vecVal )
 	elseif ( self%nDim == 3 .AND. size(vecVal) == 3 ) then
 		self%xComp( self%N + 1 ) = vecVal(1)
 		self%yComp( self%N + 1 ) = vecVal(2)
-		self%yComp( self%N + 1 ) = vecVal(3)
+		self%zComp( self%N + 1 ) = vecVal(3)
 	else
 		call LogMessage(log, ERROR_LOGGING_LEVEL, logKey, " InsertVectorToField : size mismatch.")
 		return
 	endif
 	self%N = self%N + 1
 end subroutine
+
+function ScalarAverage(self, aParticles )
+	real(kreal) :: ScalarAverage
+	type(Field), intent(in) :: self
+	type(Particles), intent(in) :: aParticles
+	ScalarAverage = sum( self%scalar(1:self%N) * aParticles%area(1:self%N), MASK=aParticles%isActive(1:self%N)) / &
+					TotalArea(aParticles)
+end function
 
 !> @brief Initialize a logger for this module and processor
 subroutine InitLogger(aLog,rank)
@@ -233,6 +281,21 @@ subroutine SetFieldToZero( self )
 	endif
 end subroutine
 
+subroutine MultiplyFieldByScalar(self, multiplier)
+	type(Field), intent(inout) :: self
+	real(kreal), intent(in) :: multiplier
+	if (self%nDim == 1) then
+		self%scalar = multiplier * self%scalar
+	elseif ( self%nDim == 2 ) then
+		self%xComp = multiplier * self%xComp
+		self%yComp = multiplier * self%yComp
+	elseif ( self%nDim == 3 ) then
+		self%xComp = multiplier * self%xComp
+		self%yComp = multiplier * self%yComp
+		self%zComp = multiplier * self%zComp
+	endif
+end subroutine
+
 !> @brief Outputs Field object data to a .vtk PolyData file for use with VTK or ParaView
 !> @param self
 !> @param fileunit
@@ -242,8 +305,8 @@ subroutine WriteFieldToVTKPointData( self, fileunit )
 	!
 	integer(kint) :: j
 	
-	write(fileunit,'(A,I8)') "POINT_DATA ", self%N
-	write(fileunit,'(5A,I4)') "SCALARS ", trim(self%name), "_", trim(self%units) , "double ", self%nDim
+	!write(fileunit,'(A,I8)') "POINT_DATA ", self%N
+	write(fileunit,'(5A,I4)') "SCALARS ", trim(self%name), "_", trim(self%units) , "  double ", self%nDim
 	write(fileunit,'(A)') "LOOKUP_TABLE default"
 	
 	select case (self%nDim)
@@ -277,8 +340,8 @@ subroutine WriteFieldToVTKCellData( self, fileunit, aFaces )
 	nVerts = size(aFaces%vertices, 1)
 	nCells = nVerts * aFaces%N_Active
 	
-	write(fileunit,'(A,I8)') "CELL_DATA ", nCells
-	write(fileunit,'(5A,I4)') "SCALARS ", trim(self%name), "_", trim(self%units) , "double ", self%nDim
+	!write(fileunit,'(A,I8)') "CELL_DATA ", nCells
+	write(fileunit,'(5A,I4)') "SCALARS ", trim(self%name), "_", trim(self%units) , "  double ", self%nDim
 	write(fileunit,'(A)') "LOOKUP_TABLE default"
 	
 	select case ( self%nDim )
@@ -313,7 +376,7 @@ end subroutine
 !> @brief Writes Field information to console using a loggermodule::logger object for formatting. 
 !> @param self
 !> @param aLog
-subroutine LogStatsPrivate(self, aLog )
+subroutine logStatsPrivate(self, aLog )
 	type(Field), intent(in) :: self
 	type(Logger), intent(inout) :: aLog 
 	call LogMessage(aLog, TRACE_LOGGING_LEVEL, logkey, "FieldStats:"//trim(self%name) )
@@ -334,7 +397,7 @@ end subroutine
 
 !> @brief Returns the maximum magnitude of a vector field
 !> @param self
-function MaxMagnitude(self)
+pure function MaxMagnitude(self)
 	real(kreal) :: MaxMagnitude 
 	type(Field), intent(in) :: self
 	!
@@ -356,7 +419,7 @@ end function
 
 !> @brief Returns the minimum magnitude of a vector field
 !> @param self
-function MinMagnitude(self)
+pure function MinMagnitude(self)
 	real(kreal) :: MinMagnitude 
 	type(Field), intent(in) :: self
 	!
@@ -401,7 +464,7 @@ subroutine WriteFieldToMatlab( self, fileunit )
 		case (3)
 			write(fileunit,*) "vectorField_", trim(self%name), " = [", self%xComp(1), ", ",&
 										 self%yComp(1), ", ", self%zComp(1), "; ..."
-			do i = 2, self%N
+			do i = 2, self%N-1
 				write(fileunit,*) self%xComp(i), ", ", self%yComp(i), ", ", self%zComp(i), "; ..."
 			enddo							 
 			write(fileunit,*) self%xComp(self%N), ", ", self%yComp(self%N), ", ", self%zComp(self%N), "];"

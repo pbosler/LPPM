@@ -31,10 +31,11 @@ module NumberKindsModule
 	!> @brief Physical constants referenced from @cite CAM3.0
 	real(KREAL), parameter :: PI = 3.1415926535897932384626433832795027975_KREAL !<< Pi @ingroup PhysicalConstants
 	real(KREAL), parameter :: RAD_2_DEG = 180.0_kreal/PI !<<  convert radians to degrees @ingroup PhysicalConstants
+	real(KREAL), parameter :: DEG_2_RAD = PI / 180.0_kreal !<< convert degress to radians @ingroup PhysicalConstants
 	real(KREAL), parameter :: GRAV = 9.80616 !<< acceleration due to gravity {m s^(-2)} @ingroup PhysicalConstants
 	real(KREAL), parameter :: ONE_DAY = 86140.0_kreal !<< Earth's sidereal day {s} @ingroup PhysicalConstants
 	real(KREAL), parameter :: EARTH_RADIUS = 6371220_kreal !<< mean radius of the Earth { m } @ingroup PhysicalConstants
-    real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  !<< rotation rate of sphere {s^(-1)} @ingroup PhysicalConstants
+!    real(KREAL), save ::	  OMEGA = 2.0_kreal*PI / ONE_DAY  !<< rotation rate of sphere {s^(-1)} @ingroup PhysicalConstants
     real(KREAL), parameter :: EARTH_SURFACE_AREA = 4.0_kreal * PI * EARTH_RADIUS * EARTH_RADIUS
 
 

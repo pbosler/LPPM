@@ -16,6 +16,7 @@ module LoggerModule
 
 use NumberKindsModule
 use OutputWriterModule
+use STDIntVectorModule
 
 implicit none
 private
@@ -67,6 +68,7 @@ interface LogMessage
 	module procedure LogString
 	module procedure LogInteger
 	module procedure LogReal
+	module procedure LogIntVector
 end interface
 
 !> @brief Starts an indented section
@@ -155,6 +157,17 @@ subroutine LogInteger(self,msgLevel,key,val)
 	integer(kint), intent(in) :: val
 	if ( msgLevel >= self%level) then
 		call Write(self%writer,key,val)
+	endif
+end subroutine
+
+subroutine LogIntVector(self, msgLevel, key, val )
+	type(Logger), intent(in) :: self
+	integer(kint), intent(in) :: msgLevel
+	character(len=*), intent(in) :: key
+	type(STDIntVector), intent(in) :: val
+	
+	if ( msgLevel >= self%level ) then
+		call Write(self%writer, key, val)
 	endif
 end subroutine
 

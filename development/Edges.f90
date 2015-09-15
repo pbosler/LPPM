@@ -30,6 +30,7 @@ public GetLeafEdgesFromParent, AreaFromLeafEdges
 public EdgeLength, MaxEdgeLength
 public LogStats, PrintDebugInfo
 public WriteEdgesToMatlab
+public CountParents
 
 !> @class Edges
 !> @brief Edges know the indices (to Particles) of their origin and destination, and the indices (to Faces)
@@ -45,6 +46,9 @@ type Edges
 	integer(kint), pointer :: parent(:) => null()
 	integer(kint) :: N = 0
 	integer(kint) :: N_Max = 0
+	
+	contains
+		final :: deletePrivate
 end type
 
 interface New
@@ -66,6 +70,10 @@ end interface
 interface PrintDebugInfo
 	module procedure PrintDebugPrivate
 end interface
+
+interface CountParents
+	module procedure countParentEdges
+end interface 
 
 !
 !----------------
@@ -165,18 +173,16 @@ subroutine NewPrivate(self, nMax )
 	self%parent = 0
 end subroutine
 
-subroutine DeletePrivate(self)
+subroutine deletePrivate(self)
 	type(Edges), intent(inout) :: self
-	deallocate(self%orig)
-	deallocate(self%dest)
-	deallocate(self%leftFace)
-	deallocate(self%rightFace)
-	deallocate(self%hasChildren)
-	deallocate(self%child1)
-	deallocate(self%child2)
-	deallocate(self%parent)
-	self%N = 0
-	self%N_Max = 0
+	if ( associated(self%orig)) deallocate(self%orig)
+	if ( associated(self%dest)) deallocate(self%dest)
+	if ( associated(self%leftFace)) deallocate(self%leftFace)
+	if ( associated(self%rightFace)) deallocate(self%rightFace)
+	if ( associated(self%hasChildren)) deallocate(self%hasChildren)
+	if ( associated(self%child1)) deallocate(self%child1)
+	if ( associated(self%child2)) deallocate(self%child2)
+	if ( associated(self%parent)) deallocate(self%parent)
 end subroutine
 
 subroutine copyPrivate( self, other )
@@ -226,6 +232,24 @@ subroutine InsertEdge( self, aParticles, origIndex, destIndex, leftFace, rightFa
 	
 	self%N = n + 1
 end subroutine
+
+function countParentEdges( self, index )
+	integer(kint) :: countParentEdges
+	type(Edges), intent(in) :: self
+	integer(kint), intent(in) :: index
+	!
+	logical(klog) :: keepGoing
+	integer(kint) :: parentIndex
+	
+	countParentEdges = 0
+	keepGoing = ( self%parent(index) > 0 )
+	parentIndex = self%parent(index)
+	do while ( keepGoing )
+		countParentEdges = countParentEdges + 1
+		parentIndex = self%parent( parentIndex )
+		keepGoing = ( self%parent(parentIndex) > 0 )
+	enddo
+end function 
 
 function MaxEdgeLength( self, aParticles )
 	real(kreal) :: MaxEdgeLength

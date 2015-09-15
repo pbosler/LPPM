@@ -18,6 +18,7 @@ module ParticlesModule
 !
 !------------------------------------------------------------------------------
 use NumberKindsModule
+use OutputWriterModule
 use LoggerModule
 
 implicit none
@@ -166,15 +167,15 @@ end subroutine
 
 subroutine DeletePrivate(self)
 	type(Particles), intent(inout) :: self
-	deallocate(self%x)
-	deallocate(self%y)
-	deallocate(self%x0)
-	deallocate(self%y0)
-	deallocate(self%incidentEdges)
-	deallocate(self%incidentAngles)
-	deallocate(self%nEdges)
-	deallocate(self%isActive)
-	deallocate(self%isPassive)
+	if ( associated(self%x)) deallocate(self%x)
+	if ( associated(self%y)) deallocate(self%y)
+	if ( associated(self%x0)) deallocate(self%x0)
+	if ( associated(self%y0)) deallocate(self%y0)
+	if ( associated(self%incidentEdges)) deallocate(self%incidentEdges)
+	if ( associated(self%incidentAngles)) deallocate(self%incidentAngles)
+	if ( associated(self%nEdges)) deallocate(self%nEdges)
+	if ( associated(self%isActive)) deallocate(self%isActive)
+	if ( associated(self%isPassive)) deallocate(self%isPassive)
 	if ( associated(self%volume)) deallocate(self%volume)
 	if ( associated(self%area)) deallocate(self%area)
 	if ( associated(self%z)) deallocate(self%z)
@@ -341,14 +342,11 @@ subroutine WriteVTKPoints( self, fileunit, title )
 	!
 	integer(kint) :: j
 	
-	write(fileunit,'(A)') "# vtk DataFile Version 2.0"
-	if ( present(title) ) then
-		write(fileunit,'(A)') trim(title)
+	if ( present(title)) then
+		call WriteVTKFileHeader(fileunit, title)
 	else
-		write(fileunit,'(A)') " "
+		call WriteVTKFileHeader(fileunit)
 	endif
-	write(fileunit,'(A)') "ASCII"
-	write(fileunit,'(A)') "DATASET POLYDATA"
 	write(fileunit,'(A,I8,A)') "POINTS ", self%N, " double "
 	if ( self%geomKind == PLANAR_GEOM ) then
 		do j = 1, self%N
@@ -370,7 +368,6 @@ subroutine WriteVTKLagCoords( self, fileunit )
 	!
 	integer(kint) :: j
 	
-	write(fileunit,'(A,I8)') "POINT_DATA ", self%N
 	write(fileunit,'(A)') "SCALARS lagParam double 3"
 	write(fileunit,'(A)') "LOOKUP_TABLE default"
 	if ( self%geomKind == PLANAR_GEOM ) then
@@ -544,7 +541,7 @@ subroutine SortIncidentEdgesAtParticle( self, index )
 !	print *, "sorted edges at particle = ", self%incidentEdges(1:self%nEdges(index), index)
 end subroutine
 
-subroutine OrderEdgePair( index1, angle1, index2, angle2 )
+pure subroutine OrderEdgePair( index1, angle1, index2, angle2 )
 	integer(kint), intent(inout) :: index1
 	real(kreal), intent(inout) :: angle1
 	integer(kint), intent(inout) :: index2
@@ -566,7 +563,7 @@ end subroutine
 !> @param self
 !> @param index
 !> @return PhysCoord coordinate vector
-function PhysCoord( self, index )
+pure function PhysCoord( self, index )
 	real(kreal) :: PhysCoord(3)
 	type(Particles), intent(in) :: self
 	integer(kint), intent(in) :: index
@@ -580,7 +577,7 @@ end function
 !> @param self
 !> @param index
 !> @return LagCoord coordinate vector
-function LagCoord( self, index )
+pure function LagCoord( self, index )
 	real(kreal) :: LagCoord(3)
 	type(Particles), intent(in) :: self
 	integer(kint), intent(in) :: index
@@ -593,7 +590,7 @@ end function
 !> @brief Returns the total area represented by all active ParticlesModule
 !> @param self
 !> @return TotalArea
-function TotalArea( self ) 
+pure function TotalArea( self ) 
 	real(kreal) :: TotalArea
 	type(Particles), intent(in) :: self
 	TotalArea = sum(self%area(1:self%N), MASK=self%isActive(1:self%N) )	
@@ -602,7 +599,7 @@ end function
 !> @brief Returns the total volume represented by all active ParticlesModule
 !> @param self
 !> @return Totalvolume
-function TotalVolume(self)
+pure function TotalVolume(self)
 	real(kreal) :: TotalVolume
 	type(Particles), intent(in) :: self
 	TotalVolume = sum(self%volume(1:self%N), MASK=self%isActive(1:self%N) )

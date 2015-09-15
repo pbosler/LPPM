@@ -28,6 +28,7 @@ public positiveEdge
 public FaceCentroid, TriFaceArea, QuadFaceArea
 public LogStats, PrintDebugInfo
 public SharedEdge, ParticleOppositeTriEdge
+public CountParents
 
 !> @class Faces
 !> @brief Designed to accomodate quadrilateral and triangular faces.  
@@ -42,11 +43,13 @@ type Faces
 	logical(klog), pointer :: hasChildren(:) => null()
 	integer(kint), pointer :: children(:,:) => null()
 	integer(kint), pointer :: parent(:) => null()
-	real(kreal), pointer :: area(:) => null()
 	integer(kint) :: faceKind
 	integer(kint) :: N
 	integer(kint) :: N_Active
 	integer(kint) :: N_Max
+	
+	contains
+		final :: deletePrivate
 end type
 
 interface New
@@ -68,6 +71,10 @@ end interface
 interface PrintDebugInfo
 	module procedure PrintDebugPrivate
 end interface
+
+interface CountParents
+	module procedure countParentFaces
+end interface 
 
 !
 !----------------
@@ -123,11 +130,7 @@ subroutine PrintDebugPrivate( self )
 		enddo
 		print *, self%parent(i) 
 	enddo	
-	print *, " "
-	print *, "faces.area = "
-	do i = 1, self%N_Max
-		print *, self%area(i)
-	enddo
+
 end subroutine
 
 subroutine LogStatsPrivate(self, aLog)
@@ -146,7 +149,6 @@ subroutine LogStatsPrivate(self, aLog)
 	else
 		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "faceKind = ", "invalid faceKind.")
 	endif
-	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "sum(faces.area) = ", sum(self%area(1:self%N)))
 	call EndSection(aLog)
 end subroutine
 
@@ -185,8 +187,6 @@ subroutine newPrivate( self, faceKind, nMax )
 	self%hasChildren = .FALSE.
 	allocate(self%parent(nMax))
 	self%parent = 0
-	allocate(self%area(nMax))
-	self%area = 0.0_kreal
 	self%N = 0
 	self%N_Active = 0
 	self%N_Max = nMax
@@ -195,13 +195,12 @@ end subroutine
 
 subroutine deletePrivate(self)
 	type(Faces), intent(inout) :: self
-	deallocate(self%vertices)
-	deallocate(self%edges)
-	deallocate(self%centerParticle)
-	deallocate(self%children)
-	deallocate(self%hasChildren)
-	deallocate(self%parent)
-	deallocate(self%area)
+	if ( associated(self%vertices)) deallocate(self%vertices)
+	if ( associated(self%edges)) deallocate(self%edges)
+	if ( associated(self%centerParticle)) deallocate(self%centerParticle)
+	if ( associated(self%children)) deallocate(self%children)
+	if ( associated(self%hasChildren)) deallocate(self%hasChildren)
+	if ( associated(self%parent)) deallocate(self%parent)
 end subroutine
 
 subroutine copyPrivate( dest, source )
@@ -227,7 +226,6 @@ subroutine copyPrivate( dest, source )
 		dest%children(:,j) = source%children(:,j)
 		dest%hasChildren(j) = source%hasChildren(j)
 		dest%parent(j) = source%parent(j)
-		dest%area(j) = source%area(j)
 	enddo
 end subroutine
 
@@ -260,6 +258,24 @@ function FaceCenterLagCoord( self, faceIndex, aparticles)
 		FaceCenterLagCoord(3) = 0.0_kreal
 	endif
 end function
+
+function countParentFaces( self, index )
+	integer(kint) :: countParentFaces
+	type(Faces), intent(in) :: self
+	integer(kint), intent(in) :: index
+	!
+	logical(klog) :: keepGoing
+	integer(kint) :: parentIndex
+	
+	countParentFaces = 0
+	keepGoing = ( self%parent(index) > 0 )
+	parentIndex = self%parent(index)
+	do while ( keepGoing )
+		countParentFaces = countParentFaces + 1
+		parentIndex = self%parent( parentIndex )
+		keepGoing = ( self%parent(parentIndex) > 0 )
+	enddo
+end function 
 
 function SharedEdge( self, face1, face2 )
 	integer(kint) :: SharedEdge
@@ -335,8 +351,9 @@ subroutine WriteFacesToVTKPolygons( self, fileunit )
 	enddo
 end subroutine
 
-subroutine WriteFaceAreaToVTKCellData(self, fileunit )
+subroutine WriteFaceAreaToVTKCellData(self, aParticles, fileunit )
 	type(Faces), intent(in) :: self
+	type(Particles), intent(in) :: aParticles
 	integer(kint), intent(in) :: fileunit
 	!
 	integer(kint) :: i, j, nCells, nVerts
@@ -354,7 +371,7 @@ subroutine WriteFaceAreaToVTKCellData(self, fileunit )
 	do i = 1, self%N
 		if ( .NOT. self%hasChildren(i) ) then
 			do j = 1, nVerts
-				write(fileunit,*) self%area(i)
+				write(fileunit,*) aParticles%area( self%centerParticle(i) )
 			enddo
 		endif
 	enddo		
@@ -425,13 +442,7 @@ subroutine WriteFacesToMatlab( self, fileunit )
 		write(fileunit,'(I4)',advance='NO') 0
 	endif
 	write(fileunit,'(A)') "];"
-	
-	write(fileunit,*) "faceArea = [", self%area(1), ", ..."
-	do i = 2, self%N-1
-		write(fileunit,*) self%area(i), ", ..."
-	enddo
-	write(fileunit,*) self%area(self%N), "]; "
-	
+
 	write(fileunit,*) "faceCenterParticle = [", self%centerParticle(1), ", ..."
 	do i = 2, self%N-1
 		write(fileunit,*) self%centerParticle(i), ", ..."
@@ -594,11 +605,9 @@ subroutine DivideQuadFace( self, faceIndex, aParticles, anEdges )
 		self%children(i,faceIndex) = self%N + i
 		self%parent(self%N+i) = faceIndex
 		aParticles%area(self%centerParticle(self%N+i)) = QuadFaceArea(self, self%N+i, aParticles)
-		self%area(self%N+i) = aParticles%area(self%centerParticle(self%N+i))
 	enddo
 	call MakeParticlePassive(aParticles, self%centerParticle(faceIndex) )
 	aParticles%area(self%centerParticle(faceIndex)) = 0.0_kreal
-	self%area(faceIndex) = 0.0_kreal
 	self%hasChildren(faceIndex) = .TRUE.
 	self%N = self%N + 4
 	self%N_Active = self%N_Active + 3
@@ -749,7 +758,6 @@ subroutine DivideTriFace( self, faceIndex, aParticles, anEdges )
 		self%children(i,faceIndex) = self%N+i
 		self%parent(self%N+i) = faceIndex
 		aParticles%area(self%centerParticle(self%N+i)) = TriFaceArea(self, self%N+i, aParticles)
-		self%area(self%N+i) = aParticles%area(self%centerParticle(self%N+i))
 	enddo
 	!	child 4 is special case : reuse parent face center particle
 	self%centerParticle( self%N + 4 ) = self%centerParticle(faceIndex)
@@ -758,9 +766,7 @@ subroutine DivideTriFace( self, faceIndex, aParticles, anEdges )
 	self%children(4,faceIndex) = self%N + 4
 	self%parent(self%N+4) = faceIndex
 	aParticles%area(self%centerParticle(self%N+4)) = TriFaceArea(self, self%N+4, aParticles)
-	self%area(self%N+4) = aParticles%area(self%centerParticle(self%N+4))
 	
-	self%area(faceIndex) = 0.0_kreal
 	self%hasChildren(faceIndex) = .TRUE.
 	self%N = self%N + 4
 	self%N_Active = self%N_Active + 3	

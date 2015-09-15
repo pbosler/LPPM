@@ -9,6 +9,7 @@ use FacesModule
 use STDIntVectorModule
 use FieldModule
 use TriScatteredInterpModule
+use PSEModule
 
 implicit none
 
@@ -30,6 +31,9 @@ type(TriScatteredInterp) :: interp
 
 real(kreal), parameter :: b = 3.0_kreal
 real(kreal), parameter :: xc = 0.0_kreal, yc = 0.0_kreal
+real(kreal), parameter :: maxAbsLap = 36.0_kreal
+
+type(PSE) :: pseSetup
 
 integer(kint) :: i, j
 
@@ -44,11 +48,10 @@ real(kreal) :: x(nn), y(nn)
 real(kreal) :: interpScalar(nn,nn), exactScalar(nn,nn)
 real(kreal) :: interpGradX(nn,nn), interpGradY(nn,nn), exactGradX(nn,nn), exactGradY(nn,nn)
 real(kreal) :: interpLap(nn,nn), exactLapUnif(nn,nn)
-real(kreal) :: xVecA(3), xVecB(3)
+real(kreal) :: xVecA(3), xVecB(3), maxGradMag
 
-real(kreal) :: maxGradMag(9), minGradMag(9), maxLap(9), minLap(9), maxEstGradErr(9), maxEstLapErr(9)
-real(kreal) :: maxInterpErr(9), maxGradInterpErr(9), maxLapInterpErr(9)
-integer(kint) :: nParticles(9)
+real(kreal) :: estGradError(9), estLapError(9), interpError(9), meshSize(9)
+real(kreal) :: testStart, testEnd
 
 character(len=MAX_STRING_LENGTH) :: logstring
 
@@ -57,19 +60,23 @@ character(len=MAX_STRING_LENGTH) :: logstring
 ! PROGRAM START
 !----------------
 !
+
 call New(exeLog, DEBUG_LOGGING_LEVEL)
+amrLimit = 0
+ampFactor = 3.0_kreal
 
 do initNest = 0, 8
 	
+	call cpu_time(testStart)
+	
 	write(logstring,'(A,I3,A)') "test ", initNest+1, ", of 9..."
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,"Interpolation Convergence : ", logString)
-
+	
 	!
 	! build a mesh
 	!
 	maxNest = initNest
-	amrLimit = 0
-	ampFactor = 3.0_kreal
+	
 	call New(triMesh, meshSeed, initNest, maxNest, amrLimit, ampFactor)
 	! define a scalar field on the mesh
 	call New(scalar, 1, triMesh%particles%N, "gaussScalar", "n/a")
@@ -95,8 +102,11 @@ do initNest = 0, 8
 	!
 	call New(interp, triMesh)
 	call generateFaceUVs(interp, triMesh)
+	call New(pseSetup, triMesh)
 	call estimatePartialDerivatives( interp, triMesh, scalar, estGrad, est2ndPartials)
-	call SetPlanarCoefficients(interp, triMesh, scalar, estGrad, est2ndPartials)
+!	call SetPlanarCoefficients(interp, triMesh, scalar, estGrad, est2ndPartials)
+	call SetPlanarCoefficients(interp, triMesh, scalar, exactGrad, exact2ndPartials)
+
 	
 	!
 	! calculate derivative error at particles
@@ -113,16 +123,7 @@ do initNest = 0, 8
 		xVecB = Gauss2ndDerivs( [triMesh%particles%x(i), triMesh%particles%y(i)], b)
 		call InsertVectorToField( partialsError, xVecA - xVecB )
 	enddo
-	
-	nParticles(initNest+1) = triMesh%particles%N
-	minGradMag(initNest+1) = MinMagnitude(exactGrad)
-	maxGradMag(initNest+1) = MaxMagnitude(exactGrad)
-	minLap(initNest+1) = minval(exactLap%scalar)
-	maxLap(initNest+1) = maxval(exactLap%scalar)
-	maxEstGradErr(initNest+1) = maxval(gradError%scalar)
-	maxEstLapErr(initNest+1) = maxval(abs(lapError%scalar))
-	
-	
+
 	!
 	! interpolate to uniform mesh
 	!
@@ -148,19 +149,22 @@ do initNest = 0, 8
 		enddo
 	enddo
 	
-	maxInterpErr(initNest+1) = maxval(abs(interpScalar - exactScalar))
-	maxGradInterpErr(initNest+1) = maxval( sqrt( (interpGradX-exactGradX)*(interpGradX-exactGradX) + &
-								   (interpGradY - exactGradY)*(interpGradY - exactGradY)))
-	maxLapInterpErr(initNest+1) = maxval(abs(interpLap-exactLapUnif))
+	maxGradMag = MaxMagnitude(exactGrad)
+	meshSize(initNest+1) = MaxEdgeLength(triMesh%edges, triMesh%particles)
+	estGradError(initNest+1) = maxval(gradError%scalar)/maxGradMag
+	estLapError(initNest+1) = maxval(abs(lapError%scalar))/maxAbsLap
+	interpError(initNest+1) = maxval(abs(interpScalar-exactScalar))
 	
-	write(6,'(6A24)') "nparticles", "gradErr-particles", "lapErr-particles", "scalarErr-interp", "gradErr-interp", "lapErr-interp"
-	write(6,'(I24,5F24.10)') nParticles(initNest+1), maxEstGradErr(initNest+1)/maxGradMag(initNest+1), &
-				  maxEstLapErr(initNest+1)/maxLap(initNest+1), maxInterpErr(initNest+1), &
-				  maxGradInterpErr(initNest+1)/maxGradMag(initNest+1), maxLapInterpErr(initNest+1)/maxLap(initNest+1)
+	write(6,'(4A24)') "dx", "gradErr-particles", "lapErr-particles", "interp error"
+	write(6,'(4F24.10)') meshSize(initNest+1), estGradError(initNest+1), estLapError(initNest+1), interpError(initNest+1)
 	
 	!
 	! reset for next iteration
 	!
+	call cpu_time(testEnd)
+	write(6,'(A,I8,A,F12.2,A)') "nParticles = ", triMesh%particles%N, ": elapsed time = ", testEnd-testStart, " seconds."
+	
+	call Delete(pseSetup)
 	call Delete(interp)
 	call Delete(lapError)
 	call Delete(exactLap)
@@ -177,10 +181,9 @@ do initNest = 0, 8
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL, "test complete for initNest = ", initNest)
 enddo
 
-write(6,'(6A24)') "nparticles", "gradErr-particles", "lapErr-particles", "scalarErr-interp", "gradErr-interp", "lapErr-interp"
-do i = 1,9
-	write(6,'(I24,5F24.10)') nParticles(i), maxEstGradErr(i)/maxGradMag(i), maxEstLapErr(i)/maxLap(i), maxInterpErr(i), &
-				  maxGradInterpErr(i)/maxGradMag(i), maxLapInterpErr(i)/maxLap(i)
+write(6,'(4A24)') "dx", "gradErr-particles", "lapErr-particles", "interp error"
+do i = 1, 9
+	write(6,'(4F24.10)') meshSize(i), estGradError(i), estLapError(i), interpError(i)
 enddo
 
 contains

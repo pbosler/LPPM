@@ -28,6 +28,9 @@ type(Field) :: estLap, exactLap, lapError
 
 real(kreal), parameter :: b = 3.0_kreal
 real(kreal), parameter :: xc = 0.0_kreal, yc = 0.0_kreal
+real(kreal), parameter :: maxAbsLap = 36.0_kreal
+real(kreal) :: estGradError(9), estLapError(9), interpError(9), meshSize(9)
+real(kreal) :: testStart, testEnd, maxGradMag
 
 integer(kint) :: i, j
 
@@ -44,14 +47,8 @@ real(kreal), parameter :: ymax = xmax
 
 real(kreal) :: x(nn), y(nn)
 real(kreal) :: interpScalar(nn,nn), exactScalar(nn,nn)
-!real(kreal) :: interpGradX(nn,nn), interpGradY(nn,nn), exactGradX(nn,nn), exactGradY(nn,nn)
-!real(kreal) :: interpLap(nn,nn), exactLapUnif(nn,nn)
 real(kreal) :: xVecA(3), xVecB(3)
 integer(kint) :: inTri(nn,nn)
-
-real(kreal) :: maxGradMag(9), minGradMag(9), maxLap(9), minLap(9), maxEstGradErr(9), maxEstLapErr(9)
-real(kreal) :: maxInterpErr(9), maxGradInterpErr(9), maxLapInterpErr(9)
-integer(kint) :: nParticles(9)
 
 character(len=MAX_STRING_LENGTH) :: logstring
 character(len=MAX_STRING_LENGTH) :: filename
@@ -66,7 +63,7 @@ do initNest = 8, 8
 	
 	write(logstring,'(A,I3,A)') "test ", initNest+1, ", of 9..."
 	call LogMessage(exeLog, TRACE_LOGGING_LEVEL,"Interpolation Convergence : ", logString)
-
+	call cpu_time(testStart)
 	!
 	! build a mesh
 	!
@@ -121,6 +118,7 @@ do initNest = 8, 8
 	!
 	!	locate triangles that contain destination points
 	!
+	inTri = 0
 	do j = 1, nn
 		do i = 1, nn
 			call idlctn( triMesh%particles%N, triMesh%particles%x, triMesh%particles%y, nTri, ipt, nL, ipl, &
@@ -138,6 +136,12 @@ do initNest = 8, 8
 		call InsertVectorToField( est2ndPartials, partials(5*i-2:5*i))
 		call InsertScalarToField( estLap, partials(5*i-2) + partials(5*i))
 	enddo
+	
+	do i = 1, triMesh%particles%N
+		partials(5*i-4:5*i-3) = GaussGrad( [triMesh%particles%x(i), triMesh%particles%y(i)], b)
+		partials(5*i-2:5*i) = Gauss2ndDerivs( [triMesh%particles%x(i), triMesh%particles%y(i)], b)
+	enddo
+	
 	!
 	! 	interpolate the scalar
 	!
@@ -169,22 +173,14 @@ do initNest = 8, 8
 		call InsertVectorToField( partialsError, xVecA - xVecB )
 	enddo
 	
-	nParticles(initNest+1) = triMesh%particles%N
-	minGradMag(initNest+1) = MinMagnitude(exactGrad)
-	maxGradMag(initNest+1) = MaxMagnitude(exactGrad)
-	minLap(initNest+1) = minval(exactLap%scalar)
-	maxLap(initNest+1) = maxval(exactLap%scalar)
-	maxEstGradErr(initNest+1) = maxval(gradError%scalar)
-	maxEstLapErr(initNest+1) = maxval(abs(lapError%scalar))
+	maxGradMag = MaxMagnitude(exactGrad)
+	meshSize(initNest+1) = MaxEdgeLength(triMesh%edges, triMesh%particles)
+	estGradError(initNest+1) = maxval(gradError%scalar)/maxGradMag
+	estLapError(initNest+1) = maxval(abs(lapError%scalar))/maxAbsLap
+	interpError(initNest+1) = maxval(abs(interpScalar-exactScalar))
 	
-	maxInterpErr(initNest+1) = maxval(abs(interpScalar - exactScalar))
-!	maxGradInterpErr(initNest+1) = maxval( sqrt( (interpGradX-exactGradX)*(interpGradX-exactGradX) + &
-!								   (interpGradY - exactGradY)*(interpGradY - exactGradY)))
-!	maxLapInterpErr(initNest+1) = maxval(abs(interpLap-exactLapUnif))
-	
-	write(6,'(4A24)') "nparticles", "gradErr-particles", "lapErr-particles", "scalarErr-interp"
-	write(6,'(I24,5F24.10)') nParticles(initNest+1), maxEstGradErr(initNest+1)/maxGradMag(initNest+1), &
-				  maxEstLapErr(initNest+1)/maxLap(initNest+1), maxInterpErr(initNest+1)
+	write(6,'(4A24)') "dx", "gradErr-particles", "lapErr-particles", "interp error"
+	write(6,'(4F24.10)') meshSize(initNest+1), estGradError(initNest+1), estLapError(initNest+1), interpError(initNest+1)
 				  
 	write(filename,'(A,I1,A)') 'BivarTestTriMesh', initNest, '.m'
 	open(unit=WRITE_UNIT_1,file=filename,status='REPLACE',action='WRITE')
@@ -218,6 +214,9 @@ do initNest = 8, 8
 		
 	close(WRITE_UNIT_1)
 	
+	call cpu_time(testEnd)
+	write(6,'(A,I8,A,F12.2,A)') "nParticles = ", triMesh%particles%N, ": elapsed time = ", testEnd-testStart, " seconds."
+	
 	!
 	! reset for next iteration
 	!
@@ -242,9 +241,9 @@ do initNest = 8, 8
 	call LogMessage(exeLog,TRACE_LOGGING_LEVEL, "test complete for initNest = ", initNest)
 enddo
 
-write(6,'(4A24)') "nparticles", "gradErr-particles", "lapErr-particles", "scalarErr-interp"
-do i = 1,9
-	write(6,'(I24,5F24.10)') nParticles(i), maxEstGradErr(i)/maxGradMag(i), maxEstLapErr(i)/maxLap(i), maxInterpErr(i)
+write(6,'(4A24)') "dx", "gradErr-particles", "lapErr-particles", "interp error"
+do i = 1, 9
+	write(6,'(4F24.10)') meshSize(i), estGradError(i), estLapError(i), interpError(i)
 enddo
 
 contains

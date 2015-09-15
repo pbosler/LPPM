@@ -27,8 +27,10 @@ type STDIntVector
 		procedure, public :: empty
 		procedure, public :: int
 		procedure, public :: pushBack
+		procedure, public :: pushBackUnique
 		procedure, public :: insert
 		procedure, public :: replace
+		procedure, public :: print
 end type
 
 integer(kint), parameter :: DEFAULT_VEC_SIZE = 20
@@ -115,6 +117,20 @@ subroutine pushBack(self, int)
 	self%N = self%N + 1
 end subroutine
 
+subroutine pushBackUnique( self, int )
+	class(STDIntVector), intent(inout) :: self
+	integer(kint), intent(in) :: int
+	integer(kint) :: i
+	logical(klog) :: isNew
+	
+	isNew = .TRUE.
+	do i = 1, self%N
+		if ( int == self%integers(i) ) isNew = .FALSE.
+	enddo
+	
+	if ( isNew ) call pushBack(self, int)
+end subroutine
+
 subroutine insert( self, pos, val )
 	class(STDIntVector), intent(inout) :: self
 	integer(kint), intent(in) :: pos
@@ -172,6 +188,21 @@ subroutine doubleArraySpace( self )
 	self%integers(1:self%N) = tempArray
 	self%integers(self%N+1:2*m) = 0	
 	deallocate(tempArray)
+end subroutine
+
+subroutine print(self, name )
+	class(STDIntVector), intent(in) :: self
+	character(len=*), intent(in), optional :: name
+	!
+	integer(kint) :: i
+	
+	if ( present(name) ) then
+		write(6,'(A,I6)') trim(name)//"%N = ", self%N
+	endif
+	do i = 1, self%N
+		write(6,'(I8)',advance='NO') self%integers(i)
+	enddo
+	write(6,'(A)',advance='YES') ' '
 end subroutine
 
 !> @}

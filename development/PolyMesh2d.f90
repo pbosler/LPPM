@@ -16,6 +16,7 @@ module PolyMesh2dModule
 !> @{
 use NumberKindsModule
 use STDIntVectorModule
+use OutputWriterModule
 use LoggerModule
 use ParticlesModule
 use EdgesModule
@@ -28,12 +29,13 @@ implicit none
 private
 public PolyMesh2d
 public New, Delete, Copy
-public locateFaceContainingPoint
+public locateFaceContainingPoint, nearestParticle
 public pointIsOutsideMesh
 public CCWEdgesAroundFace, CCWVerticesAroundFace, CCWAdjacentFaces
 public CCWFacesAroundVertex
 public LogStats, PrintDebugInfo
 public WriteMeshToMatlab, WriteMeshToVTKPolyData
+public ProjectParticlesToSphere
 
 type PolyMesh2d
 	type(Particles) :: particles
@@ -44,6 +46,7 @@ type PolyMesh2d
 	integer(kint) :: meshSeed = 0
 	integer(kint) :: initNest = -1
 	integer(kint) :: amrLimit = 0
+	real(kreal) :: t = 0.0_kreal
 end type
 
 interface New
@@ -59,11 +62,11 @@ interface Copy
 end interface
 
 interface LogStats
-	module procedure LogStatsPrivate
+	module procedure logStatsPrivate
 end interface
 
 interface PrintDebugInfo
-	module procedure PrintDebugPrivate
+	module procedure printDebugPrivate
 end interface
 
 !
@@ -102,9 +105,6 @@ subroutine newPrivate(self, meshSeed, initNest, maxNest, amrLimit, ampFactor )
 	self%faceKind = FaceKindFromSeed(meshSeed)
 	self%geomKind = GeomKindFromSeed(meshSeed)
 	
-	print *, "DEBUG : nVertices = ", nVerticesInMesh(self, maxNest)
-	print *, "DEBUG : nFaces = ", nFacesInMesh(self, maxNest)
-		
 	nMaxParticles = nVerticesInMesh(self, maxNest) + nFacesInMesh(self, maxNest)
 	nMaxVertices = 0
 	nMaxFaces = 0
@@ -114,11 +114,11 @@ subroutine newPrivate(self, meshSeed, initNest, maxNest, amrLimit, ampFactor )
 		nMaxEdges = nMaxEdges + nEdgesInMesh(self, nVerticesInMesh(self,i), nFacesInMesh(self,i) )
 	enddo
 	
-	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" allocating memory for nParticles = ", nMaxParticles )
-	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" allocating memory for nEdges = ", nMaxEdges )
-	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" allocating memory for nFaces = ", nMaxFaces )
-	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" faceKind = ", self%faceKind )
-	call LogMessage(log, DEBUG_LOGGING_LEVEL,logkey//" geomKind = ", self%geomKind )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//" allocating memory for nParticles = ", nMaxParticles )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//" allocating memory for nEdges = ", nMaxEdges )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//" allocating memory for nFaces = ", nMaxFaces )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//" faceKind = ", self%faceKind )
+	call LogMessage(log, DEBUG_LOGGING_LEVEL,trim(logkey)//" geomKind = ", self%geomKind )
 	
 	call New(self%particles, nMaxParticles, self%geomKind )
 	call New(self%edges, nMaxEdges)
@@ -186,6 +186,41 @@ function LocateFaceContainingPoint(self, queryPt)
 	endif
 end function
 
+function nearestParticle(self, queryPt)
+	integer(kint) :: nearestParticle
+	type(PolyMesh2d), intent(in) :: self
+	real(kreal), intent(in) :: queryPt(:)
+	!
+	integer(kint) :: faceIndex, i
+	type(STDIntVector) :: faceVerts
+	real(kreal) :: dist, testDist
+	
+	faceIndex = LocateFaceContainingPoint(self, queryPt)
+	call initialize(faceVerts)
+	call CCWVerticesAroundFace( self, faceVerts, faceIndex)
+	nearestParticle = self%faces%centerParticle(faceIndex)
+	
+	if ( self%geomKind == SPHERE_GEOM ) then
+		dist  = SphereDistance( PhysCoord(self%particles, nearestParticle), queryPt)
+		do i = 1, faceVerts%N
+			testDist = SphereDistance( PhysCoord(self%particles, faceVerts%int(i)), queryPt)
+			if ( testDist < dist ) then
+				dist = testDist
+				nearestParticle = faceVerts%int(i)
+			endif
+		enddo
+	else
+		dist = ChordDistance( PhysCoord(self%particles, nearestParticle), queryPt)
+		do i = 1, faceVerts%N
+			testDist = ChordDistance( PhysCoord( self%particles, faceVerts%int(i)), queryPt)
+			if ( testDist < dist ) then
+				dist = testDist
+				nearestParticle = faceVerts%int(i)
+			endif
+		enddo
+	endif
+end function
+
 subroutine CCWEdgesAroundFace( self, leafEdges, faceIndex )
 	type(PolyMesh2d), intent(in) :: self
 	type(STDIntVector), intent(out) :: leafEdges
@@ -227,17 +262,32 @@ subroutine CCWVerticesAroundFace( self, verts, faceIndex )
 	call CCWEdgesAroundFace(self, leafEdges, faceIndex)
 	call initialize(verts)
 	
-	if ( positiveEdge(self%edges, faceIndex, leafEdges%int(1)) ) then
-		call verts%pushBack(self%edges%orig(leafEdges%int(1)))
-	else
-		call verts%pushBack(self%edges%dest(leafEdges%int(1)))
-	endif
 	do i = 1, leafEdges%N
 		if ( positiveEdge(self%edges, faceIndex, leafEdges%int(i)) ) then
 			call verts%pushBack(self%edges%dest(leafEdges%int(i)))
 		else
 			call verts%pushBack(self%edges%orig(leafEdges%int(i)))
 		endif
+	enddo	
+end subroutine
+
+subroutine ProjectParticlesToSphere( self, radius )
+	type(PolyMesh2d), intent(inout) :: self
+	real(kreal), intent(in) :: radius
+	integer(kint) :: i
+	real(kreal) :: scale
+	
+	if ( self%geomKind /= SPHERE_GEOM ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, trim(logKey)//" ProjectToSphere ERROR : ", "invalid geomKind.")
+		return
+	endif
+	
+	do i = 1, self%particles%n
+		scale = radius / sqrt( self%particles%x(i) * self%particles%x(i) + self%particles%y(i) * self%particles%y(i) + &
+					 self%particles%z(i) * self%particles%z(i))
+		self%particles%x(i) = self%particles%x(i) * scale
+		self%particles%y(i) = self%particles%y(i) * scale
+		self%particles%z(i) = self%particles%z(i) * scale
 	enddo	
 end subroutine
 
@@ -663,13 +713,11 @@ subroutine initializeMeshFromSeed( self, ampFactor )
 	self%faces%N_Active = nSeedFaces
 	if ( self%faceKind == TRI_PANEL ) then
 		do i = 1, nSeedFaces
-			self%faces%area(i) = TriFaceArea( self%faces, i, self%particles)
-			self%particles%area( self%faces%centerParticle(i) ) = self%faces%area(i)
+			self%particles%area( self%faces%centerParticle(i) ) = TriFaceArea( self%faces, i, self%particles)
 		enddo
 	elseif ( self%faceKind == QUAD_PANEL ) then
 		do i = 1, nSeedFaces
-			self%faces%area(i) = QuadFaceArea( self%faces, i, self%particles)
-			self%particles%area( self%faces%centerParticle(i) ) = self%faces%area(i)
+			self%particles%area( self%faces%centerParticle(i) ) = QuadFaceArea( self%faces, i, self%particles)
 		enddo
 	endif
 	!
@@ -790,7 +838,7 @@ subroutine WriteMeshToMatlab( self, fileunit )
 	call WriteFacesToMatlab(self%faces, fileunit)
 end subroutine
 
-subroutine LogStatsPrivate(self, aLog)
+subroutine logStatsPrivate(self, aLog)
 	type(PolyMesh2d), intent(in) :: self
 	type(Logger), intent(inout) :: aLog
 	call LogMessage(aLog, TRACE_LOGGING_LEVEL, logKey, "PolyMesh Stats:" )
@@ -826,10 +874,10 @@ subroutine WriteMeshToVTKPolyData( self, fileunit, title )
 	endif
 	
 	call WriteFacesToVTKPolygons( self%faces, fileunit )
-	
+	call WriteVTKPointDataSectionHeader(fileunit, self%particles%N)
 	call WriteVTKLagCoords(self%particles, fileunit )
 	
-	call WriteFaceAreaToVTKCellData(self%faces, fileunit)	
+	call WriteFaceAreaToVTKCellData(self%faces, self%particles, fileunit)	
 end subroutine
 
 subroutine PrintDebugPrivate( self ) 
@@ -869,8 +917,12 @@ subroutine InitLogger(aLog,rank)
 ! Initialize a logger for this module and processor
 	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
-	write(logKey,'(A,A,I0.3,A)') trim(logKey),'_',rank,' : '
-	call New(aLog,logLevel)
+	write(logKey,'(A,A,I0.2,A)') trim(logKey),'_',rank,' : '
+	if ( rank == 0 ) then
+		call New(aLog,logLevel)
+	else
+		call New(aLog,ERROR_LOGGING_LEVEL)
+	endif
 	logInit = .TRUE.
 end subroutine
 

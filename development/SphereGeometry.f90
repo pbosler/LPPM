@@ -63,7 +63,7 @@ contains
 !> @param[in] xyzA double precision real size(3); vector on the sphere
 !> @param[in] xyzB double precision real size(3); vector on the sphere
 !> @return Distance double precision real, straight-line distance between xyzA and xyzB
-function ChordDistance(xyzA, xyzB)
+pure function ChordDistance(xyzA, xyzB)
 	! Outputs the Euclidean distance between two points in R3.
 	! Units of length
 	real(kreal), intent(in) :: xyzA(3), xyzB(3)
@@ -82,7 +82,7 @@ end function
 !> @param[in] xyzB double precision real size(3); vector on the sphere
 !> @return Distance double precision real, great-circle distance between xyzA and xyzB
 !------------------------------------------------------------------------------
-function SphereDistanceVector( xyzA, xyzB )
+pure function SphereDistanceVector( xyzA, xyzB )
 ! Finds the great circle distance between two points (xyzA and xyzB) on the sphere
 ! Units of length
 	! Calling parameters
@@ -116,7 +116,7 @@ end function
 !> @param[in] zB
 !> @return Distance double precision real, great-circle distance between xyzA and xyzB
 !------------------------------------------------------------------------------
-function SphereDistanceComponents(xA, yA, zA, xB, yB, zB)
+pure function SphereDistanceComponents(xA, yA, zA, xB, yB, zB)
 ! Finds the great circle distance between two points (xyzA and xyzB) on the sphere
 ! Units of length
 	real(kreal), intent(in) :: xA, yA, zA
@@ -145,7 +145,7 @@ end function
 !> @param[in] xyzB double precision real size(3); vector on the sphere
 !> @return Distance double precision real, angular separation between xyzA and xyzB
 !------------------------------------------------------------------------------
-function SphereArcLengthVector(xyzA, xyzB)
+pure function SphereArcLengthVector(xyzA, xyzB)
 ! returns the arc length between two vectors on the surface of a sphere.
 ! dimensionless (angle)
 	! Calling parameters
@@ -179,7 +179,7 @@ end function
 !> @param[in] zB
 !> @return Distance double precision real, angular separation between xyzA and xyzB
 !------------------------------------------------------------------------------
-function SphereArcLengthComponents(xA, yA, zA, xB, yB, zB)
+pure function SphereArcLengthComponents(xA, yA, zA, xB, yB, zB)
 ! dimensionless (angle)
 	real(kreal), intent(in) :: xA, yA, zA
 	real(kreal), intent(in) :: xB, yB, zB
@@ -206,7 +206,7 @@ end function
 !> @param[in] xyz double precision real size(3); vector on the sphere
 !> @return northward-pointing unit vector at position xyz
 !------------------------------------------------------------------------------
-function LatUnitVector(xyz)
+pure function LatUnitVector(xyz)
 !	Returns the latitudinal unit vector at the point xyz
 	real(kreal) :: LatUnitVector(3)
 	real(kreal), intent(in) :: xyz(3)
@@ -231,7 +231,7 @@ end function
 !> @param[in] xyz double precision real size(3); vector on the sphere
 !> @return eastward-pointing unit vector at position xyz
 !-----------------------------------------------------------------------------
-function LonUnitVector(xyz)
+pure function LonUnitVector(xyz)
 !	Returns the Longitudinal unit vector at the point xyz
 	real(kreal) :: LonUnitVector(3)
 	real(kreal), intent(in) :: xyz(3)
@@ -257,7 +257,7 @@ end function
 !> @param[in] xyzB double precision real size(3); vector on the sphere
 !> @return Midpoint vector
 !------------------------------------------------------------------------------
-function SphereMidpoint(xyzA, xyzB)
+pure function SphereMidpoint(xyzA, xyzB)
 ! Finds the midpoint of two points on the sphere by finding the midpoint of the chord
 ! connecting the two points, then projecting the chord midpoint to the sphere.
 	! Calling parameters
@@ -279,7 +279,7 @@ end function
 !> @param[in] xyzC double precision real size(3); vector on the sphere
 !> @return centroid vector
 !------------------------------------------------------------------------------
-function SphereTriCenter(xyzA, xyzB, xyzC)
+pure function SphereTriCenter(xyzA, xyzB, xyzC)
 ! Finds the midpoint of three points on the sphere by find their average position in Cartesian
 ! coordinates, then projecting that average onto the sphere.
 	! Calling parameters
@@ -302,7 +302,7 @@ end function
 !> @param[in] xyzD double precision real size(3); vector on the sphere
 !> @return centroid vector
 !------------------------------------------------------------------------------
-function SphereQuadCenter(xyzA, xyzB, xyzC, xyzD)
+pure function SphereQuadCenter(xyzA, xyzB, xyzC, xyzD)
 ! Finds the midpoint of four points on the sphere by finding their average position in
 ! Cartesian coordinates, then projecting that average onto the sphere.
 	! Calling parameters
@@ -324,7 +324,7 @@ end function
 !> @param[in] xyzC double precision real size(3); vector on the sphere
 !> @return scalar area
 !------------------------------------------------------------------------------
-function SphereTriAreaVector(xyzA, xyzB, xyzC)
+pure function SphereTriAreaVector(xyzA, xyzB, xyzC)
 ! Calculates the area of a spherical triangle on the unit sphere
 !   NOTE : This function requires function sphereDistance.
 	! Calling parameters
@@ -362,7 +362,7 @@ end function
 !> @param[in] zC
 !> @return scalar area
 !------------------------------------------------------------------------------
-function SphereTriAreaComponents(xa,ya,za, xb,yb,zb, xc,yc,zc)
+pure function SphereTriAreaComponents(xa,ya,za, xb,yb,zb, xc,yc,zc)
 	real(kreal), intent(in) :: xa,ya,za
 	real(kreal), intent(in) :: xb,yb,zb
 	real(kreal), intent(in) :: xc,yc,zc
@@ -392,7 +392,7 @@ end function
 !> @param[in] xyzC double precision real size(3); vector on the sphere
 !> @return scalar area
 !------------------------------------------------------------------------------
-function PlaneTriArea(xyzA,xyzB,xyzC)
+pure function PlaneTriArea(xyzA,xyzB,xyzC)
 	! Outputs the area of a planar triangle in R3 with vertices xyzA,B,C.
 	real(kreal) :: PlaneTriArea
 	real(kreal), intent(in) :: xyzA(3), xyzB(3), xyzC(3)
@@ -408,7 +408,7 @@ end function
 !> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
 !> @return Longitude of xyz
 !------------------------------------------------------------------------------
-function longitudeVector(xyz)
+pure function longitudeVector(xyz)
 	! Outputs the longitude of a point on the sphere.
 	real(KREAL) :: longitudeVector
 	real(KREAL), intent(in) :: xyz(3)
@@ -424,7 +424,7 @@ end function
 !> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
 !> @return Longitude of xyz
 !------------------------------------------------------------------------------
-function LongitudeComponents(x,y,z)
+pure function LongitudeComponents(x,y,z)
 	real(kreal), intent(in) :: x, y, z
 	real(kreal) :: LongitudeComponents
 	LongitudeComponents = atan4(y,x)
@@ -439,7 +439,7 @@ end function
 !> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
 !> @return Longitude of xyz
 !------------------------------------------------------------------------------
-function LongitudeComponents2(x,y)
+pure function LongitudeComponents2(x,y)
 	real(kreal), intent(in) :: x, y
 	real(kreal) :: LongitudeComponents2
 	LongitudeCOmponents2 = atan4(y,x)
@@ -454,7 +454,7 @@ end function
 !> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
 !> @return Latitude of xyz
 !------------------------------------------------------------------------------
-function latitudeVector(xyz)
+pure function latitudeVector(xyz)
 	! Outputs the latitude of a point on the unit sphere.
 	real(KREAL) :: latitudeVector
 	real(KREAL), intent(in) :: xyz(3)
@@ -470,7 +470,7 @@ end function
 !> @param[in] xyz double precision real size(3); vector on the sphere in Cartesian coordinates
 !> @return Latitude of xyz
 !------------------------------------------------------------------------------
-function LatitudeComponents(x,y,z)
+pure function LatitudeComponents(x,y,z)
 	real(kreal), intent(in) :: x, y, z
 	real(kreal) :: LatitudeComponents
 	LatitudeComponents = atan2(z,sqrt(x*x+y*y))
@@ -486,7 +486,7 @@ end function
 !> @param[in] x double precision real
 !> @return atan(y/x) in range 0 to 2*pi
 !------------------------------------------------------------------------------
-function atan4(y,x)
+pure function atan4(y,x)
 	!This function computes the inverse tangent (like atan2) but outputs angles in the range
 	! 0 to 2 pi (rather than -pi to pi).
 	! Adapted from John Burkhardt: http://people.sc.fsu.edu/~jburkhardt/m_src/halton/atan4.m
@@ -523,6 +523,20 @@ function atan4(y,x)
 	endif
 end function
 
+pure function SphereProjection( xyz )
+	real(kreal) :: SphereProjection(3,3)
+	real(kreal), intent(in) :: xyz(3)
+	SphereProjection(1,1) = 1.0_kreal - xyz(1) * xyz(1)
+	SphereProjection(2,1) = - xyz(2) * xyz(1)
+	SphereProjection(3,1) = - xyz(3) * xyz(1)
+	SphereProjection(1,2) = - xyz(1) * xyz(2)
+	SphereProjection(2,2) = 1.0_kreal - xyz(2) * xyz(2)
+	SphereProjection(3,2) = - xyz(3) * xyz(2)
+	SphereProjection(1,3) = - xyz(1) * xyz(3)
+	SphereProjection(2,3) = - xyz(2) * xyz(3)
+	SphereProjection(3,3) = 1.0_kreal - xyz(3) * xyz(3)
+end function
+
 !------------------------------------------------------------------------------
 !> @author Peter Bosler
 !> @brief Magnitude of the vector xyzA X xyzB
@@ -533,7 +547,7 @@ end function
 !> @param[in] xyzB double precision real size(3)
 !> @return |xyzA x xyzB|
 !------------------------------------------------------------------------------
-function crossMagnitude(xyzA,xyzB)
+pure function crossMagnitude(xyzA,xyzB)
 	! Computes the magnitude of xyzA cross xyzB
 	real(kreal) :: crossMagnitude
 	real(kreal), intent(in) :: xyzA(3), xyzB(3)
@@ -552,7 +566,7 @@ end function
 !> @param[in] xyzB double precision real size(3)
 !> @return xyzA x xyzB double precision real size(3)
 !------------------------------------------------------------------------------
-function crossProduct(xyzA,xyzB)
+pure function crossProduct(xyzA,xyzB)
 	! Computes the cross product vector xyzA cross xyzB
 	real(kreal) :: crossProduct(3)
 	real(kreal), intent(in) :: xyzA(3), xyzB(3)
@@ -572,7 +586,7 @@ end function
 !> @param[in] xC double precision real size(3)
 !> @return \f$ x_A \cdot (x_b \times x_c) $\f double precision real size(3)
 !------------------------------------------------------------------------------
-function Determinant(xA,xB,xC)
+pure function Determinant(xA,xB,xC)
 	! Computes the vector determinant (triple product) of xA, xB, and xC
 	! This result will be positive if xA lies to the left of the directed arc
 	! xB to xC, and negative if xA lies to the right of the arc xB->xC.

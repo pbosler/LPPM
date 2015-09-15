@@ -41,7 +41,11 @@ add_library( lpmFortran NumberKinds.f90 OutputWriter.f90 Logger.f90 IntegerList.
 						SphereGeometry.f90 PlaneGeometry.f90 
 						Particles.f90 Field.f90
 						Edges.f90 Faces.f90 PolyMesh2d.f90 
-						ScatteredTriInterp.f90 bivar.f90)
+						ScatteredTriInterp.f90 bivar.f90 PSE.f90 PSEDirectSum.f90 MLSQ.f90 TrivariateQuadraticMLSQ.f90
+						stripack.f ssrfpack.f ssrfpackInterface.f90
+						MPISetup.f90 PlanarSWE.f90 SWEPlaneRK4.f90 
+						Refinement.f90 SphereSWE.f90 SphereSWESolver.f90
+						SphereBVE.f90 SphereBVESolver.f90 )
 target_link_libraries( lpmFortran ${LAPACK_LIBRARIES})						
 
 configure_file(cubedSphereSeed.dat ${CMAKE_BINARY_DIR}/cubedSphereSeed.dat COPYONLY)
@@ -68,14 +72,44 @@ TARGET_LINK_LIBRARIES(cubedSphereTest.exe lpmFortran)
 ADD_EXECUTABLE(triScatteredInterpTestPlane.exe PlaneScatteredInterpTest.f90)
 TARGET_LINK_LIBRARIES(triScatteredInterpTestPlane.exe lpmFortran)
 
-ADD_EXECUTABLE(interpConvTest.exe PlanarInterpConvergenceTest.f90)
+ADD_EXECUTABLE(interpConvTest.exe PlanarInterpConvergenceTest.f90) # my version of BIVAR
 TARGET_LINK_LIBRARIES(interpConvTest.exe lpmFortran)
 
 ADD_EXECUTABLE( lsqTest.exe lsqTest.f90)
 TARGET_LINK_LIBRARIES( lsqTest.exe ${LAPACK_LIBRARIES})
 
-ADD_EXECUTABLE( BivarConvergenceTest.exe BivarConvergenceTests.f90)
+ADD_EXECUTABLE( BivarConvergenceTest.exe BivarConvergenceTests.f90) # Akima version of BIVAR
 TARGET_LINK_LIBRARIES(BivarConvergenceTest.exe lpmFortran)
+
+ADD_EXECUTABLE( PSEConvergenceTest.exe PSEConvTest.f90)
+TARGET_LINK_LIBRARIES(PSEConvergenceTest.exe lpmFortran)
+
+ADD_EXECUTABLE( morePSETest.exe MorePSETesting.f90)
+TARGET_LINK_LIBRARIES( morePSETest.exe lpmFortran)
+
+ADD_EXECUTABLE( spherePSETest.exe SpherePSETest.f90 )
+TARGET_LINK_LIBRARIES(spherePSETest.exe lpmFortran)
+
+ADD_EXECUTABLE( nitscheStrickland.exe NitscheStrickland.f90 )
+TARGET_LINK_LIBRARIES( nitscheStrickland.exe lpmFortran)
+
+ADD_EXECUTABLE( parabolicFlood.exe ParabolicFlood.f90)
+TARGET_LINK_LIBRARIES(parabolicFlood.exe lpmFortran)
+
+ADD_EXECUTABLE( sphereMLSQTest.exe SphereMLSQTest.f90 )
+TARGET_LINK_LIBRARIES( sphereMLSQTest.exe lpmFortran ${LAPACK_LIBRARIES} )
+
+ADD_EXECUTABLE( sphereSWETC2.exe SWETestCase2.f90 )
+TARGET_LINK_LIBRARIES( sphereSWETC2.exe lpmFortran )
+
+ADD_EXECUTABLE( bveSolidBodyRotation.exe BVESolidBody.f90 )
+TARGET_LINK_LIBRARIES( bveSolidBodyRotation.exe lpmFortran )
+
+ADD_EXECUTABLE( ssrfpackTest.exe SSRFPACKTest.f90 )
+TARGET_LINK_LIBRARIES( ssrfpackTest.exe lpmFortran )
+
+ADD_EXECUTABLE( sphereTrivarMLSQ.exe TrivarMLSQSphereTest.f90)
+TARGET_LINK_LIBRARIES( sphereTrivarMLSQ.exe lpmFortran ${LAPACK_LIBRARIES})
 
 # Unit Tests
 ENABLE_TESTING()
