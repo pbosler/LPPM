@@ -41,7 +41,8 @@ add_library( lpmFortran NumberKinds.f90 OutputWriter.f90 Logger.f90 IntegerList.
 						SphereGeometry.f90 PlaneGeometry.f90 
 						Particles.f90 Field.f90
 						Edges.f90 Faces.f90 PolyMesh2d.f90 
-						ScatteredTriInterp.f90 bivar.f90 PSE.f90 PSEDirectSum.f90 MLSQ.f90 TrivariateQuadraticMLSQ.f90
+						ScatteredTriInterp.f90 bivar.f90 BIVARParticlesInterface.f90
+						PSE.f90 PSEDirectSum.f90 MLSQ.f90 TrivariateQuadraticMLSQ.f90
 						stripack.f ssrfpack.f ssrfpackInterface.f90
 						MPISetup.f90 PlanarSWE.f90 SWEPlaneRK4.f90 
 						Refinement.f90 SphereSWE.f90 SphereSWESolver.f90
@@ -110,6 +111,9 @@ TARGET_LINK_LIBRARIES( ssrfpackTest.exe lpmFortran )
 
 ADD_EXECUTABLE( sphereTrivarMLSQ.exe TrivarMLSQSphereTest.f90)
 TARGET_LINK_LIBRARIES( sphereTrivarMLSQ.exe lpmFortran ${LAPACK_LIBRARIES})
+
+ADD_EXECUTABLE( spherePSEInterpTest.exe spherePSEInterpTest.f90 )
+TARGET_LINK_LIBRARIES( spherePSEInterpTest.exe lpmFortran)
 
 # Unit Tests
 ENABLE_TESTING()

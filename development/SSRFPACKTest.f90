@@ -104,12 +104,12 @@ call MPI_BCAST(initNest, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, mpiErrCode)
 
 if ( meshSeed == ICOS_TRI_SPHERE_SEED ) then
 	write(logString,'(A,I1,A)') "building icos tri mesh to initNest = ", initNest, "..."
-	write(paraviewFilename,'(A,I1,A)') "icosTriPSE_", initNest, ".vtk"
-	write(matlabFilename,'(A,I1,A)') "icosTriPSE_", initNest, ".m"
+	write(paraviewFilename,'(A,I1,A)') "icosTriSSRFPACK_", initNest, ".vtk"
+	write(matlabFilename,'(A,I1,A)') "icosTriSSRFPACK_", initNest, ".m"
 else
 	write(logString,'(A,I1,A)') "building cubed sphere mesh to initNest = ", initNest, "..."
-	write(paraviewFilename,'(A,I1,A)') "cubedSpherePSE_", initNest, ".vtk"
-	write(matlabFilename,'(A,I1,A)') "cubedSpherePSE_", initNest, ".m"
+	write(paraviewFilename,'(A,I1,A)') "cubedSphereSSRFPACK_", initNest, ".vtk"
+	write(matlabFilename,'(A,I1,A)') "cubedSphereSSRFPACK_", initNest, ".m"
 endif
 call LogMessage(exeLog, TRACE_LOGGING_LEVEL, logKey, logString )
 
@@ -174,7 +174,7 @@ call SetSourceLagrangianParameter( ssrfLagParam, sphere, delTri)
 do j = unifGridMPI%indexStart(procRank), unifGridMPI%indexEnd(procRank)
 	do i = 1, 181
 		interp(i,j) = InterpolateScalar( lons(j), lats(i), ssrfConst, sphere, delTri, constantScalar)
-		harmInterp(i,j) = InterpolateScalar(lons(j), lats(i), ssrfHarm, sphere, delTri, constantScalar)
+		harmInterp(i,j) = InterpolateScalar(lons(j), lats(i), ssrfHarm, sphere, delTri, sphHarm)
 	enddo
 enddo
 
