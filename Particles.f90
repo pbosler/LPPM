@@ -1,52 +1,65 @@
 module ParticlesModule
 !------------------------------------------------------------------------------
-! Lagrangian Particle / Panel Method - Spherical Model
+! Lagrangian Particle Method (LPM) version 2.0
 !------------------------------------------------------------------------------
+!> @file
+!> Provides the primitive Particles data structure that defines the spatial discretization of LPM.
 !
 !> @author
-!> Peter Bosler, Department of Mathematics, University of Michigan
+!> Peter Bosler, Sandia National Laboratories Center for Computing Research
 !
 !> @defgroup Particles Particles module
-!> Provides the primitive Particles data structure that defines the passive particles of LPPM meshes.
-!
-!
-! DESCRIPTION:
-!> @file
-!> Provides the primitive Particles data structure that defines the passive particles of LPPM meshes.
+!> @brief Provides a vectorized Particles data structure that defines the particles for LPM spatial discretization.
+!> Particles are combined with the Field data structure to define scalar and vector fields over a spatial domain.
+!> Particles may be combined with a mesh object (e.g., PolyMesh2d) or an unstructured data object (e.g., a quadtree)
+!> to facilitate interpolation, differentiation, quadrature, etc.
+!>
+!> @{
 !
 !------------------------------------------------------------------------------
 use NumberKindsModule
+use OutputWriterModule
 use LoggerModule
 
 implicit none
 private
 public Particles
 public New, Delete, Copy
-public GetNTracer
-public ParticleMax
-public LogStats
+public InsertParticle
+public PhysCoord, LagCoord
+public LogStats, PrintDebugInfo
+public TotalArea, TotalVolume
+public WriteVTKLagCoords, WriteVTKParticleArea, WriteVTKParticleVolume, WriteVTKPoints
+public WriteParticlesToMatlab
+public SortIncidentEdgesAtParticle
+public MakeParticleActive, MakeParticlePassive
 !
 !----------------
 ! Types and module constants
 !----------------
 !
+
+!> @class Particles
+!> @brief Class used to define a spatial discretization that may move in physical space.  
+!> This class should be extended for use in specific PDE applications with the inclusion of ::field objects. 
+!>
 type Particles
-	! Grid variables
-	real(kreal), pointer :: x(:,:)	=> null() ! physical coordinate
-	real(kreal), pointer :: x0(:,:) => null() ! Lagrangian coordinate
-	integer(kint) :: N				! N particles in computation
-	integer(kint) :: N_Max			! Max particles allowed in memory
-	! Data variables
-	real(kreal), pointer :: tracer(:,:)	=> null() ! passive tracers
-	real(kreal), pointer :: absVort(:)	=> null() ! absolute vorticity
-	real(kreal), pointer :: relVort(:)	=> null() ! relative vorticity
-	real(kreal), pointer :: stream(:) => null()	  ! stream function
-	real(kreal), pointer :: potVort(:) => null()  ! potential vorticity
-	real(kreal), pointer :: h(:) => null()  ! fluid thickness
-	real(kreal), pointer :: div(:) => null() ! divergence
-	real(kreal), pointer :: u(:,:) => null() ! fluid velocity
-	real(kreal), pointer :: ke(:) => null()  ! local kinetic pe
-	!real(kreal), pointer :: pe(:) => null() ! total pe of each particle
+	real(kreal), pointer :: x(:)  => null() !< physical coordinate
+	real(kreal), pointer :: y(:)  => null() !< physical coordinate
+	real(kreal), pointer :: z(:)  => null() !< physical coordinate
+	real(kreal), pointer :: x0(:) => null() !< Lagrangian coordinate
+	real(kreal), pointer :: y0(:) => null() !< Lagrangian coordinate
+	real(kreal), pointer :: z0(:) => null() !< Lagrangian coordinate
+	real(kreal), pointer :: area(:) => null() !< area represented by each particle
+	real(kreal), pointer :: volume(:) => null() !< volume represented by each particle
+	integer(kint), pointer :: nEdges(:) => null() !< number of edges (if a mesh is used) incident to each particle
+	integer(kint), pointer :: incidentEdges(:,:) => null() !< indices to ::edges incident on each particle (only if a mesh is used)
+	real(kreal), pointer :: incidentAngles(:,:) => null() !< angles of indcidence for edges at each particle (only if a mesh is used)
+	logical(klog), pointer :: isActive(:) => null() ! true if particle represents a leaf face or cell; corresponds to area, volume > 0
+	logical(klog), pointer :: isPassive(:) => null() ! true if particle represents a leaf vertex
+	integer(kint) :: N = 0				! N particles in computation
+	integer(kint) :: N_Max = 0			! Max particles allowed in memory
+	integer(kint) :: geomKind = 0		! geometry identifier e.g., numberkindsmodule::planar_geom
 end type
 
 !
@@ -56,32 +69,38 @@ end type
 !
 logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
-character(len=28), save :: logKey = 'Particles'
-integer(kint), parameter :: logLevel = TRACE_LOGGING_LEVEL
+character(len=28), save :: logKey = 'ParticlesLog'
+integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
+character(len=MAX_STRING_LENGTH) :: logString
 !
 !----------------
 ! Interfaces
 !----------------
 !
+
+!> @brief Allocates memory and initializes to null/zero a Particles object.
 interface New
 	module procedure NewPrivate
 end interface
 
+!> @brief Deletes a Particles object and frees its memory.
 interface Delete
 	module procedure DeletePrivate
 end interface
 
+!> @brief Copies (deep copy) one Particles object to another
 interface Copy
-	module procedure CopyParticleByIndex
-	module procedure CopyParticles
+	module procedure copyPrivate
 end interface
 
-interface GetNTracer
-	module procedure GetNTracerParticles
-end interface
-
+!> @brief Outputs statistics about a Particles object to the console via a ::logger object.
 interface LogStats
-	module procedure LogStatsParticles
+	module procedure LogStatsPrivate
+end interface
+
+!> @brief Prints detailed information about a Particles object to the console.
+interface PrintDebugInfo
+	module procedure PrintDebugPrivate
 end interface
 
 contains
@@ -90,467 +109,579 @@ contains
 ! Standard methods : Constructor / Destructor, Copy
 !----------------
 !
-subroutine NewPrivate(self,nMax,panelKind,nTracer,problemKind)
-! Allocates memory for a particles data structure. Sets initial state to zero / null.
-	! Calling parameters
+subroutine NewPrivate( self, nMax, geomKind )
 	type(Particles), intent(out) :: self
-	integer(kint), intent(in) :: nMax, &
-								 panelKind, &
-								 nTracer, &
-								 problemKind
-	if (.NOT. logInit ) then
-		call InitLogger(log,procRank)
-	endif
-
-	! Error checking
+	integer(kint), intent(in) :: nMax
+	integer(kint), intent(in) :: geomKind
+	
+	if (.NOT. logInit ) call InitLogger(log, procRank)
+	
+	! error checking
 	if ( nMax <= 0 ) then
-		call LogMessage(log,ERROR_LOGGING_LEVEL,logKey," invalid nMax.")
+		call LogMessage(log, ERROR_LOGGING_LEVEL, logKey, " invalid nMax.")
 		return
 	endif
-	if ( panelKind /= TRI_PANEL .AND. panelKind /= QUAD_PANEL ) then
-		call LogMessage(log,ERROR_LOGGING_LEVEL,logKey," invalid panelKind.")
+	if ( geomKind /= SPHERE_GEOM .AND. geomKind /= PLANAR_GEOM ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, logKey, " invalid geometry.")
 		return
 	endif
-	if ( problemKind < ADVECTION_SOLVER .AND. problemKind > SWE_SOLVER) then
-		call LogMessage(log,ERROR_LOGGING_LEVEL,logKey," invalid panelKind.")
-		return
-	endif
-	!
-	! Allocate data structure, set to zero/null
-	!
-	if ( problemKind == PLANE_SOLVER) then
-		allocate(self%x(2,nMax))
-		allocate(self%x0(2,nMax))
-		allocate(self%u(2,nMax))
-	else
-		allocate(self%x(3,nMax))
-		allocate(self%x0(3,nMax))
-		allocate(self%u(3,nMax))
-	endif
-	self%x = 0.0_kreal
-	self%x0 = 0.0_kreal
-	self%u = 0.0_kreal
-
-	if ( nTracer > 0 ) then
-		allocate(self%tracer(nMax,nTracer))
-		self%tracer = 0.0_kreal
-	else
-		nullify(self%tracer)
-	endif
-	if ( problemKind == ADVECTION_SOLVER ) then
-		! nullify bve/swe variables
-		nullify(self%absVort)
-		nullify(self%relVort)
-		nullify(self%stream)
-		nullify(self%potVort)
-		nullify(self%h)
-		nullify(self%div)
-		nullify(self%ke)
-	elseif (problemKind == BVE_SOLVER .OR. problemKind == PLANE_SOLVER ) then
-		! allocate bve variables
-		allocate(self%absVort(nMax))
-		self%absVort = 0.0_kreal
-		allocate(self%relVort(nMax))
-		self%relVort = 0.0_kreal
-		allocate(self%stream(nMax))
-		self%stream = 0.0_kreal
-		allocate(self%ke(nMax))
-		self%ke = 0.0_kreal
-		! nullify swe variables
-		nullify(self%potVort)
-		nullify(self%h)
-		nullify(self%div)
-	elseif (problemKind == SWE_SOLVER ) then
-		! nullify bve variables
-		nullify(self%absVort)
-		nullify(self%stream)
-		! allocate swe variables
-		allocate(self%relVort(nMax))
-		self%relVort = 0.0_kreal
-		allocate(self%potVort(nMax))
-		self%potVort = 0.0_kreal
-		allocate(self%h(nMax))
-		self%h = 0.0_kreal
-		allocate(self%div(nMax))
-		self%div = 0.0_kreal
-		allocate(self%ke(nMax))
-		self%ke = 0.0_kreal
-	endif
-	self%N = 0
+	
 	self%N_Max = nMax
-end subroutine
+	self%N = 0
+	self%geomKind = geomKind
+	allocate(self%x(nMax))
+	self%x = 0.0_kreal
+	allocate(self%y(nMax))
+	self%y = 0.0_kreal
+	allocate(self%x0(nMax))
+	self%x0 = 0.0_kreal
+	allocate(self%y0(nMax))
+	self%y0 = 0.0_kreal
+	if ( geomKind /= PLANAR_GEOM ) then
+		allocate(self%z(nMax))
+		self%z = 0.0
+		allocate(self%z0(nMax))
+		self%z0 = 0.0
+	endif	
 
+	if ( geomKind == EUCLIDEAN_3D ) then
+		allocate(self%volume(nMax))
+		self%volume = 0.0_kreal
+	else
+		allocate(self%area(nMax))
+		self%area = 0.0_kreal
+	endif
+	
+	allocate(self%isActive(nMax))
+	self%isActive = .FALSE.
+	allocate(self%isPassive(nMax))
+	self%isPassive = .FALSE.
+	
+	allocate(self%nEdges(nMax))
+	self%nEdges = 0
+	allocate(self%incidentEdges(MAX_VERTEX_DEGREE,nMax))
+	self%incidentEdges = 0
+	allocate(self%incidentAngles(MAX_VERTEX_DEGREE,nMax))
+	self%incidentAngles = 0.0_kreal
+end subroutine
 
 subroutine DeletePrivate(self)
-! Frees memory associated with an instance of a particles data structure.
 	type(Particles), intent(inout) :: self
-	deallocate(self%x)
-	deallocate(self%x0)
-	deallocate(self%u)
-	if ( associated(self%tracer)) deallocate(self%tracer)
-	if ( associated(self%absVort)) deallocate(self%absVort)
-	if ( associated(self%relVort)) deallocate(self%relVort)
-	if ( associated(self%stream)) deallocate(self%stream)
-	if ( associated(self%potVort)) deallocate(self%potVort)
-	if ( associated(self%h)) deallocate(self%h)
-	if ( associated(self%div)) deallocate(self%div)
-	if ( associated(self%ke)) deallocate(self%ke)
-	!if ( associated(self%pe)) deallocate(self%pe)
+	if ( associated(self%x)) deallocate(self%x)
+	if ( associated(self%y)) deallocate(self%y)
+	if ( associated(self%x0)) deallocate(self%x0)
+	if ( associated(self%y0)) deallocate(self%y0)
+	if ( associated(self%incidentEdges)) deallocate(self%incidentEdges)
+	if ( associated(self%incidentAngles)) deallocate(self%incidentAngles)
+	if ( associated(self%nEdges)) deallocate(self%nEdges)
+	if ( associated(self%isActive)) deallocate(self%isActive)
+	if ( associated(self%isPassive)) deallocate(self%isPassive)
+	if ( associated(self%volume)) deallocate(self%volume)
+	if ( associated(self%area)) deallocate(self%area)
+	if ( associated(self%z)) deallocate(self%z)
+	if ( associated(self%z0)) deallocate(self%z0)
 	self%N = 0
 	self%N_Max = 0
+	self%geomKind = 0
 end subroutine
 
-
-subroutine CopyParticles(newParticles,oldParticles)
-! Copies an entire particles data structure by replicating data.
-	type(Particles), intent(inout) :: newParticles
-	type(Particles), intent(in) :: oldParticles
-	integer(kint) :: j
-
-	! Error checking
-	if ( newParticles%N_Max < oldParticles%N) then
-		call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : not enough memory.')
+subroutine copyPrivate(self, other )
+	type(Particles), intent(inout) :: self
+	type(Particles), intent(in) :: other
+	!
+	integer(kint) :: i
+	
+	if ( self%N_Max < other%N ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,logkey//" CopyParticles ERROR : ", " not enough memory.")
 		return
 	endif
-	if ( associated(oldParticles%tracer)) then
-		if ( .NOT. associated(newParticles%tracer)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign tracer.')
-			return
-		endif
-	endif
-	if (associated(oldParticles%absVort)) then
-		if ( .NOT. associated(newParticles%absVort)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign absVort.')
-			return
-		endif
-	endif
-	if ( associated(oldParticles%relVort) ) then
-		if (.NOT. associated(newParticles%relVort)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign relVort.')
-			return
-		endif
-	endif
-	if ( associated(oldParticles%stream) ) then
-		if (.NOT. associated(newParticles%stream)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign stream.')
-			return
-		endif
-	endif
-	if ( associated(oldParticles%potVort) ) then
-		if (.NOT. associated(newParticles%potVort)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign potVort.')
-			return
-		endif
-	endif
-	if ( associated(oldParticles%h) ) then
-		if (.NOT. associated(newParticles%h)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign h.')
-			return
-		endif
-	endif
-	if ( associated(oldParticles%div) ) then
-		if (.NOT. associated(newParticles%div)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign div.')
-			return
-		endif
-	endif
-	if ( associated(oldParticles%u) ) then
-		if (.NOT. associated(newParticles%u)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign u.')
-			return
-		endif
-	endif
-	if ( associated(oldParticles%ke) ) then
-		if (.NOT. associated(newParticles%ke)) then
-			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign ke.')
-			return
-		endif
-	endif
-!	if ( associated(oldParticles%pe) ) then
-!		if ( .NOT. associated(newParticles%pe) ) then
-!			call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticles ERROR : cannot assign pe.')
-!			return
-!		endif
-!	endif
-	call LogMessage(log,DEBUG_LOGGING_LEVEL,logKey,'Entering CopyParticles.')
-
-	do j=1,oldParticles%N
-		newParticles%x(:,j) = oldParticles%x(:,j)
-		newParticles%x0(:,j) = oldParticles%x0(:,j)
-		newParticles%u(:,j) = oldParticles%u(:,j)
-	enddo
-	do j = oldParticles%N + 1, newParticles%N_Max
-		newParticles%x(:,j) = 0.0_kreal
-		newParticles%x0(:,j) = 0.0_kreal
-		newParticles%u(:,j) = 0.0_kreal
-	enddo
-	if ( associated(oldParticles%tracer)) then
-		do j=1,oldParticles%N
-			newParticles%tracer(j,:) = oldParticles%tracer(j,:)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%tracer(j,:) = 0.0_kreal
-		enddo
-	endif
-	if ( associated(oldParticles%relVort)) then
-		do j=1,oldParticles%N
-			newParticles%relVort(j) = oldParticles%relVort(j)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%relVort(j) = 0.0_kreal
-		enddo
-	endif
-	if ( associated(oldParticles%stream)) then
-		do j=1,oldParticles%N
-			newParticles%stream(j) = oldParticles%stream(j)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%stream(j) = 0.0_kreal
-		enddo
-	endif
-	if ( associated(oldParticles%absVort) ) then
-		do j=1,oldParticles%N
-			newParticles%absVort(j) = oldParticles%absVort(j)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%absVort(j) = 0.0_kreal
-		enddo
-	endif
-	if ( associated(oldParticles%potVort) ) then
-		do j=1,oldParticles%N
-			newParticles%potVort(j) = oldParticles%potVort(j)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%potVort(j) = 0.0_kreal
-		enddo
-	endif
-	if ( associated(oldParticles%h) ) then
-		do j=1,oldParticles%N
-			newParticles%h(j) = oldParticles%h(j)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%h(j) = 0.0_kreal
-		enddo
-	endif
-	if ( associated(oldParticles%div) ) then
-		do j=1,oldParticles%N
-			newParticles%div(j) = oldParticles%div(j)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%div(j) = 0.0_kreal
-		enddo
-	endif
-	if ( associated(oldParticles%ke) ) then
-		do j=1,oldParticles%N
-			newParticles%ke(j) = oldParticles%ke(j)
-		enddo
-		do j = oldParticles%N + 1, newParticles%N_Max
-			newParticles%ke(j) = 0.0_kreal
-		enddo
-	endif
-!	if ( associated(oldParticles%pe)) then
-!		do j=1,oldParticles%N
-!			newParticles%pe(j) = oldParticles%pe(j)
-!		enddo
-!	endif
-	newParticles%N = oldParticles%N
-end subroutine
-
-!
-!----------------
-! Public functions
-!----------------
-!
-subroutine CopyParticleByIndex(newParticles,newIndex,oldParticles,oldIndex)
-! Copies one particle from one data structure to another.
-	type(Particles), intent(inout) :: newParticles
-	type(Particles), intent(in) :: oldParticles
-	integer(kint), intent(in) :: newIndex, &
-								 oldIndex
-	! Error checking
-	if ( newIndex > newParticles%N_Max .OR. oldIndex > oldParticles%N ) then
-		call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'CopyParticleByIndex ERROR: invalid index')
+	
+	if ( associated(other%z) .AND. .NOT. associated(self%z) ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,logkey//" CopyParticles ERROR : ", " dimension mismatch.")
 		return
 	endif
 
-	newParticles%x(:,newIndex) = oldParticles%x(:,oldIndex)
-	newParticles%x0(:,newIndex) = oldParticles%x0(:,oldIndex)
-	newParticles%u(:,newIndex) = oldParticles%u(:,oldIndex)
-	if ( associated(oldParticles%tracer) ) then
-		if ( associated(newParticles%tracer) ) then
-			newParticles%tracer(newIndex,:) = oldParticles%tracer(oldIndex,:)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign tracer.')
-		endif
+	if ( associated(other%area) .AND. .NOT. associated(self%area) ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,logkey//" CopyParticles ERROR : ", " area array not allocated.")
+		return
 	endif
-	if ( associated(oldParticles%relVort)) then
-		if ( associated(newParticles%relVort)) then
-			newParticles%relVort(newIndex) = oldParticles%relVort(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign relVort.')
-		endif
+	
+	if ( associated(other%volume) .AND. .NOT. associated(self%volume) ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL,logkey//" CopyParticles ERROR : ", " volume array not allocated.")
+		return
 	endif
-	if ( associated(oldParticles%stream)) then
-		if ( associated(newParticles%stream)) then
-			newParticles%stream(newIndex) = oldParticles%stream(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign stream.')
-		endif
+	
+	do i = 1, other%N
+		self%x(i) = other%x(i)
+		self%x0(i) = other%x0(i)
+		self%y(i) = other%y(i)
+		self%y0(i) = other%y0(i)
+		self%nEdges(i) = other%nEdges(i)
+		self%incidentEdges(:,i) = other%incidentEdges(:,i)
+		self%incidentAngles(:,i) = other%incidentAngles(:,i)
+		self%isActive(i) = other%isActive(i)
+		self%isPassive(i) = other%isPassive(i)
+	enddo
+	do i = other%N+1, self%N_Max
+		self%x(i) = 0.0_kreal
+		self%x0(i) = 0.0_kreal
+		self%y(i) = 0.0_kreal
+		self%y0(i) = 0.0_kreal
+		self%nEdges(i) = 0
+		self%incidentEdges(:,i) = 0
+		self%incidentAngles(:,i) = 0.0_kreal
+		self%isActive(i) = .FALSE.
+		self%isPassive(i) = .FALSE.
+	enddo
+	if ( associated(other%z) ) then
+		do i = 1, other%N
+			self%z(i) = other%z(i)
+			self%z0(i) = other%z0(i)
+		enddo
+		do i = other%N+1, self%N_Max
+			self%z(i) = 0.0_kreal
+			self%z0(i) = 0.0_kreal
+		enddo
 	endif
-
-	if ( associated(oldParticles%absVort)) then
-		if ( associated(newParticles%absVort)) then
-			newParticles%absVort(newIndex) = oldParticles%absVort(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign absVort.')
-		endif
+	if ( associated(other%area)) then
+		do i = 1, other%N
+			self%area(i) = other%area(i)
+		enddo
+		do i = other%N+1, self%N_Max
+			self%area(i) = 0.0_kreal
+		enddo
 	endif
-	if ( associated(oldParticles%potVort)) then
-		if ( associated(newParticles%potVort)) then
-			newParticles%potVort(newIndex) = oldParticles%potVort(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign potVort.')
-		endif
+	if ( associated(other%volume)) then
+		do i = 1, other%N
+			self%volume(i) = other%volume(i)
+		enddo
+		do i = other%N+1, self%N_Max
+			self%volume(i) = 0.0_kreal
+		enddo
 	endif
-	if ( associated(oldParticles%h)) then
-		if ( associated(newParticles%h)) then
-			newParticles%h(newIndex) = oldParticles%h(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign h.')
-		endif
-	endif
-	if ( associated(oldParticles%div)) then
-		if ( associated(newParticles%div)) then
-			newParticles%div(newIndex) = oldParticles%div(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign div.')
-		endif
-	endif
-	if ( associated(oldParticles%ke)) then
-		if ( associated(newParticles%ke)) then
-			newParticles%ke(newIndex) = oldParticles%ke(oldIndex)
-		else
-			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign ke.')
-		endif
-	endif
-!	if ( associated(oldParticles%pe)) then
-!		if ( associated(newParticles%pe)) then
-!			newParticles%pe(newIndex) = oldParticles%pe(oldIndex)
-!		else
-!			call LogMessage(log,WARNING_LOGGING_LEVEL,logKey,'CopyParticleByIndex WARNING: Cannot assign pe.')
-!		endif
-!	endif
+	self%N = other%N
 end subroutine
 
-
-function GetNTracerParticles(self)
+subroutine PrintDebugPrivate( self ) 
 	type(Particles), intent(in) :: self
-	integer(kint) :: GetNTracerParticles
-	if ( associated(self%tracer)) then
-		GetNTracerParticles = size(self%tracer,2)
+	integer(kint) :: i, j
+	print *, "Particles DEBUG info : "
+	print *, "particles.N = ", self%N
+	print *, "particles.N_Max = ", self%N_Max
+	print *, "PHYSICAL COORDINATES : "
+	if ( .NOT. associated(self%z) ) then
+		do i = 1, self%N_Max
+			print *, self%x(i), "   ", self%y(i)
+		enddo
 	else
-		GetNTracerParticles = 0
+		do i = 1, self%N_Max
+			print *, self%x(i), "   ", self%y(i), "   ", self%z(i)
+		enddo
 	endif
-end function
-
-
-function ParticleMax(panelKind,maxNest)
-! Returns the maximum number of particles needed for memory allocation.
-	integer(kint) :: particleMax
-	integer(kint), intent(in) :: panelKind, maxNest
-	if ( panelKind == TRI_PANEL ) then
-		particleMax = 2 + 10*4**maxNest
-	elseif (panelKind == QUAD_PANEL ) then
-		particleMax = 2 + 6*4**maxNest
+	print *, "LAGRANGIAN COORDINATES : "
+	if ( .NOT. associated(self%z0) ) then
+		do i = 1, self%N_Max
+			print *, self%x0(i), "   ", self%y0(i)
+		enddo
+	else
+		do i = 1, self%N_Max
+			print *, self%x0(i), "   ", self%y0(i), "   ", self%z0(i)
+		enddo
 	endif
-end function
+	if ( associated(self%area )) then
+		print *, "particles.area = "
+		do i = 1, self%N_Max
+			print *, self%area(i)
+		enddo
+	endif
+	if ( associated(self%volume )) then
+		print *, "particles.volume = "
+		do i = 1, self%N_Max
+			print *, self%volume(i)
+		enddo
+	endif
+	print *, "particles.nEdges = "
+	do i = 1, self%N_Max
+		print *, self%nEdges(i)
+	enddo
+	print *, "particles.incidentEdges = "
+	do i = 1, self%N_Max
+		do j = 1, size(self%incidentEdges,1)
+			write(6,'(I6)',advance='NO') self%incidentEdges(j,i)
+		enddo
+		print *, " "
+	enddo
+	print *, " "
+	print *, "particles.incidentAngles = "
+	do i = 1, self%N_Max
+		do j = 1, size(self%incidentAngles,1)
+			write(6,'(F15.12)',advance='NO') self%incidentAngles(j,i)
+		enddo
+		print *, " "
+	enddo
+	print *, " "
+	print *, "particles.isActive = "
+	do i = 1, self%N_Max
+		print *, self%isActive(i)
+	enddo
+	print *, "particles.isPassive = "
+	do i = 1, self%N_Max
+		print *, self%isPassive(i)
+	enddo
+end subroutine
 
-!
-!----------------
-! Module methods : type-specific functions
-!----------------
-!
-subroutine LogStatsParticles(self,aLog,message)
-! send data about particles object to log (usually console) for output.
-	! Calling parameters
+!> @brief Writes VTK point data to a .vtk file in vtk legacy version 2.0 PolyData format.
+!> Used for plotting with VTK C++ programs or ParaView.
+!> @param self particles to output
+!> @param fileunit integer fileunit of output file.
+!> @param title title associated with this particle set.
+subroutine WriteVTKPoints( self, fileunit, title )
+	class(Particles), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	character(len=*), intent(in), optional :: title
+	!
+	integer(kint) :: j
+	
+	if ( present(title)) then
+		call WriteVTKFileHeader(fileunit, title)
+	else
+		call WriteVTKFileHeader(fileunit)
+	endif
+	write(fileunit,'(A,I8,A)') "POINTS ", self%N, " double "
+	if ( self%geomKind == PLANAR_GEOM ) then
+		do j = 1, self%N
+			write(fileunit,*) self%x(j), self%y(j), 0.0_kreal
+		enddo
+	else
+		do j = 1, self%N
+			write(fileunit,*) self%x(j), self%y(j), self%z(j)
+		enddo
+	endif
+end subroutine
+
+!> @brief Writes a particle set's Lagrangian coordinates to VTK PolyData Output
+!> @param self
+!> @param fileunit
+subroutine WriteVTKLagCoords( self, fileunit )
+	class(Particles), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	!
+	integer(kint) :: j
+	
+	write(fileunit,'(A)') "SCALARS lagParam double 3"
+	write(fileunit,'(A)') "LOOKUP_TABLE default"
+	if ( self%geomKind == PLANAR_GEOM ) then
+		do j = 1, self%N
+			write(fileunit,*) self%x0(j), self%y0(j), 0.0_kreal
+		enddo
+	else
+		do j = 1, self%N
+			write(fileunit,*) self%x0(j), self%y0(j), self%z0(j)
+		enddo
+	endif
+end subroutine
+
+!> @brief Writes particle area to VTK PolyData Output
+!> @param self
+!> @param fileunit
+subroutine WriteVTKParticleArea(self, fileunit )
+	class(Particles), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	!
+	integer(kint) :: j
+	
+	if ( .NOT. associated(self%area) ) then
+		call LogMessage(log, WARNING_LOGGING_LEVEL, "WriteVKTParticleArea : "," area not allocated.")
+		return
+	endif
+	do j = 1, self%N
+		write(fileunit,*) self%area(j)
+	enddo
+end subroutine 
+
+!> @brief Writes particle volume to VTK PolyData Output
+!> @param self
+!> @param fileunit
+subroutine WriteVTKParticleVolume(self, fileunit )
+	class(Particles), intent(in) :: self
+	integer(kint), intent(in) :: fileunit
+	!
+	integer(kint) :: j
+	
+	if ( .NOT. associated(self%volume) ) then
+		call LogMessage(log, WARNING_LOGGING_LEVEL, "WriteVKTParticleVolume : "," volume not allocated.")
+		return
+	endif
+	do j = 1, self%N
+		write(fileunit,*) self%volume(j)
+	enddo
+end subroutine
+
+!> @brief Inserts a single particle into a particles object.
+!> @param physX physical coordinate vector
+!> @param lagX Lagrangian coordinate vector
+subroutine InsertParticle( self, physX, lagX )
+	type(Particles), intent(inout) :: self
+	real(kreal), intent(in) :: physX(:), lagX(:)
+	
+	if ( self%N >= self%N_Max ) then
+		call LogMessage(log,ERROR_LOGGING_LEVEL,logKey," InsertParticle : out of memory.")
+		return
+	endif
+	
+	self%x( self%N + 1 ) = physx(1)
+	self%y( self%N + 1 ) = physx(2)
+	self%x0(self%N + 1 ) = lagX(1)
+	self%y0(self%N + 1 ) = lagX(2)
+	
+	if ( self%geomKind /= PLANAR_GEOM ) then
+		self%z( self%N + 1 ) = physx(3)
+		self%z0(self%N + 1 ) = lagX(3)
+	endif
+	self%isPassive(self%N+1) = .TRUE.
+	self%N = self%N + 1
+end subroutine
+
+!> @brief Changes a passive particle to an active particle. 
+!> Area/volume must be set separately.
+!> @param self
+!> @param index index of particle to be changed.
+subroutine MakeParticleActive( self, index ) 
+	type(Particles), intent(inout) :: self
+	integer(kint), intent(in) :: index
+	if ( self%isActive(index) ) then
+		call LogMessage(log, WARNING_LOGGING_LEVEL, logkey//" MakeParticleActive WARNING : ", "particle is already active.")
+		return
+	endif
+	self%isActive(index) = .TRUE.
+	self%isPassive(index) = .FALSE.
+end subroutine
+
+!> @brief Changes an active particle to a passive particle. 
+!> Area/volume may be set to zero separately.
+!> @param self
+!> @param index index of particle to be changed.
+subroutine MakeParticlePassive( self, index )
+	type(Particles), intent(inout) :: self
+	integer(kint), intent(in) :: index
+	if ( self%isPassive(index) ) then
+		write(logstring,'(A,I8,A)') " particle ", index, " is already passive."
+		call LogMessage(log, WARNING_LOGGING_LEVEL, trim(logkey)//" MakeParticlePassive WARNING : ", logstring)
+		return
+	endif
+	self%isPassive(index) = .TRUE.
+	self%isActive(index) = .FALSE.
+end subroutine
+
+!> @brief Writes particles information to console using a loggermodule::logger object for formatting. 
+!> @param self
+!> @param aLog
+subroutine LogStatsPrivate(self, aLog )
 	type(Particles), intent(in) :: self
 	type(Logger), intent(inout) :: aLog
-	character(len=*), intent(in), optional :: message
-	! local variables
-	character(len=24) :: key
-	integer(kint) :: k, nTracer, j
-	real(kreal) :: maxU, minU, uj
 
-	if (present(message)) then
-		call StartSection(aLog,'Particles Stats : ',message)
-	else
-		call StartSection(aLog,'Particles Stats : ')
-	endif
-
-	key = 'N = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N)
-	key = 'N_Max = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,self%N_Max)
-	key = 'max. velocity = '
-	maxU = 0.0_kreal
-	minU = 0.0_kreal
-	do j=1,self%N
-		 uj = sqrt(sum( self%u(:,j)*self%u(:,j)))
-		 if ( uj > maxU ) maxU = uj
-		 if ( uj < minU ) minU = uj
-	enddo
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxU)
-	key = 'min. velocity = '
-	call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minU)
-	if ( associated(self%absVort) ) then
-		key = 'Max absVort = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%absVort(1:self%N)))
-		key = 'Min absVort = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%absVort(1:self%N)))
-	endif
-	if ( associated(self%relVort) ) then
-		key = 'Max relVort = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%relVort(1:self%N)))
-		key = 'Min relVort = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%relVort(1:self%N)))
-	endif
-	if ( associated(self%potVort) ) then
-		key = 'Max potVort = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%potVort(1:self%N)))
-		key = 'Min potVort = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%potVort(1:self%N)))
-	endif
-	if ( associated(self%h) ) then
-		key = 'Max h = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%h(1:self%N)))
-		key = 'Min h = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%h(1:self%N)))
-	endif
-	if ( associated(self%div) ) then
-		key = 'Max div = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%div(1:self%N)))
-		key = 'Min div = '
-		call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%div(1:self%N)))
-	endif
-	if ( associated(self%tracer)) then
-		nTracer = GetNTracer(self)
-		do k=1,nTracer
-			write(key,'(A,I2,A)') 'Max tracer',k,' = '
-			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,maxVal(self%tracer(1:self%N,k)))
-			write(key,'(A,I2,A)') 'Min tracer',k,' = '
-			call LogMessage(aLog,TRACE_LOGGING_LEVEL,key,minval(self%tracer(1:self%N,k)))
-		enddo
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, logKey, " Particles Stats : ")
+	call StartSection(aLog)
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "particles.N = ", self%N )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "particles.N_Max = ", self%N_Max )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "max x = ", maxval(self%x) )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "min x = ", minval(self%x) )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "max y = ", maxval(self%y) )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "min y = ", minval(self%y) )
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "n active particles = ", count(self%isActive))
+	call LogMessage(aLog, TRACE_LOGGING_LEVEL, "n passive particles= ", count(self%isPassive))
+	if ( associated(self%area) ) then
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "max active particle area = ", maxval(self%area, MASK=self%isActive))
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "min active particle area = ", minval(self%area, MASK=self%isActive))
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "sum(particles.area) = ", sum(self%area(1:self%N)))
+		call LogMessage(aLog, TRACE_LOGGING_LEVEL, "sum(active particles.area) = ", &
+							sum(self%area(1:self%N), MASK=self%isActive(1:self%N)))
 	endif
 	call EndSection(aLog)
+end subroutine
+
+!> @brief Sorts the incident edges at a particle into counter-clockwise order using a bubble-sort algorithm.
+!> @param self
+!> @param index of particle whose edges need sorting.
+subroutine SortIncidentEdgesAtParticle( self, index )
+	type(Particles), intent(inout) :: self
+	integer(kint), intent(in) :: index
+	!
+	integer(kint) :: i, j
+	
+	
+	if ( self%nEdges(index) == 0 ) then
+		write(logString,*) "no edges at particle ", index, "."
+		call LogMessage(log, WARNING_LOGGING_LEVEL,"SortEdgesAtParticle : ",trim(logString))
+		return
+	endif
+	if ( associated(self%area) ) then
+		if ( self%area(index) > 0.0_kreal ) then
+			call LogMessage(log, WARNING_LOGGING_LEVEL,"SortEdgesParticle : ", "vertices should have 0 area.")
+			return
+		endif
+	endif
+	if ( associated(self%volume) ) then
+		if ( self%volume(index) > 0.0_kreal ) then
+			call LogMessage(log, WARNING_LOGGING_LEVEL,"SortEdgesParticle : ", "vertices should have 0 volume.")
+			return
+		endif
+	endif
+	
+!	print *, "particle ", index, ", nEdges = ", self%nEdges(index)
+!	print *, "edges at particle = ", self%incidentEdges(1:self%nEdges(index), index)
+	
+	do i = 1, self%nEdges(index)
+		do j = self%nEdges(index), i + 1, -1
+			call OrderEdgePair(self%incidentEdges(j-1,index), self%incidentAngles(j-1,index), &
+							   self%incidentEdges(j,index), self%incidentAngles(j,index) )
+		enddo
+	enddo
+	
+!	print *, "sorted edges at particle = ", self%incidentEdges(1:self%nEdges(index), index)
+end subroutine
+
+pure subroutine OrderEdgePair( index1, angle1, index2, angle2 )
+	integer(kint), intent(inout) :: index1
+	real(kreal), intent(inout) :: angle1
+	integer(kint), intent(inout) :: index2
+	real(kreal), intent(inout) :: angle2
+	!
+	integer(kint) :: tempIndex
+	real(kreal) :: tempAngle
+	if ( angle1 > angle2 ) then
+		tempIndex = index1
+		tempAngle = angle1
+		index1 = index2
+		angle1 = angle2
+		index2 = tempIndex
+		angle2 = tempAngle
+	endif 	
+end subroutine
+
+!> @brief Returns a particle's physical coordinate vector
+!> @param self
+!> @param index
+!> @return PhysCoord coordinate vector
+pure function PhysCoord( self, index )
+	real(kreal) :: PhysCoord(3)
+	type(Particles), intent(in) :: self
+	integer(kint), intent(in) :: index
+	PhysCoord = 0.0_kreal
+	PhysCoord(1) = self%x(index)
+	PhysCoord(2) = self%y(index)
+	if ( associated(self%z)) PhysCoord(3) = self%z(index)
+end function
+
+!> @brief Returns a particle's Lagrangian coordinate vector
+!> @param self
+!> @param index
+!> @return LagCoord coordinate vector
+pure function LagCoord( self, index )
+	real(kreal) :: LagCoord(3)
+	type(Particles), intent(in) :: self
+	integer(kint), intent(in) :: index
+	LagCoord = 0.0
+	LagCoord(1) = self%x0(index)
+	LagCoord(2) = self%y0(index)
+	if ( associated(self%z0) ) LagCoord(3) = self%z0(index)
+end function
+
+!> @brief Returns the total area represented by all active ParticlesModule
+!> @param self
+!> @return TotalArea
+pure function TotalArea( self ) 
+	real(kreal) :: TotalArea
+	type(Particles), intent(in) :: self
+	TotalArea = sum(self%area(1:self%N), MASK=self%isActive(1:self%N) )	
+end function
+
+!> @brief Returns the total volume represented by all active ParticlesModule
+!> @param self
+!> @return Totalvolume
+pure function TotalVolume(self)
+	real(kreal) :: TotalVolume
+	type(Particles), intent(in) :: self
+	TotalVolume = sum(self%volume(1:self%N), MASK=self%isActive(1:self%N) )
+end function
+
+
+!> @brief Writes particles to a script .m file readable by Matlab
+!> @param self
+!> @param fileunit
+subroutine WriteParticlesToMatlab( self, fileunit )
+	type(Particles), intent(in) :: self
+	integer(kint), intent(in) :: fileunit 
+	!
+	integer(kint) :: i
+	
+	write(fileunit,*) "x = [", self%x(1), ", ..."
+	do i = 2, self%N-1
+		write(fileunit,*) self%x(i), ", ..."
+	enddo
+	write(fileunit,*) self%x(self%N), "];"
+	
+	write(fileunit,*) "x0 = [", self%x0(1), ", ..."
+	do i = 2, self%N-1
+		write(fileunit,*) self%x0(i), ", ..."
+	enddo
+	write(fileunit,*) self%x0(self%N), "];"
+
+	write(fileunit,*) "y = [", self%y(1), ", ..."
+	do i = 2, self%N-1
+		write(fileunit,*) self%y(i), ", ..."
+	enddo
+	write(fileunit,*) self%y(self%N), "];"
+	
+	write(fileunit,*) "y0 = [", self%y0(1), ", ..."
+	do i = 2, self%N-1
+		write(fileunit,*) self%y0(i), ", ..."
+	enddo
+	write(fileunit,*) self%y0(self%N), "];"	
+	
+	if ( self%geomKind /= PLANAR_GEOM ) then
+		write(fileunit,*) "z = [", self%z(1), ", ..."
+		do i = 2, self%N-1
+			write(fileunit,*) self%z(i), ", ..."
+		enddo
+		write(fileunit,*) self%z(self%N), "];"
+
+		write(fileunit,*) "z0 = [", self%z0(1), ", ..."
+		do i = 2, self%N-1
+			write(fileunit,*) self%z0(i), ", ..."
+		enddo
+		write(fileunit,*) self%z0(self%N), "];"
+	endif
+	
+	if ( associated(self%area) ) then
+		write(fileunit,*) "area = [", self%area(1), ", ..."
+		do i = 2, self%N-1
+			write(fileunit,*) self%area(i), ", ..."
+		enddo
+		write(fileunit, *) self%area(self%N), "];"
+	endif
+	
+	if ( associated(self%volume) ) then
+		write(fileunit,*) "volume = [", self%volume(1), ", ..."
+		do i = 2, self%N-1
+			write(fileunit,*) self%volume(i), ", ..."
+		enddo
+		write(fileunit, *) self%volume(self%N), "];"
+	endif
 end subroutine
 
 subroutine InitLogger(aLog,rank)
 ! Initialize a logger for this module and processor
 	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
-	write(logKey,'(A,A,I3,A)') trim(logKey),'_',rank,' : '
-	call New(aLog,logLevel)
+	write(logKey,'(A,A,I0.3,A)') trim(logKey),'_',rank,' : '
+	if ( rank == 0 ) then
+		call New(aLog,logLevel)
+	else
+		call New(aLog,ERROR_LOGGING_LEVEL)
+	endif
 	logInit = .TRUE.
 end subroutine
 
+!>@}
 end module

@@ -1,0 +1,16 @@
+&meshDefine
+faceKind = 3
+initNest = 7
+maxNest = 7
+amrLimit = 0
+/
+&timestepping
+dt = 0.0003125
+tfinal = 1.0
+/
+&fileIO
+outputDir='/fscratch/pabosle/BVE'
+outputRoot='bveSolidBodyConv'
+frameOut = 3200
+/
+

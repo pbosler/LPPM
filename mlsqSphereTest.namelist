@@ -1,0 +1,7 @@
+&mlsqTest
+	faceType = 3
+	initNest = 5
+	radius = 1.0
+	outputDir='.'
+	outputRoot='sphereMLSQ'	
+/

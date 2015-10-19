@@ -1,0 +1,31 @@
+& sphereDefine
+	panelKind = 4
+	AMR = 3
+	initNest = 5
+	tracerMaxTol = 100000.0
+	tracerVarTol = 100000.0
+	refinementLimit = 4
+	circMaxTol = 0.08
+	vortVarTol = 0.4
+	lagVarTol = 1.0
+/
+
+& vorticityDefine
+	vortLat = 0.157079632679490
+	vortLon = 0.0
+	bb = 4.0
+	maxVort = 2.0  ! units of planetary rotation, OMEGA
+/
+
+& timeStepping
+	tfinal = 1.0		! days
+	dt = 0.002		! days
+	remeshInterval = 5	! timesteps
+	resetAlpha = 2		! remeshings
+/
+
+& fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'resetAlpha_halfdayTest_'
+	frameOut = 1
+/

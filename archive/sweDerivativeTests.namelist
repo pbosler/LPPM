@@ -1,0 +1,10 @@
+& sphereDefine
+	panelKind = 4
+	initNest = 5
+	AMR = 0	
+/
+
+& fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'sweDerivatives_'
+/

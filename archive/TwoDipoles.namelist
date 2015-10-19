@@ -1,0 +1,39 @@
+&meshDefine
+	initNest = 1
+	AMR = 0
+	amrLimit = 4
+	xmin = -5.0
+	xmax = 5.0
+	ymin = -5.0
+	ymax = 5.0
+/
+
+&vorticityDefine
+	xc1 = -2.0
+	yc1 = 0.0
+	rad1 = 1.0
+	u1 = 1.0
+	xc2 = 2.0
+	yc2 = 0.0
+	rad2 = 1.0
+	u2 = -1.0
+/
+
+&timestepping
+	dt = 0.01
+	tfinal = 0.01
+/
+
+&remeshing
+	maxCircTol = 0.1
+	vortVarTol = 0.25
+	lagVarTol = 1.5
+	remeshInterval = 5
+	resetAlphaInterval = 3
+/
+
+&fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'TwoDipole_Ling_dt0.01_'
+/
+

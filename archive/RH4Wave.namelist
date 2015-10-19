@@ -1,0 +1,29 @@
+& sphereDefine
+	panelKind = 4
+	initNest = 4
+	AMR = 3	
+	amrLimit = 4
+	maxCircTol = 0.6
+	vortVarTol = 0.8
+	lagVarTol = 4.0
+/
+
+& vorticityDefine
+	alpha = 0.0	! stationary wave alpha = 0.448798950512828, (test case 6 alpha = amp/EARTH_RADIUS)
+	amp = 50.0  ! units of planetary rotation, OMEGA (test case 6 amp = 50)
+/
+
+& timeStepping
+	tfinal = 1.0		! days (test case 6 tfinal = 14)
+	dt = 0.01			! days 
+	remeshInterval = 5	! timesteps
+	resetAlpha = 2		! remeshings
+/
+
+& fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'rhWave_reinitTest_'
+	frameOut = 1
+	nLon = 360
+	outputContours = 0
+/

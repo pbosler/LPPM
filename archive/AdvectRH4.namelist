@@ -1,0 +1,21 @@
+&meshDefine
+	initNest = 6
+	AMR = 0
+	panelKind = 3
+	amrLimit = 4
+	tracerMassTol = 0.1
+	tracerVarTol = 0.25
+/
+
+&timestepping
+	dt = 0.01		! days 
+	tfinal = 24.0		! days
+	remeshInterval = 10
+	resetAlphaInterval = 200000
+/
+
+&fileIO
+	outputDir = '~/modelData'
+	jobPrefix = 'advectRH4_'
+	frameOut = 4
+/

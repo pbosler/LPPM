@@ -5,7 +5,7 @@ use NumberKindsModule
 implicit none
 
 private
-public idbvip
+public idbvip, idtang, idpdrv, idptip, idlctn
 
 contains
 
@@ -1299,7 +1299,8 @@ subroutine idpdrv ( ndp, xd, yd, zd, nt, ipt, pd, wk )
       do iv = 1, 3
         idp = ipti(iv)
         jpd0 = 5*(idp-1)
-        wi = (w1(iv)**2)*w2(iv)
+        !wi = (w1(iv)**2)*w2(iv)
+        wi = 1.0_kreal
         pd(jpd0+1) = pd(jpd0+1)+vpx*wi
         pd(jpd0+2) = pd(jpd0+2)+vpy*wi
         wk(idp) = wk(idp)+vpz*wi
@@ -1362,7 +1363,8 @@ subroutine idpdrv ( ndp, xd, yd, zd, nt, ipt, pd, wk )
       do iv = 1, 3
         idp = ipti(iv)
         jpd0 = 5*(idp-1)
-        wi = (w1(iv)**2)*w2(iv)
+        !wi = (w1(iv)**2)*w2(iv)
+        wi = 1.0_kreal
         pd(jpd0+3) = pd(jpd0+3)+vpxx*wi
         pd(jpd0+4) = pd(jpd0+4)+(vpxy+vpyx)*wi
         pd(jpd0+5) = pd(jpd0+5)+vpyy*wi

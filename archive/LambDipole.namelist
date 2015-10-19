@@ -1,0 +1,30 @@
+&meshDefine
+	initNest = 6
+	AMR = 0
+	amrLimit = 3
+/
+
+&timestepping
+	dt = 0.005
+	tfinal = 3.0
+/
+
+&remeshing
+	maxCircTol = 0.01
+	vortVarTol = 0.5
+	lagVarTol = 1.0
+	remeshInterval = 25
+	resetAlphaInterval = 3
+/
+
+&fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'lambDipole_nest6_dt0.005_'
+/
+
+&vorticityDefine
+	rad = 1.0
+	u0 = 1.0
+	xc = -1.0
+	yc = 0.0
+/

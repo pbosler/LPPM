@@ -1,0 +1,21 @@
+&meshDefine
+	initNest = 5
+	AMR = 0
+	panelKind = 3
+	amrLimit = 0
+	tracerMassTol = 0.1
+	tracerVarTol = 1.0
+/
+
+&timestepping
+	dt = 0.03			! days (note : 1 period = 12 days)
+	tfinal = 6.0		! days
+	remeshInterval = 20
+	resetAlphaInterval = 5000
+/
+
+&fileIO
+	outputDir = '~/modelData/'
+	jobPrefix = 'advectCorrCosBells_halfTime_'
+	frameOut = 200
+/

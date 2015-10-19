@@ -1,0 +1,24 @@
+&meshDefine
+	initNest = 3
+	AMR = 3
+	panelKind = 3
+	amrLimit = 3
+	maxCircTol = 0.025
+	vortVarTol = 1.0e20
+	tracerMassTol = 1.0e20
+	tracerVarTol = 1.0e20 !0.04
+	lagVarTol = 1.0e20
+/
+
+&timestepping
+	dt = 0.03			! days (note : 1 period = 12 days)
+	tfinal = 12.0		! days
+	remeshInterval = 20
+	resetAlphaInterval = 4000
+/
+
+&fileIO
+	outputDir = '/fscratch/pabosle/movingVortices/'
+	jobPrefix = 'mv_amr_frames'
+	frameOut = 1
+/

@@ -1,0 +1,17 @@
+&meshDefine
+	faceKind = 3
+	initNest = 4
+	maxNest = 6
+	amrLimit = 0
+/
+
+&timestepping
+	dt = 0.0025
+	tfinal = 1.0
+/
+
+&fileIO
+	outputDir = '/Users/pabosle/modelData/BVE'
+	outputRoot = 'bveSolidBody'
+	frameOut = 8
+/

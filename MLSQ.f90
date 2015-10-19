@@ -1,58 +1,55 @@
-module MovingLeastSquaresModule
-!******************************************************************************
-!	Peter A. Bosler
-!	Department of Mathematics
-!	University of Michigan
-!	pbosler@umich.edu
-!
-!******************************************************************************
-!
-!	Defines the moving least squares data structure and methods used by SphereMesh
-!	for approximating functions on the sphere.
-!
-!	Bosler, P.A., "Particle Methods for Geophysical Flow on the Sphere," PhD Thesis; the University of Michigan, 2013.
-!
-!----------------
+module MLSQModule
+
 use NumberKindsModule
+use OutputWriterModule
 use LoggerModule
-use SphereGeomModule
+use STDIntVectorModule
 use ParticlesModule
 use EdgesModule
-use PanelsModule
-use SphereMeshModule
-use LAPACK95
+use FacesModule
+use PolyMesh2dModule
+use FieldModule
+use MPISetupModule
+use SphereGeomModule
+!use LAPACK95
 
 implicit none
 
 include 'mpif.h'
 
 private
-public MLSQData
-public New, Delete
-
-
+public MLSQ, New, Delete
+public InitializeMLSQ
+public InterpolateScalar, InterpolateVector, InterpolateScalarGradient, InterpolateScalarLaplacian
+public MLSQGradientAtParticles, MLSQLaplacianAtParticles, MLSQDoubleDotProductAtParticles
 !
 !----------------
-! Types and module constants
+! types and module variables
 !----------------
 !
-type MLSQData
-	integer(kint), pointer :: adjacentPanels(:,:) => null(), &
-							  nAdjacentPanels(:) => null(), &
-							  nearbyParticles(:,:) => null(), &
-							  nNearbyParticles(:,:) => null()
-	real(kreal), pointer :: xCoords(:,:)=>null(), &
-							yCoords(:,:)=>null(), &
-							zCoords(:,:)=>null()
-	real(kreal), pointer :: uData(:,:)=>null(),&
-						 	vData(:,:)=>null(),&
-						 	wData(:,:)=>null(),&
-						 	hData(:,:)=>null()
-	real(kreal), pointer :: uCoeff(:,:)=>null(),&
-						 	vCoeff(:,:)=>null(),&
-						 	wCoeff(:,:)=>null(),&
-						 	hCoeff(:,:)=>null()
+type MLSQ
+	real(kreal), pointer :: basisVectors(:,:,:) => null()
+	real(kreal), pointer :: coeffs1(:,:) => null()
+	real(kreal), pointer :: coeffs2(:,:) => null()
+	real(kreal), pointer :: coeffs3(:,:) => null()
+
+	contains
+		final :: deletePrivate
 end type
+
+!
+!----------------
+! interfaces
+!----------------
+!
+interface New
+	module procedure newPrivate
+end interface
+
+interface Delete
+	module procedure deletePrivate
+end interface
+
 !
 !----------------
 ! Logging
@@ -62,202 +59,553 @@ logical(klog), save :: logInit = .FALSE.
 type(Logger) :: log
 character(len=28), save :: logKey = 'MLSQ'
 integer(kint), parameter :: logLevel = DEBUG_LOGGING_LEVEL
-character(len=128) :: logstring
-character(len=24) :: formatstring
-!
-!----------------
-! Interfaces
-!----------------
-!
-interface New
-	module procedure NewPrivate
-end interface
-
-interface Delete
-	module procedure DeletePrivate
-end interface
 
 contains
 !
 !----------------
-! Standard methods : Constructor / Destructor
+! public methods
 !----------------
 !
-subroutine NewPrivate(self, aMesh)
-	type(MLSQData), intent(out) :: self
-	type(SphereMesh), intent(in) :: aMesh
+subroutine newPrivate( self, aMesh, dataField )
+	type(MLSQ), intent(out) :: self
+	type(PolyMesh2d), intent(in) :: aMesh
+	type(Field), intent(in) :: dataField
 	!
-	integer(kint) :: nActive, i, j, k, insertPoint
-	type(Panels), pointer :: aPanels
+	integer(kint) :: nCoeffs
 	
-	aPanels => aMesh%panels
-	nPanels = aPanels%N
-		
-	allocate(self%adjacentPanels(8,nPanels))
-	allocate(self%nAdjacentPanels(nPanels))
-	allocate(self%nearbyParticles(20,nPanels))
-	allocate(self%nNearbyParticles(nPanels))
-	self%adjacentPanels = 0
-	self%nAdjacentPanels = 0
-	self%nearbyParticles = 0
-	self%nNearbyParticles = 0
+	if ( .NOT. logInit ) call InitLogger(log, procRank)
 	
-!	allocate(self%xCoords(29,nPanels))
-!	allocate(self%yCoords(29,nPanels))
-!	allocate(self%zCoords(29,nPanels))
-!	self%xCoords = 0.0_kreal
-!	self%yCoords = 0.0_kreal
-!	self%zCoords = 0.0_kreal
-!	
-!	allocate(self%uData(29,nPanels))
-!	allocate(self%vData(29,nPanels))
-!	allocate(self%wData(29,nPanels))
-!	allocate(self%hData(29,nPanels))
-!	self%uData = 0.0_kreal
-!	self%vData = 0.0_kreal
-!	self%wData = 0.0_kreal
-!	self%hData = 0.0_kreal
-!		
-!	allocate(self%uCoeff(10,nPanels))
-!	allocate(self%vCoeff(10,nPanels))
-!	allocate(self%wCoeff(10,nPanels))
-!	allocate(self%hCoeff(10,nPanels))
-!	self%uCoeff = 0.0_kreal
-!	self%vCoeff = 0.0_kreal
-!	self%wCoeff = 0.0_kreal
-!	self%hCoeff = 0.0_kreal
+	allocate(self%basisVectors(3,3,aMesh%particles%N))
+	self%basisVectors = 0.0_kreal
 	
-	insertPoint = 1
-	do i=1,aPanel%N
-		if ( .NOT. aPanels%hasChildren(i) ) then
-			call FindNearbyParticlesToPanel(self%nearbyParticles(:,insertPoint), self%nNearbyParticles(inserPoint), &
-				self%adjacentPanels(:,insertPoint), self%nAdjacentPanels(insertPoint), aMesh, i)
-			insertPoint = insertPoint + 1
-		endif
-	enddo	
+	nCoeffs = 10 ! cubic bivariate polynomials
+	
+	allocate(self%coeffs1( nCoeffs, aMesh%particles%N))
+	self%coeffs1 = 0.0_kreal
+	if ( dataField%nDim == 2 .OR. dataField%nDim == 3) then
+		allocate(self%coeffs2(nCoeffs, aMesh%particles%N))
+		self%coeffs2 = 0.0_kreal
+	endif
+	if ( dataField%nDim == 3 ) then
+		allocate(self%coeffs3(nCoeffs, aMesh%particles%N))
+		self%coeffs3 = 0.0_kreal
+	endif
+	
+	call InitializeMLSQ( self, aMesh, dataField)
 end subroutine
-!
-!----------------
-! Public member functions
-!----------------
-!
-subroutine SetMLSQCoefficients(self,particlesXYZIn,panelsXYZIn, particlesVelocityIn,panelsVelocityIn,&
-			particlesHIn, panelsHIn, panelsAreaIn)
-	type(MLSQData), intent(inout) :: self
-	real(kreal), intent(in) :: particlesXYZIn(:,:), activePanelsXYZIn(:,:), particlesVelocityIn(:,:)
-	real(kreal), intent(in) :: activePanelsVelocityIn(:,:), particlesHIn(:), activePanelsHIn(:), activePanelsAreaIn(:)
+
+subroutine deletePrivate(self)
+	type(MLSQ), intent(inout) :: self
+	if ( associated(self%basisVectors)) deallocate(self%basisVectors)
+	if ( associated(self%coeffs1)) deallocate(self%coeffs1)
+	if ( associated(self%coeffs2)) deallocate(self%coeffs2)
+	if ( associated(self%coeffs3)) deallocate(self%coeffs3)
+end subroutine
+
+subroutine InitializeMLSQ(self, aMesh, dataField)
+	type(MLSQ), intent(inout) :: self
+	type(PolyMesh2d), intent(in) :: aMesh
+	type(Field), intent(in) :: dataField
 	!
-	integer(kint) :: nLocations
-	real(kreal) :: uavg, vavg, wavg, havg
-	real(kreal) :: A(31,10), dataLocs(3,31), uData(31), vData(31), wData(31), hData(31)
+	type(STDIntVector) :: nearbyParticles
+	integer(kint) :: i
+	real(kreal) :: localCoeffs(10,3)
 	
-	
-	
-	uavg = sum(activePanelsVelocityIn(1,:)*activePanelsAreaIn/EARTH_RADIUS)/(4.0_kreal*EARTH_RADIUS)
-	vavg = sum(activePanelsVelocityIn(2,:)*activePanelsAreaIn/EARTH_RADIUS)/(4.0_kreal*EARTH_RADIUS)
-	wavg = sum(activePanelsVelocityIn(3,:)*activePanelsAreaIn/EARTH_RADIUS)/(4.0_kreal*EARTH_RADIUS)
-	havg = sum(activePanelsHIn(1,:)*activePanelsAreaIn/EARTH_RADIUS)/(4.0_kreal*EARTH_RADIUS)
-	
-	do j=1,nPanels
-		if ( .NOT. aPanels%hasChildren(j)) then
-			dataLocs = 0.0_kreal
-			do i=1,self%nNearbyParticles(j)
-				dataLocs(:,i) = particlesXYZIn(:,self%nearbyParticles(i,j))
-				uData(i) = particlesVelocityIn(1,self%nearbyParticles(i,j))
-				vData(i) = particlesVelocityIn(2,self%nearbyParticles(i,j))
-				wData(i) = particlesVelocityIn(3,self%nearbyParticles(i,j))
-				hData(i) = particlesHIn(self%nearbyParticles(i,j))
-			enddo
-			do i=1,self%nAdjacentPanels(j)
-				dataLocs(:,self%nNearbyParticles(j) + i) = panelsXYZIn(:,self%adjacentPanels(i,j))
-				uData(self%nNearbyParticles(j) + i) = panelsVelocity(1,self%adjacentPanels(i,j))
-				vData(self%nNearbyParticles(j) + i) = panelsVelocity(2,self%adjacentPanels(i,j))
-				wData(self%nNearbyParticles(j) + i) = panelsVelocity(3,self%adjacentPanels(i,j))
-				hData(self%nNearbyParticles(j) + i) = panelsH(self%adjacentPanels(i,j))
-			enddo
-			dataLocs(:,self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 1) = panelsXYZIn(:,j)
-			uData(self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 1) = panelsVelocity(1,j)
-			vData(self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 1) = panelsVelocity(2,j)
-			wData(self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 1) = panelsVelocity(3,j)
-			hData(self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 1) = panelsH(1,j)
+	!call LogMessage(log, DEBUG_LOGGING_LEVEL, trim(logKey), " entering InitializeMLSQ ... ")
+	!call StartSection(log, "DEBUGGING MLSQ:")
+	do i = 1, aMesh%particles%N
+		if ( .NOT. aMesh%particles%isActive(i) ) then
 			
-			dataLocs(:,self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 2) = 0.0_kreal
-			uData(self%nNearbyParticles(j) + self%nAdjacentPanels + 2 ) = uavg
-			vData(self%nNearbyParticles(j) + self%nAdjacentPanels + 2 ) = vavg
-			wData(self%nNearbyParticles(j) + self%nAdjacentPanels + 2 ) = wavg
-			hData(self%nNearbyParticles(j) + self%nAdjacentPanels + 2 ) = havg
+			!call LogMessage(log, DEBUG_LOGGING_LEVEL, "particle i = ", i )
 			
-			dataLocs(:,self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 3) = 2.0_kreal*panelsXYZ(:,j)
-			uData(self%nNearbyParticles(j) + self%nAdjacentPanels + 3 ) = uavg
-			vData(self%nNearbyParticles(j) + self%nAdjacentPanels + 3 ) = vavg
-			wData(self%nNearbyParticles(j) + self%nAdjacentPanels + 3 ) = wavg
-			hData(self%nNearbyParticles(j) + self%nAdjacentPanels + 3 ) = havg
+			call GetParticlesNearVertex(nearbyParticles, aMesh, i )
 			
-			nLocations = self%nNearbyParticles(j) + self%nAdjacentPanels(j) + 3
+			!if (procRank == 0) call nearbyParticles%print("nearbyParticles")
 			
-			A = 0.0_kreal
-			A(1:nLocations, 1 ) = 1.0_kreal				
-			A(1:nLocations, 2 ) = dataLocs(1,1:nPoints) ! x
-			A(1:nLocations, 3 ) = dataLocs(2,1:nPoints) ! y 
-			A(1:nLocations, 4 ) = dataLocs(3,1:nPoints) ! z
-			A(1:nLocations, 5 ) = dataLocs(1,1:nPoints) * dataLocs(2,1:nPoints) ! xy
-			A(1:nLocations, 6 ) = dataLocs(1,1:nPoints) * dataLocs(3,1:nPoints) ! xz
-			A(1:nLocations, 7 ) = dataLocs(2,1:nPoints) * dataLocs(3,1:nPoints) ! yz
-			A(1:nLocations, 8 ) = dataLocs(1,1:nPoints) * dataLocs(1,1:nPoints)	! x^2
-			A(1:nLocations, 9 ) = dataLocs(2,1:nPoints) * dataLocs(2,1:nPoints) ! y^2
-			A(1:nLocations, 10) = dataLocs(3,1:nPoints) * dataLocs(3,1:nPoints) ! z^2
+			call SetBasisVectorsAndCoefficients( self%basisVectors(:,:,i), localCoeffs, nearbyParticles, aMesh, dataField)
 			
-			AT = transpose(A)
-			ATA = matmul(AT,A)
-			
-			! find cholesky factorization with lapack
-			call DPOTRF('U',10,ATA,10,errCode)
-			if ( errCode < 0 ) then
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' potrf ERROR : found illegal value at position ',errCode)
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
-			elseif ( errCode > 0 ) then
-				call LogMessage(log,ERROR_LOGGING_LEVEL,logkey,'potrf ERROR : non-symmetric positive definite matrix.')
-			endif
-			
-			! invert ATA with lapack
-			call DPOTRI('U',10,ATA,10,errCode)
-			if ( errCode < 0 ) then
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logkey)//' potri ERROR : found illegal value at position ',errCode)
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
-			elseif (errCode > 0 ) then
-				call LogMessage(log,ERROR_LOGGING_LEVEL,logKey,'potri ERROR : found zero on diagonal of Cholesky matrix')
-				call LogMessage(log,ERROR_LOGGING_LEVEL,trim(logKey)//' error found at panel ',j)
-			endif
-			
-			! Unpack LAPACK'S symmetric storage
-			do m=1,10
-				do k=m+1,10
-					ata(k,m) = ata(m,k)
-				enddo
-			enddo
-			
-			ATAInvAT = matmul(ATA,AT)
-			
-			uCoeff = matmul(ATAInvAT(:,1:nLocations),uData(1:nLocations))
-			vCoeff = matmul(ATAInvAT(:,1:nLocations),vData(1:nLocations))
-			wCoeff = matmul(ATAInvAT(:,1:nLocations),wData(1:nLocations))
-			hCoeff = matmul(ATAInvAT(:,1:nLocations),hData(1:nLocations))
-			
+			if ( dataField%nDim == 1) then
+				self%coeffs1(:,i) = localCoeffs(:,1)
+			elseif ( dataField%nDim == 2) then
+				self%coeffs1(:,i) = localCoeffs(:,1)
+				self%coeffs2(:,i) = localCoeffs(:,2)
+			elseif ( dataField%nDim == 3) then
+				self%coeffs1(:,i) = localCoeffs(:,1)
+				self%coeffs2(:,i) = localCoeffs(:,2)
+				self%coeffs3(:,i) = localCoeffs(:,3)
+			endif		
 		endif
 	enddo
+	do i = 1, aMesh%faces%N
+		if ( .NOT. aMesh%faces%hasChildren(i) ) then
+			!call LogMessage(log, DEBUG_LOGGING_LEVEL, "face i = ", i )
+		
+			!call GetParticlesNearFace(nearbyParticles, aMesh, i)
+
+			call SetBasisVectorsAndCoefficients( self%basisVectors(:,:,aMesh%faces%centerParticle(i)), localCoeffs, &
+					 nearbyParticles, aMesh, dataField)
+
+			if ( dataField%nDim == 1) then
+				self%coeffs1(:,aMesh%faces%centerParticle(i)) = localCoeffs(:,1)
+			elseif ( dataField%nDim == 2) then
+				self%coeffs1(:,aMesh%faces%centerParticle(i)) = localCoeffs(:,1)
+				self%coeffs2(:,aMesh%faces%centerParticle(i)) = localCoeffs(:,2)
+			elseif ( dataField%nDim == 3) then
+				self%coeffs1(:,aMesh%faces%centerParticle(i)) = localCoeffs(:,1)
+				self%coeffs2(:,aMesh%faces%centerParticle(i)) = localCoeffs(:,2)
+				self%coeffs3(:,aMesh%faces%centerParticle(i)) = localCoeffs(:,3)
+			endif		
+		endif
+	enddo
+end subroutine
+
+function InterpolateScalar( self, aMesh, interpLoc )
+	real(kreal) :: InterpolateScalar
+	type(MLSQ), intent(in) :: self
+	type(PolyMesh2d), intent(in) :: aMesh
+	real(kreal), intent(in) :: interpLoc(3)
+	!
+	integer(kint) :: faceIndex, particleIndex
+	real(kreal) :: qt(3,3), locCoords(3), locBasis(10), projMat(3,3), pLoc(3)
+	real(kreal) :: p, q
 	
+	faceIndex = LocateFaceContainingPoint(aMesh, interpLoc)
+	
+	particleIndex = aMesh%faces%centerParticle(faceindex) ! find nearest particle? or just nearest face?
+	pLoc = PhysCoord(amesh%particles, particleIndex)
+	projMat = SphereProjection( pLoc )
+	
+	pLoc = MATMUL( projMat, interpLoc)
+	
+	qt = Transpose(self%basisVectors(:,:,particleIndex))
+	locCoords = MATMUL( qt, pLoc - PhysCoord(aMesh%particles, particleIndex))
+	
+	p = locCoords(1)
+	q = locCoords(2)
+	locBasis = [ 1.0_kreal, p, p*p, p*p*p, q, p*q, p*p*q, q*q, p*q*q, q*q*q]
+	InterpolateScalar = sum( self%coeffs1(:,particleIndex) * locBasis)
+end function
+
+function InterpolateVector( self, aMesh, interpLoc )
+	real(kreal) :: InterpolateVector(3)
+	type(MLSQ), intent(in) :: self
+	type(PolyMesh2d), intent(in) :: aMesh
+	real(kreal), intent(in) :: interpLoc(3)
+	!
+	integer(kint) :: faceIndex, particleIndex
+	real(kreal) :: qt(3,3), locCoords(3), locBasis(10), projMat(3,3), pLoc(3)
+	real(kreal) :: p, q
+	
+	faceIndex = LocateFaceContainingPoint(aMesh, interpLoc)
+	
+	particleIndex = aMesh%faces%centerParticle(faceIndex) ! find nearest particle? or just nearest face?
+	pLoc = PhysCoord(amesh%particles, particleIndex)
+	projMat = SphereProjection( pLoc )
+	
+	pLoc = MATMUL( projMat, interpLoc)
+	qt = Transpose(self%basisVectors(:,:,particleIndex))
+	locCoords = MATMUL( qt, pLoc - PhysCoord(aMesh%particles, particleIndex))
+	
+	p = locCoords(1)
+	q = locCoords(2)
+	locBasis = [ 1.0_kreal, p, p*p, p*p*p, q, p*q, p*p*q, q*q, p*q*q, q*q*q]
+	
+	InterpolateVector(1) = sum( self%coeffs1(:,particleIndex) * locBasis)
+	InterpolateVector(2) = sum( self%coeffs2(:,particleIndex) * locBasis)
+	if ( associated(self%coeffs3) ) then
+		InterpolateVector(3) = sum( self%coeffs3(:,particleIndex) * locBasis)	
+	else
+		InterpolateVector(3) = 0.0_kreal
+	endif
+end function
+
+function InterpolateScalarGradient( self, aMesh, interpLoc )
+	real(kreal), dimension(3) :: InterpolateScalarGradient
+	type(MLSQ), intent(in) :: self
+	type(PolyMesh2d), intent(in) :: amesh
+	real(kreal), intent(in), dimension(3) :: interpLoc
+	!
+	integer(kint) :: faceIndex, particleIndex
+	real(kreal) :: qt(3,3), locCoords(3), locBasisDp(10), locBasisDq(10), projMat(3,3), pLoc(3)
+	real(kreal) :: p, q, dsdp, dsdq
+	
+	faceIndex = LocateFaceContainingPoint(aMesh, interpLoc)
+	
+	particleIndex = aMesh%faces%centerParticle(faceIndex)
+	
+	pLoc = PhysCoord(amesh%particles, particleIndex)
+	projMat = SphereProjection( pLoc )
+	
+	pLoc = MATMUL( projMat, interpLoc)
+	qt = Transpose(self%basisVectors(:,:,particleIndex))
+	locCoords = MATMUL( qt, pLoc - PhysCoord(aMesh%particles, particleIndex))
+	
+	p = locCoords(1)
+	q = locCoords(2)
+	locBasisDp = [0.0_kreal, &
+				  1.0_kreal, &
+				  2.0_kreal * p, &
+				  3.0_kreal * p * p, &
+				  0.0_kreal, &
+				  q, &
+				  2.0_kreal * p * q, &
+				  0.0_kreal, &
+				  q * q, &
+				  0.0_kreal ]
+	locBasisDq = [0.0_kreal, &
+				  0.0_kreal, &
+				  0.0_kreal, &
+				  0.0_kreal, &
+				  1.0_kreal, &
+				  p, &
+				  p*p, &
+				  2.0_kreal * q, &
+				  2.0_kreal * p * q, &
+				  3.0_kreal * q * q ] 
+	dsdp = sum( self%coeffs1(:, particleIndex) * locBasisDp )
+	dsdq = sum( self%coeffs1(:, particleIndex) * locBasisDq )
+	InterpolateScalarGradient(1) = dsdp * self%basisVectors(1,1,particleIndex) + dsdq * self%basisVectors(1,2,particleIndex)
+	InterpolateScalarGradient(2) = dsdp * self%basisVectors(2,1,particleIndex) + dsdq * self%basisVectors(2,2,particleIndex)
+	InterpolateScalarGradient(3) = dsdp * self%basisVectors(3,1,particleIndex) + dsdq * self%basisVectors(3,2,particleIndex)
+end function
+
+function InterpolateScalarLaplacian(self, aMesh, interpLoc)
+	real(kreal) :: InterpolateScalarLaplacian
+	type(MLSQ), intent(in) :: self
+	type(PolyMesh2d), intent(in) :: amesh
+	real(kreal), intent(in), dimension(3) :: interpLoc
+	!
+	integer(kint) :: faceIndex, particleIndex
+	real(kreal) :: qt(3,3), locCoords(3), locBasis(10), projMat(3,3), pLoc(3)
+	real(kreal) :: p, q
+	
+	faceIndex = LocateFaceContainingPoint(aMesh, interpLoc)
+	
+	particleIndex = aMesh%faces%centerParticle(faceIndex)
+	
+	pLoc = PhysCoord(amesh%particles, particleIndex)
+	projMat = SphereProjection( pLoc )
+	
+	pLoc = MATMUL( projMat, interpLoc)
+	qt = Transpose(self%basisVectors(:,:,particleIndex))
+	locCoords = MATMUL( qt, pLoc - PhysCoord(aMesh%particles, particleIndex))
+	
+	p = locCoords(1)
+	q = locCoords(2)
+	
+	locBasis = [ 0.0_kreal, &
+				 0.0_kreal, &
+				 2.0_kreal, &
+				 6.0_kreal * p, &
+				 0.0_kreal, &
+				 0.0_kreal, &
+				 2.0_kreal * q, & 
+				 2.0_kreal, &
+				 2.0_kreal * p, &
+				 6.0_kreal * q ]
+	InterpolateScalarLaplacian = sum( locBasis * self%coeffs1(:,particleIndex))
+end function
+
+subroutine MLSQGradientAtParticles( self, aMesh, scalarGrad )
+	type(MLSQ), intent(in) :: self
+	type(PolyMesh2d), intent(in) :: aMesh
+	type(Field), intent(inout) :: scalarGrad
+	!
+	integer(kint) :: i
+	
+	call SetFieldToZero(scalarGrad)
+	scalarGrad%N = aMesh%particles%N
+	
+	do i = 1, aMesh%particles%N
+		scalarGrad%xComp(i) = self%coeffs1(2,i) * self%basisVectors(1,1,i) + self%coeffs1(5,i) * self%basisVectors(1,2,i)
+		scalarGrad%yComp(i) = self%coeffs1(2,i) * self%basisVectors(2,1,i) + self%coeffs1(5,i) * self%basisVectors(2,2,i)
+		scalarGrad%zComp(i) = self%coeffs1(2,i) * self%basisVectors(3,1,i) + self%coeffs1(5,i) * self%basisVectors(3,2,i)
+	enddo
+end subroutine
+
+subroutine MLSQLaplacianAtParticles( self, aMesh, scalarLap )
+	type(MLSQ), intent(in) :: self
+	type(PolyMesh2d), intent(in) :: aMesh
+	type(Field), intent(inout) :: scalarLap
+	!
+	integer(kint) :: i
+	
+	call SetFieldToZero(scalarLap)
+	scalarLap%N = aMesh%particles%N
+	do i = 1, aMesh%particles%N
+		scalarLap%scalar(i) = 2.0_kreal * self%coeffs1(3,i) + 2.0_kreal * self%coeffs1(8,i)
+	enddo
+end subroutine
+
+subroutine MLSQDoubleDotProductAtParticles( self, aMesh, doubleDot )
+	type(MLSQ), intent(in) :: self
+	type(PolyMesh2d), intent(in) :: aMesh
+	type(Field), intent(inout) :: doubleDot
+	!
+	integer(kint) :: i
+	real(kreal) :: ux, uy, uz, vx, vy, vz, wx, wy, wz 
+	
+	call SetFieldToZero(doubleDot)
+	doubleDot%N = aMesh%particles%N
+	do i = 1, aMesh%particles%N
+		ux = self%coeffs1(2,i) * self%basisVectors(1,1,i) + self%coeffs1(5,i) * self%basisVectors(1,2,i) 
+		uy = self%coeffs1(2,i) * self%basisVectors(2,1,i) + self%coeffs1(5,i) * self%basisVectors(2,2,i)
+		uz = self%coeffs1(2,i) * self%basisVectors(3,1,i) + self%coeffs1(5,i) * self%basisVectors(3,2,i)
+		vx = self%coeffs2(2,i) * self%basisVectors(1,1,i) + self%coeffs2(5,i) * self%basisVectors(1,2,i)
+		vy = self%coeffs2(2,i) * self%basisVectors(2,1,i) + self%coeffs2(5,i) * self%basisVectors(2,2,i)
+		vz = self%coeffs2(2,i) * self%basisVectors(3,1,i) + self%coeffs2(5,i) * self%basisVectors(3,2,i)
+		wx = self%coeffs3(2,i) * self%basisVectors(1,1,i) + self%coeffs3(5,i) * self%basisVectors(1,2,i)
+		wy = self%coeffs3(2,i) * self%basisVectors(2,1,i) + self%coeffs3(5,i) * self%basisVectors(2,2,i)
+		wz = self%coeffs3(2,i) * self%basisVectors(3,1,i) + self%coeffs3(5,i) * self%basisVectors(3,2,i)
+		doubleDot%scalar(i) = ux*ux + vy*vy + wz*wz + 2.0_kreal * ( uy*vx + uz * wx + vz * wy )
+	enddo
 end subroutine
 
 !
 !----------------
-! Module methods : module- or type-specific private functions
+! private methods
 !----------------
 !
+subroutine SetBasisVectorsAndCoefficients( basisVectors, coeffsOut, nearbyParticles, aMesh, dataField)
+	real(kreal), intent(out) :: basisVectors(3,3)
+	real(kreal), intent(out) :: coeffsOut(10,3)
+	type(STDIntVector), intent(in) :: nearbyParticles
+	type(PolyMesh2d), intent(in) :: aMesh
+	type(Field), intent(in) :: dataField
+	!
+	integer(kint) :: i	
+	real(kreal) :: projMatrix(3,3), qt(3,3)
+	real(kreal) :: localVectors(3,21)
+	real(kreal) :: lsqA(21,10)
+	real(kreal) :: scalarB(21), vec2B(21,2), vec3B(21,3)
+	real(kreal) :: x0(3), xi(3)
+	real(kreal) :: p, q, rcond
+	real(kreal) :: work(100), singularVals(10)
+	integer(kint) :: lpkInfo, rank
+	
+	x0 = PhysCoord(aMesh%particles, nearbyParticles%int(1) )
+
+	!
+	!	projection matrix to plane tangent to sphere at x0
+	!			
+	projMatrix(1,1) = 1.0_kreal - x0(1)*x0(1)
+	projMatrix(2,1) = - x0(1) * x0(2)
+	projMatrix(3,1) = - x0(1) * x0(3)
+	projMatrix(1,2) = - x0(1) * x0(2)
+	projMatrix(2,2) = 1.0_kreal - x0(2) * x0(2)
+	projMatrix(3,2) = - x0(2) * x0(3)
+	projMatrix(1,3) = - x0(1) * x0(3)
+	projMatrix(2,3) = - x0(2) * x0(3)
+	projMatrix(3,3) = 1.0_kreal - x0(3) * x0(3)
+	
+	localVectors(:,1) = 0.0_kreal
+	do i = 2, nearbyParticles%N
+		xi = PhysCoord(aMesh%particles, nearbyParticles%int(i) )
+		localVectors(:,i) = MATMUL( projMatrix, xi) ! project nearby particles into tangent plane
+		localVectors(:,i) = localVectors(:,i) - x0	! set origin to x0
+	enddo
+	
+	!
+	!	construct orthonormal basis for tangent plane
+	!
+	basisVectors(:,1) = localVectors(:,2) / sqrt(sum( localVectors(:,2)*localVectors(:,2)))
+	basisVectors(:,2) = localVectors(:,3) - sum( localVectors(:,3) * basisVectors(:,1)) * basisVectors(:,1)
+	basisVectors(:,2) = basisVectors(:,2) / sqrt(sum( basisVectors(:,2) * basisVectors(:,2)))
+	basisVectors(:,3) = x0 / sqrt(sum(x0*x0))
+!	basisVectors(:,3) = CrossProduct(basisVectors(:,1), basisVectors(:,2))
+	
+	!
+	!	find coordinates in new basis
+	!
+	qt = Transpose(basisVectors)
+	do i = 2, nearbyParticles%N
+		localVectors(:,i) = MATMUL(qt, localVectors(:,i))
+	enddo
+	
+	!
+	!	build lsq matrix A
+	!
+	lsqA(1:nearbyParticles%N,1) = 1.0_kreal
+	do i = 1, nearbyParticles%N
+		p = localVectors(1,i)
+		q = localVectors(2,i)
+		lsqA(i,1) = 1.0_kreal
+		lsqA(i,2) = p
+		lsqA(i,3) = p*p
+		lsqA(i,4) = p*p*p
+		lsqA(i,5) = q
+		lsqA(i,6) = p*q
+		lsqA(i,7) = p*p*q
+		lsqA(i,8) = q*q
+		lsqA(i,9) = p*q*q
+		lsqA(i,10) = q*q*q
+	enddo
+	
+	!
+	!	build rhs B
+	!
+	if ( dataField%nDim == 1) then
+		do i = 1, nearbyParticles%N
+			scalarB(i) = dataField%scalar(nearbyParticles%int(i))
+		enddo
+	elseif ( dataField%nDim == 2) then
+		do i = 1, nearbyParticles%N
+			vec2B(i,1) = dataField%xComp(nearbyParticles%int(i))
+		enddo
+		do i = 1, nearbyParticles%N
+			vec2B(i,2) = dataField%yComp(nearbyParticles%int(i))
+		enddo
+	elseif ( dataField%nDim == 3) then
+		do i = 1, nearbyParticles%N
+			vec3B(i,1) = dataField%xComp(nearbyParticles%int(i))
+		enddo
+		do i = 1, nearbyParticles%N
+			vec3B(i,2) = dataField%yComp(nearbyParticles%int(i))
+		enddo
+		do i = 1, nearbyParticles%N
+			vec3B(i,3) = dataField%zComp(nearbyParticles%int(i))
+		enddo
+	endif
+
+	!
+	!	solve lsq system with LAPACK 
+	!
+	rcond = -1.0_kreal
+	if ( dataField%nDim == 1 ) then
+!		call DGELS('N', nearbyParticles%N, 10, 1, lsqA, nearbyParticles%N, scalarB, nearbyParticles%N,&
+!			 work, 20, lpkInfo)
+		call DGELSS(nearbyParticles%N, 10, 1, lsqA, nearbyParticles%N, scalarB, &
+				nearbyParticles%N, singularVals, rcond, rank, work, 100, lpkInfo)
+		coeffsOut(:,1) = scalarB(1:10)
+	elseif ( dataField%nDim == 2) then
+!		call DGELS('N', nearbyParticles%N, 10, 2, lsqA, nearbyParticles%N, vec2B, nearbyParticles%N,&
+!			 work, 20, lpkInfo)
+		call DGELSS(nearbyParticles%N, 10, 2, lsqA, nearbyParticles%N, vec2B, nearbyParticles%N, &
+				singularVals, rcond, rank, work, 100, lpkInfo)
+		coeffsOut(:,1) = vec2B(1:10,1)
+		coeffsOut(:,2) = vec2B(1:10,2)
+	elseif (dataField%nDIm == 3) then
+!		call DGELS('N', nearbyParticles%N, 10, 3, lsqA, nearbyParticles%N, vec3B, nearbyParticles%N,&
+!			 work, 20, lpkInfo)
+		call DGELSS(nearbyParticles%N, 10, 3, lsqA, nearbyParticles%N, vec3B, nearbyParticles%N, &
+				singularVals, rcond, rank, work, 100, lpkInfo)
+		coeffsOut(:,1) = vec3B(1:10,1)
+		coeffsOut(:,2) = vec3B(1:10,2)
+		coeffsOut(:,3) = vec3B(1:10,3)
+	endif
+
+end subroutine
+
+
+subroutine GetParticlesNearVertex( nearbyParticles, aMesh, vertIndex)
+	type(STDIntVector), intent(out) :: nearbyParticles
+	type(PolyMesh2d), intent(in) :: aMesh
+	integer(kint), intent(in) :: vertIndex
+	!
+	type(STDIntVector) :: adjFaces, faceVerts
+	integer(kint) :: i, j
+	logical(klog) :: duplicateFound
+	
+	call initialize(nearbyParticles)
+	call nearbyParticles%pushBack(vertIndex)	
+	
+	call CCWFacesAroundVertex( aMesh, adjFaces, vertIndex )
+	! DEBUG
+	duplicateFound = .FALSE.
+	do i = 1, adjFaces%N
+		do j = i + 1, adjFaces%N
+			if ( adjFaces%int(i) == adjFaces%int(j) ) duplicateFound = .TRUE.
+		enddo
+	enddo
+	if ( duplicateFound ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, &
+			trim(logKey)//" GetParticlesNearVertex adjFaces duplicate ERROR at vert", vertIndex)
+		call LogMessage(log, ERROR_LOGGING_LEVEL, "adjFaces = ", adjFaces )
+	endif
+	! END DEBUG
+	
+	do i = 1, adjFaces%N
+		call nearbyParticles%pushBack( aMesh%faces%centerParticle(adjFaces%int(i)) )
+	enddo
+	
+	do i = 1, adjFaces%N
+		call initialize(faceVerts)
+		call CCWVerticesAroundFace( aMesh, faceVerts, adjFaces%int(i))
+		do j = 1, faceVerts%N
+			call nearbyParticles%pushBackUnique( faceVerts%int(j))
+		enddo
+	enddo
+end subroutine
+
+subroutine GetParticlesNearFace( nearbyParticles, aMesh, faceIndex)
+	type(STDIntVector), intent(out) :: nearbyParticles
+	type(PolyMesh2d), intent(in) :: aMesh
+	integer(kint), intent(in) :: faceIndex
+	!
+	type(STDIntVector) :: adjFaces, faceVerts
+	integer(kint) :: i, j
+	logical(klog) :: duplicateFound
+	
+	call initialize(nearbyParticles)
+	call nearbyParticles%pushBack( aMesh%faces%centerParticle(faceIndex) )
+	
+	call CCWAdjacentFaces( aMesh, adjFaces, faceIndex )
+	! DEBUG 
+	duplicateFound = .FALSE.
+	do i = 1, adjFaces%N
+		do j = i+1, adjFaces%N
+			if ( adjFaces%int(i) == adjFaces%int(j) ) duplicateFound = .TRUE.
+		enddo
+	enddo
+	
+	if ( duplicateFound ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, trim(logKey)//"GetParticlesNearFace adjFaces duplicate ERROR at face : ", faceIndex )
+		call LogMessage(log, ERROR_LOGGING_LEVEL, "adjFaces = ", adjFaces )
+	endif
+	! END DEBUG
+	
+	call CCWVerticesAroundFace( aMesh, faceVerts, faceIndex )
+	! DEBUG 
+	duplicateFound = .FALSE.
+	do i = 1, faceVerts%N
+		do j = i+1, faceVerts%N
+			if ( faceVerts%int(i) == faceVerts%int(j) ) duplicateFound = .TRUE.
+		enddo
+	enddo
+	
+	if ( duplicateFound ) then
+		call LogMessage(log, ERROR_LOGGING_LEVEL, trim(logKey)//" GetParticlesNearFace faceVerts duplicate ERROR at face : ", faceIndex )
+		call LogMessage(log, ERROR_LOGGING_LEVEL, "faceVerts = ", faceVerts )
+	endif
+	! END DEBUG
+
+	do i = 1, adjFaces%N
+		call nearbyParticles%pushBack( aMesh%faces%centerParticle( adjFaces%int(i) ))
+	enddo
+	do i = 1, faceVerts%N
+		call nearbyParticles%pushBack( faceVerts%int(i) )
+	enddo
+	
+	do i = 1, adjFaces%N
+		call initialize(faceVerts)
+		call CCWVerticesAroundFace( aMesh, faceVerts, adjFaces%int(i) )
+		do j = 1, faceVerts%N
+			call nearbyParticles%pushBackUnique( faceVerts%int(j))
+		enddo
+	enddo
+end subroutine
+
+
 subroutine InitLogger(aLog,rank)
-	type(Logger), intent(inout) :: aLog
+! Initialize a logger for this module and processor
+	type(Logger), intent(out) :: aLog
 	integer(kint), intent(in) :: rank
 	write(logKey,'(A,A,I0.2,A)') trim(logKey),'_',rank,' : '
-	call New(aLog,logLevel)
+	if ( rank == 0 ) then
+		call New(aLog,logLevel)
+	else
+		call New(aLog,ERROR_LOGGING_LEVEL)
+	endif
 	logInit = .TRUE.
 end subroutine
 

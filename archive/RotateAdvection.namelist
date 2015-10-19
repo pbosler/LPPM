@@ -1,0 +1,28 @@
+&meshDefine
+	initNest = 4
+	AMR = 3
+	amrLimit = 4
+	xmin = -1.0
+	xmax = 2.0
+	ymin = -1.0
+	ymax = 2.0
+/
+
+&timestepping
+	dt = 0.01
+	tfinal = 1.0
+/
+
+&remeshing
+	maxTol = 0.1
+	tracerVarTol = 0.25
+	lagVarTol = 1.5
+	remeshInterval = 20
+	resetAlphaInterval = 3000
+/
+
+&fileIO
+	outputDir = '/Users/pbosler/Desktop/modelData/'
+	jobPrefix = 'planeAdvectionTest_'
+/
+

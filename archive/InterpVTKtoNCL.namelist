@@ -1,0 +1,6 @@
+&filenames
+inputfile = '*.vtk'
+outputPrefix = '*'
+degreeSpacing = 0.5
+/
+
